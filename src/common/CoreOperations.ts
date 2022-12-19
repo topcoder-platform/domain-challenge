@@ -20,7 +20,7 @@ import {
   ScanCriteria,
   ScanResult,
   FilterValue,
-} from "../../dist/models/common/Common";
+} from "../../dist/models/common/common";
 
 export type ValueType =
   | "nullValue"
