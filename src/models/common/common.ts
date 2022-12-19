@@ -4,59 +4,63 @@ import _m0 from "protobufjs/minimal";
 import { Struct, Value } from "../google/protobuf/struct";
 
 export enum Operator {
-  EQUAL = 0,
-  NOT_EQUAL = 1,
-  GREATER_THAN = 2,
-  GREATER_THAN_OR_EQUAL = 3,
-  LESS_THAN = 4,
-  LESS_THAN_OR_EQUAL = 5,
-  AND = 6,
-  BETWEEN = 7,
-  IN = 8,
-  IS = 9,
-  NOT = 10,
-  OR = 11,
+  OPERATOR_UNSPECIFIED = 0,
+  OPERATOR_EQUAL = 1,
+  OPERATOR_NOT_EQUAL = 2,
+  OPERATOR_GREATER_THAN = 3,
+  OPERATOR_GREATER_THAN_OR_EQUAL = 4,
+  OPERATOR_LESS_THAN = 5,
+  OPERATOR_LESS_THAN_OR_EQUAL = 6,
+  OPERATOR_AND = 7,
+  OPERATOR_BETWEEN = 8,
+  OPERATOR_IN = 9,
+  OPERATOR_IS = 10,
+  OPERATOR_NOT = 11,
+  OPERATOR_OR = 12,
   UNRECOGNIZED = -1,
 }
 
 export function operatorFromJSON(object: any): Operator {
   switch (object) {
     case 0:
-    case "EQUAL":
-      return Operator.EQUAL;
+    case "OPERATOR_UNSPECIFIED":
+      return Operator.OPERATOR_UNSPECIFIED;
     case 1:
-    case "NOT_EQUAL":
-      return Operator.NOT_EQUAL;
+    case "OPERATOR_EQUAL":
+      return Operator.OPERATOR_EQUAL;
     case 2:
-    case "GREATER_THAN":
-      return Operator.GREATER_THAN;
+    case "OPERATOR_NOT_EQUAL":
+      return Operator.OPERATOR_NOT_EQUAL;
     case 3:
-    case "GREATER_THAN_OR_EQUAL":
-      return Operator.GREATER_THAN_OR_EQUAL;
+    case "OPERATOR_GREATER_THAN":
+      return Operator.OPERATOR_GREATER_THAN;
     case 4:
-    case "LESS_THAN":
-      return Operator.LESS_THAN;
+    case "OPERATOR_GREATER_THAN_OR_EQUAL":
+      return Operator.OPERATOR_GREATER_THAN_OR_EQUAL;
     case 5:
-    case "LESS_THAN_OR_EQUAL":
-      return Operator.LESS_THAN_OR_EQUAL;
+    case "OPERATOR_LESS_THAN":
+      return Operator.OPERATOR_LESS_THAN;
     case 6:
-    case "AND":
-      return Operator.AND;
+    case "OPERATOR_LESS_THAN_OR_EQUAL":
+      return Operator.OPERATOR_LESS_THAN_OR_EQUAL;
     case 7:
-    case "BETWEEN":
-      return Operator.BETWEEN;
+    case "OPERATOR_AND":
+      return Operator.OPERATOR_AND;
     case 8:
-    case "IN":
-      return Operator.IN;
+    case "OPERATOR_BETWEEN":
+      return Operator.OPERATOR_BETWEEN;
     case 9:
-    case "IS":
-      return Operator.IS;
+    case "OPERATOR_IN":
+      return Operator.OPERATOR_IN;
     case 10:
-    case "NOT":
-      return Operator.NOT;
+    case "OPERATOR_IS":
+      return Operator.OPERATOR_IS;
     case 11:
-    case "OR":
-      return Operator.OR;
+    case "OPERATOR_NOT":
+      return Operator.OPERATOR_NOT;
+    case 12:
+    case "OPERATOR_OR":
+      return Operator.OPERATOR_OR;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -66,54 +70,99 @@ export function operatorFromJSON(object: any): Operator {
 
 export function operatorToJSON(object: Operator): string {
   switch (object) {
-    case Operator.EQUAL:
-      return "EQUAL";
-    case Operator.NOT_EQUAL:
-      return "NOT_EQUAL";
-    case Operator.GREATER_THAN:
-      return "GREATER_THAN";
-    case Operator.GREATER_THAN_OR_EQUAL:
-      return "GREATER_THAN_OR_EQUAL";
-    case Operator.LESS_THAN:
-      return "LESS_THAN";
-    case Operator.LESS_THAN_OR_EQUAL:
-      return "LESS_THAN_OR_EQUAL";
-    case Operator.AND:
-      return "AND";
-    case Operator.BETWEEN:
-      return "BETWEEN";
-    case Operator.IN:
-      return "IN";
-    case Operator.IS:
-      return "IS";
-    case Operator.NOT:
-      return "NOT";
-    case Operator.OR:
-      return "OR";
+    case Operator.OPERATOR_UNSPECIFIED:
+      return "OPERATOR_UNSPECIFIED";
+    case Operator.OPERATOR_EQUAL:
+      return "OPERATOR_EQUAL";
+    case Operator.OPERATOR_NOT_EQUAL:
+      return "OPERATOR_NOT_EQUAL";
+    case Operator.OPERATOR_GREATER_THAN:
+      return "OPERATOR_GREATER_THAN";
+    case Operator.OPERATOR_GREATER_THAN_OR_EQUAL:
+      return "OPERATOR_GREATER_THAN_OR_EQUAL";
+    case Operator.OPERATOR_LESS_THAN:
+      return "OPERATOR_LESS_THAN";
+    case Operator.OPERATOR_LESS_THAN_OR_EQUAL:
+      return "OPERATOR_LESS_THAN_OR_EQUAL";
+    case Operator.OPERATOR_AND:
+      return "OPERATOR_AND";
+    case Operator.OPERATOR_BETWEEN:
+      return "OPERATOR_BETWEEN";
+    case Operator.OPERATOR_IN:
+      return "OPERATOR_IN";
+    case Operator.OPERATOR_IS:
+      return "OPERATOR_IS";
+    case Operator.OPERATOR_NOT:
+      return "OPERATOR_NOT";
+    case Operator.OPERATOR_OR:
+      return "OPERATOR_OR";
     case Operator.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
   }
 }
 
+export enum Boolean {
+  BOOLEAN_UNSPECIFIED = 0,
+  BOOLEAN_TRUE = 1,
+  BOOLEAN_FALSE = 2,
+  UNRECOGNIZED = -1,
+}
+
+export function booleanFromJSON(object: any): Boolean {
+  switch (object) {
+    case 0:
+    case "BOOLEAN_UNSPECIFIED":
+      return Boolean.BOOLEAN_UNSPECIFIED;
+    case 1:
+    case "BOOLEAN_TRUE":
+      return Boolean.BOOLEAN_TRUE;
+    case 2:
+    case "BOOLEAN_FALSE":
+      return Boolean.BOOLEAN_FALSE;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return Boolean.UNRECOGNIZED;
+  }
+}
+
+export function booleanToJSON(object: Boolean): string {
+  switch (object) {
+    case Boolean.BOOLEAN_UNSPECIFIED:
+      return "BOOLEAN_UNSPECIFIED";
+    case Boolean.BOOLEAN_TRUE:
+      return "BOOLEAN_TRUE";
+    case Boolean.BOOLEAN_FALSE:
+      return "BOOLEAN_FALSE";
+    case Boolean.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export enum Domain {
-  RESOURCE = 0,
-  RESOURCE_ROLE = 1,
-  RESOURCE_ROLE_PHASE_DEPENDENCY = 3,
+  DOMAIN_UNSPECIFIED = 0,
+  DOMAIN_RESOURCE = 1,
+  DOMAIN_RESOURCE_ROLE = 2,
+  DOMAIN_RESOURCE_ROLE_PHASE_DEPENDENCY = 3,
   UNRECOGNIZED = -1,
 }
 
 export function domainFromJSON(object: any): Domain {
   switch (object) {
     case 0:
-    case "RESOURCE":
-      return Domain.RESOURCE;
+    case "DOMAIN_UNSPECIFIED":
+      return Domain.DOMAIN_UNSPECIFIED;
     case 1:
-    case "RESOURCE_ROLE":
-      return Domain.RESOURCE_ROLE;
+    case "DOMAIN_RESOURCE":
+      return Domain.DOMAIN_RESOURCE;
+    case 2:
+    case "DOMAIN_RESOURCE_ROLE":
+      return Domain.DOMAIN_RESOURCE_ROLE;
     case 3:
-    case "RESOURCE_ROLE_PHASE_DEPENDENCY":
-      return Domain.RESOURCE_ROLE_PHASE_DEPENDENCY;
+    case "DOMAIN_RESOURCE_ROLE_PHASE_DEPENDENCY":
+      return Domain.DOMAIN_RESOURCE_ROLE_PHASE_DEPENDENCY;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -123,12 +172,14 @@ export function domainFromJSON(object: any): Domain {
 
 export function domainToJSON(object: Domain): string {
   switch (object) {
-    case Domain.RESOURCE:
-      return "RESOURCE";
-    case Domain.RESOURCE_ROLE:
-      return "RESOURCE_ROLE";
-    case Domain.RESOURCE_ROLE_PHASE_DEPENDENCY:
-      return "RESOURCE_ROLE_PHASE_DEPENDENCY";
+    case Domain.DOMAIN_UNSPECIFIED:
+      return "DOMAIN_UNSPECIFIED";
+    case Domain.DOMAIN_RESOURCE:
+      return "DOMAIN_RESOURCE";
+    case Domain.DOMAIN_RESOURCE_ROLE:
+      return "DOMAIN_RESOURCE_ROLE";
+    case Domain.DOMAIN_RESOURCE_ROLE_PHASE_DEPENDENCY:
+      return "DOMAIN_RESOURCE_ROLE_PHASE_DEPENDENCY";
     case Domain.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -158,10 +209,6 @@ export interface FilterValue {
 export interface LookupCriteria {
   key: string;
   value?: FilterValue;
-}
-
-export interface UpdateOperationResult {
-  success: boolean;
 }
 
 function createBaseScanCriteria(): ScanCriteria {
@@ -491,57 +538,10 @@ export const LookupCriteria = {
   },
 };
 
-function createBaseUpdateOperationResult(): UpdateOperationResult {
-  return { success: false };
-}
-
-export const UpdateOperationResult = {
-  encode(message: UpdateOperationResult, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.success === true) {
-      writer.uint32(8).bool(message.success);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateOperationResult {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseUpdateOperationResult();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.success = reader.bool();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): UpdateOperationResult {
-    return { success: isSet(object.success) ? Boolean(object.success) : false };
-  },
-
-  toJSON(message: UpdateOperationResult): unknown {
-    const obj: any = {};
-    message.success !== undefined && (obj.success = message.success);
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<UpdateOperationResult>, I>>(object: I): UpdateOperationResult {
-    const message = createBaseUpdateOperationResult();
-    message.success = object.success ?? false;
-    return message;
-  },
-};
-
 declare var self: any | undefined;
 declare var window: any | undefined;
 declare var global: any | undefined;
-var globalThis: any = (() => {
+var tsProtoGlobalThis: any = (() => {
   if (typeof globalThis !== "undefined") {
     return globalThis;
   }
@@ -571,7 +571,7 @@ type Exact<P, I extends P> = P extends Builtin ? P
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {
-    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+    throw new tsProtoGlobalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
   }
   return long.toNumber();
 }

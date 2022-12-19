@@ -1,10 +1,11 @@
-require("dotenv").config();
-
 const path = require("path");
 const { execSync } = require("child_process");
 const rimraf = require("rimraf");
 
-const PROTO_DIR = process.env.GRPC_NOSQL_PROTO_PATH;
+const PROTO_DIR = path.join(
+  __dirname,
+  "../node_modules/topcoder-interface/data-access-layer/nosql"
+);
 const MODEL_DIR = path.join(__dirname, "../src/dal/models/nosql/");
 
 const PROTOC_PATH = "protoc";
