@@ -7,6 +7,10 @@ dotenv.config();
 
 import { Server, ServerCredentials } from "@grpc/grpc-js";
 import { addReflection } from "grpc-server-reflection";
+import {
+  ChallengeTimelineTemplateServer,
+  ChallengeTimelineTemplateService,
+} from "./service/ChallengeTimelineTemplateService";
 
 const { ENV, GRPC_SERVER_HOST = "", GRPC_SERVER_PORT = 9092 } = process.env;
 
@@ -20,6 +24,10 @@ if (ENV === "local") {
 }
 
 // server.addService(LegacyChallengeService, new LegacyChallengeServer());
+server.addService(
+  ChallengeTimelineTemplateService,
+  new ChallengeTimelineTemplateServer()
+);
 
 server.bindAsync(
   `${GRPC_SERVER_HOST}:${GRPC_SERVER_PORT}`,
