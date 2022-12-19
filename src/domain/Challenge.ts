@@ -1,8 +1,8 @@
 import { Value } from "../dal/models/nosql/PartiQL";
-import { Challenge } from "../models/challenge-domain/Challenge";
 import { ChallengeSchema } from "../schema/Challenge";
+import { Challenge } from "../models/domain-layer/challenge/Challenge";
 
-import CoreOperations from "./CoreOperations";
+import CoreOperations from "../common/CoreOperations";
 
 class ChallengeDomain extends CoreOperations<Challenge> {
   protected toEntity(item: { [key: string]: Value }): Challenge {

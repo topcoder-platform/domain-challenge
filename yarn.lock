@@ -1400,7 +1400,7 @@ to-regex-range@^5.0.1:
 
 "topcoder-interface@github:topcoder-platform/plat-interface-definition#feat/challenge-domain":
   version "1.0.0"
-  resolved "https://codeload.github.com/topcoder-platform/plat-interface-definition/tar.gz/bb36d5f6532c1dcdf0db2effa076418b5415191f"
+  resolved "https://codeload.github.com/topcoder-platform/plat-interface-definition/tar.gz/1ffc4d6bf4f9acf73c4361c2561b1e184de3f014"
 
 tree-kill@^1.2.2:
   version "1.2.2"

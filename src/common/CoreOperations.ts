@@ -1,3 +1,5 @@
+// TODO: Move this to @topcoder-framework
+
 import { noSqlClient } from "../dal/client/nosql";
 
 import {
@@ -11,13 +13,14 @@ import {
   ReturnValues,
   SelectQuery,
   Value,
-} from "../dal/models/nosql/PartiQL";
+} from "../../dist/dal/models/nosql/PartiQL";
+
 import {
   LookupCriteria,
   ScanCriteria,
   ScanResult,
   FilterValue,
-} from "../models/common/Common";
+} from "../../dist/models/common/Common";
 
 export type ValueType =
   | "nullValue"

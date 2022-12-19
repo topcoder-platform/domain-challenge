@@ -346,7 +346,7 @@ export interface Challenge {
   projectId?: number | undefined;
   startDate?: Date | undefined;
   endDate?: Date | undefined;
-  status: string;
+  status: Challenge_ChallengeStatus;
   attachments: string[];
   groups: string[];
   winners: Challenge_Winner[];
@@ -355,6 +355,123 @@ export interface Challenge {
   updatedBy?: string | undefined;
   created?: Date;
   updated?: Date | undefined;
+}
+
+export enum Challenge_ChallengeStatus {
+  CHALLENGE_STATUS_UNSPECIFIED = 0,
+  CHALLENGE_STATUS_NEW = 1,
+  CHALLENGE_STATUS_DRAFT = 2,
+  CHALLENGE_STATUS_ACTIVE = 3,
+  CHALLENGE_STATUS_COMPLETED = 4,
+  CHALLENGE_STATUS_CANCELLED = 5,
+  CHALLENGE_STATUS_DELETED = 6,
+  CHALLENGE_STATUS_APPROVED = 7,
+  CHALLENGE_STATUS_CANCELLED_FAILED_REVIEW = 8,
+  CHALLENGE_STATUS_CANCELLED_FAILED_SCREENING = 9,
+  CHALLENGE_STATUS_CANCELLED_ZERO_SUBMISSIONS = 10,
+  CHALLENGE_STATUS_CANCELLED_WINNER_UNRESPONSIVE = 11,
+  CHALLENGE_STATUS_CANCELLED_CLIENT_REQUEST = 12,
+  CHALLENGE_STATUS_CANCELLED_REQUIREMENTS_INFEASIBLE = 13,
+  CHALLENGE_STATUS_CANCELLED_ZERO_REGISTRATIONS = 14,
+  CHALLENGE_STATUS_CANCELLED_PAYMENT_FAILED = 15,
+  UNRECOGNIZED = -1,
+}
+
+export function challenge_ChallengeStatusFromJSON(object: any): Challenge_ChallengeStatus {
+  switch (object) {
+    case 0:
+    case "CHALLENGE_STATUS_UNSPECIFIED":
+      return Challenge_ChallengeStatus.CHALLENGE_STATUS_UNSPECIFIED;
+    case 1:
+    case "CHALLENGE_STATUS_NEW":
+      return Challenge_ChallengeStatus.CHALLENGE_STATUS_NEW;
+    case 2:
+    case "CHALLENGE_STATUS_DRAFT":
+      return Challenge_ChallengeStatus.CHALLENGE_STATUS_DRAFT;
+    case 3:
+    case "CHALLENGE_STATUS_ACTIVE":
+      return Challenge_ChallengeStatus.CHALLENGE_STATUS_ACTIVE;
+    case 4:
+    case "CHALLENGE_STATUS_COMPLETED":
+      return Challenge_ChallengeStatus.CHALLENGE_STATUS_COMPLETED;
+    case 5:
+    case "CHALLENGE_STATUS_CANCELLED":
+      return Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED;
+    case 6:
+    case "CHALLENGE_STATUS_DELETED":
+      return Challenge_ChallengeStatus.CHALLENGE_STATUS_DELETED;
+    case 7:
+    case "CHALLENGE_STATUS_APPROVED":
+      return Challenge_ChallengeStatus.CHALLENGE_STATUS_APPROVED;
+    case 8:
+    case "CHALLENGE_STATUS_CANCELLED_FAILED_REVIEW":
+      return Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_FAILED_REVIEW;
+    case 9:
+    case "CHALLENGE_STATUS_CANCELLED_FAILED_SCREENING":
+      return Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_FAILED_SCREENING;
+    case 10:
+    case "CHALLENGE_STATUS_CANCELLED_ZERO_SUBMISSIONS":
+      return Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_ZERO_SUBMISSIONS;
+    case 11:
+    case "CHALLENGE_STATUS_CANCELLED_WINNER_UNRESPONSIVE":
+      return Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_WINNER_UNRESPONSIVE;
+    case 12:
+    case "CHALLENGE_STATUS_CANCELLED_CLIENT_REQUEST":
+      return Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_CLIENT_REQUEST;
+    case 13:
+    case "CHALLENGE_STATUS_CANCELLED_REQUIREMENTS_INFEASIBLE":
+      return Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_REQUIREMENTS_INFEASIBLE;
+    case 14:
+    case "CHALLENGE_STATUS_CANCELLED_ZERO_REGISTRATIONS":
+      return Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_ZERO_REGISTRATIONS;
+    case 15:
+    case "CHALLENGE_STATUS_CANCELLED_PAYMENT_FAILED":
+      return Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_PAYMENT_FAILED;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return Challenge_ChallengeStatus.UNRECOGNIZED;
+  }
+}
+
+export function challenge_ChallengeStatusToJSON(object: Challenge_ChallengeStatus): string {
+  switch (object) {
+    case Challenge_ChallengeStatus.CHALLENGE_STATUS_UNSPECIFIED:
+      return "CHALLENGE_STATUS_UNSPECIFIED";
+    case Challenge_ChallengeStatus.CHALLENGE_STATUS_NEW:
+      return "CHALLENGE_STATUS_NEW";
+    case Challenge_ChallengeStatus.CHALLENGE_STATUS_DRAFT:
+      return "CHALLENGE_STATUS_DRAFT";
+    case Challenge_ChallengeStatus.CHALLENGE_STATUS_ACTIVE:
+      return "CHALLENGE_STATUS_ACTIVE";
+    case Challenge_ChallengeStatus.CHALLENGE_STATUS_COMPLETED:
+      return "CHALLENGE_STATUS_COMPLETED";
+    case Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED:
+      return "CHALLENGE_STATUS_CANCELLED";
+    case Challenge_ChallengeStatus.CHALLENGE_STATUS_DELETED:
+      return "CHALLENGE_STATUS_DELETED";
+    case Challenge_ChallengeStatus.CHALLENGE_STATUS_APPROVED:
+      return "CHALLENGE_STATUS_APPROVED";
+    case Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_FAILED_REVIEW:
+      return "CHALLENGE_STATUS_CANCELLED_FAILED_REVIEW";
+    case Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_FAILED_SCREENING:
+      return "CHALLENGE_STATUS_CANCELLED_FAILED_SCREENING";
+    case Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_ZERO_SUBMISSIONS:
+      return "CHALLENGE_STATUS_CANCELLED_ZERO_SUBMISSIONS";
+    case Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_WINNER_UNRESPONSIVE:
+      return "CHALLENGE_STATUS_CANCELLED_WINNER_UNRESPONSIVE";
+    case Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_CLIENT_REQUEST:
+      return "CHALLENGE_STATUS_CANCELLED_CLIENT_REQUEST";
+    case Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_REQUIREMENTS_INFEASIBLE:
+      return "CHALLENGE_STATUS_CANCELLED_REQUIREMENTS_INFEASIBLE";
+    case Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_ZERO_REGISTRATIONS:
+      return "CHALLENGE_STATUS_CANCELLED_ZERO_REGISTRATIONS";
+    case Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_PAYMENT_FAILED:
+      return "CHALLENGE_STATUS_CANCELLED_PAYMENT_FAILED";
+    case Challenge_ChallengeStatus.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
 }
 
 export interface Challenge_Legacy {
@@ -512,7 +629,86 @@ export interface Challenge_PrizeSet_Prize {
 }
 
 export interface CreateChallengeInput {
-  challenge?: Challenge;
+  typeId: string;
+  /**
+   * Legacy Legacy = 3;
+   * legacy:
+   *   Joi.object().keys({
+   *     reviewType:
+   *       Joi.string()
+   *           .valid(_.values(constants.reviewTypes))
+   *           .insensitive()
+   *           .default(constants.reviewTypes.Internal),
+   *       confidentialityType:
+   *           Joi.string().default(config.DEFAULT_CONFIDENTIALITY_TYPE),
+   *       forumId: Joi.number().integer(), directProjectId:
+   *       Joi.number().integer(), screeningScorecardId: Joi.number().integer(),
+   *       reviewScorecardId: Joi.number().integer(), isTask: Joi.boolean(),
+   *       useSchedulingAPI: Joi.boolean(), pureV5Task: Joi.boolean(),
+   *       pureV5: Joi.boolean(), selfService: Joi.boolean(),
+   *       selfServiceCopilot: Joi.string()
+   *   }),
+   *   billing: Joi.object()
+   *       .keys({
+   *         billingAccountId:
+   *           Joi.string(), markup: Joi.number().min(0).max(100)
+   *       })
+   *       .unknown(true),
+   *   task: Joi.object().keys({
+   *     isTask:
+   *       Joi.boolean().default(false), isAssigned:
+   *       Joi.boolean().default(false), memberId: Joi.string().allow(null)
+   *   }),
+   *   name: Joi.string().required(), description: Joi.string(),
+   *   privateDescription: Joi.string(), descriptionFormat: Joi.string(),
+   *   metadata: Joi.array()
+   *       .items(Joi.object().keys({
+   *         name:
+   *           Joi.string().required(), value: Joi.required()
+   *       }))
+   *       .unique((a, b) = > a.name == = b.name),
+   *   timelineTemplateId: Joi.string(),  // Joi.optionalId(),
+   *   phases: Joi.array().items(Joi.object().keys({
+   *     phaseId:
+   *       Joi.id(), duration: Joi.number().integer().min(0)
+   *   })),
+   *   events: Joi.array().items(Joi.object().keys({
+   *     id:
+   *       Joi.number().required(), name: Joi.string(), key: Joi.string()
+   *   })),
+   *   discussions: Joi.array().items(Joi.object().keys({
+   *     id:
+   *       Joi.optionalId(), name: Joi.string().required(),
+   *       type:
+   *       Joi.string().required().valid(_.values(constants.DiscussionTypes)),
+   *       provider: Joi.string().required(), url: Joi.string(),
+   *       options: Joi.array().items(Joi.object())
+   *   })),
+   *   prizeSets: Joi.array().items(Joi.object().keys({
+   *     type:
+   *       Joi.string().valid(_.values(constants.prizeSetTypes)).required(),
+   *       description: Joi.string(),
+   *       prizes: Joi.array()
+   *           .items(Joi.object().keys({
+   *             description:
+   *               Joi.string(), type: Joi.string().required(),
+   *               value: Joi.number().min(0).required()
+   *           }))
+   *           .min(1)
+   *           .required()
+   *   })),
+   *   tags: Joi.array().items(Joi.string()),  // tag names
+   *   projectId: Joi.number().integer().positive(),
+   *   legacyId: Joi.number().integer().positive(), startDate: Joi.date(),
+   *   status: Joi.string().valid(_.values(constants.challengeStatuses)),
+   *   groups: Joi.array().items(Joi.optionalId()).unique(),
+   *       // gitRepoURLs: Joi.array().items(Joi.string().uri()),
+   *   terms: Joi.array().items(Joi.object().keys({
+   *     id:
+   *       Joi.id(), roleId: Joi.id()
+   *   }))
+   */
+  trackId: string;
 }
 
 export interface UpdateChallengeInput {
@@ -546,7 +742,7 @@ function createBaseChallenge(): Challenge {
     projectId: undefined,
     startDate: undefined,
     endDate: undefined,
-    status: "",
+    status: 0,
     attachments: [],
     groups: [],
     winners: [],
@@ -623,8 +819,8 @@ export const Challenge = {
     if (message.endDate !== undefined) {
       Timestamp.encode(toTimestamp(message.endDate), writer.uint32(170).fork()).ldelim();
     }
-    if (message.status !== "") {
-      writer.uint32(178).string(message.status);
+    if (message.status !== 0) {
+      writer.uint32(176).int32(message.status);
     }
     for (const v of message.attachments) {
       writer.uint32(186).string(v!);
@@ -724,7 +920,7 @@ export const Challenge = {
           message.endDate = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           break;
         case 22:
-          message.status = reader.string();
+          message.status = reader.int32() as any;
           break;
         case 23:
           message.attachments.push(reader.string());
@@ -783,7 +979,7 @@ export const Challenge = {
       projectId: isSet(object.projectId) ? Number(object.projectId) : undefined,
       startDate: isSet(object.startDate) ? fromJsonTimestamp(object.startDate) : undefined,
       endDate: isSet(object.endDate) ? fromJsonTimestamp(object.endDate) : undefined,
-      status: isSet(object.status) ? String(object.status) : "",
+      status: isSet(object.status) ? challenge_ChallengeStatusFromJSON(object.status) : 0,
       attachments: Array.isArray(object?.attachments) ? object.attachments.map((e: any) => String(e)) : [],
       groups: Array.isArray(object?.groups) ? object.groups.map((e: any) => String(e)) : [],
       winners: Array.isArray(object?.winners) ? object.winners.map((e: any) => Challenge_Winner.fromJSON(e)) : [],
@@ -845,7 +1041,7 @@ export const Challenge = {
     message.projectId !== undefined && (obj.projectId = Math.round(message.projectId));
     message.startDate !== undefined && (obj.startDate = message.startDate.toISOString());
     message.endDate !== undefined && (obj.endDate = message.endDate.toISOString());
-    message.status !== undefined && (obj.status = message.status);
+    message.status !== undefined && (obj.status = challenge_ChallengeStatusToJSON(message.status));
     if (message.attachments) {
       obj.attachments = message.attachments.map((e) => e);
     } else {
@@ -902,7 +1098,7 @@ export const Challenge = {
     message.projectId = object.projectId ?? undefined;
     message.startDate = object.startDate ?? undefined;
     message.endDate = object.endDate ?? undefined;
-    message.status = object.status ?? "";
+    message.status = object.status ?? 0;
     message.attachments = object.attachments?.map((e) => e) || [];
     message.groups = object.groups?.map((e) => e) || [];
     message.winners = object.winners?.map((e) => Challenge_Winner.fromPartial(e)) || [];
@@ -1767,13 +1963,16 @@ export const Challenge_PrizeSet_Prize = {
 };
 
 function createBaseCreateChallengeInput(): CreateChallengeInput {
-  return { challenge: undefined };
+  return { typeId: "", trackId: "" };
 }
 
 export const CreateChallengeInput = {
   encode(message: CreateChallengeInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.challenge !== undefined) {
-      Challenge.encode(message.challenge, writer.uint32(10).fork()).ldelim();
+    if (message.typeId !== "") {
+      writer.uint32(10).string(message.typeId);
+    }
+    if (message.trackId !== "") {
+      writer.uint32(18).string(message.trackId);
     }
     return writer;
   },
@@ -1786,7 +1985,10 @@ export const CreateChallengeInput = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.challenge = Challenge.decode(reader, reader.uint32());
+          message.typeId = reader.string();
+          break;
+        case 2:
+          message.trackId = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -1797,21 +1999,23 @@ export const CreateChallengeInput = {
   },
 
   fromJSON(object: any): CreateChallengeInput {
-    return { challenge: isSet(object.challenge) ? Challenge.fromJSON(object.challenge) : undefined };
+    return {
+      typeId: isSet(object.typeId) ? String(object.typeId) : "",
+      trackId: isSet(object.trackId) ? String(object.trackId) : "",
+    };
   },
 
   toJSON(message: CreateChallengeInput): unknown {
     const obj: any = {};
-    message.challenge !== undefined &&
-      (obj.challenge = message.challenge ? Challenge.toJSON(message.challenge) : undefined);
+    message.typeId !== undefined && (obj.typeId = message.typeId);
+    message.trackId !== undefined && (obj.trackId = message.trackId);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<CreateChallengeInput>, I>>(object: I): CreateChallengeInput {
     const message = createBaseCreateChallengeInput();
-    message.challenge = (object.challenge !== undefined && object.challenge !== null)
-      ? Challenge.fromPartial(object.challenge)
-      : undefined;
+    message.typeId = object.typeId ?? "";
+    message.trackId = object.trackId ?? "";
     return message;
   },
 };

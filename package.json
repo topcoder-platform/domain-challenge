@@ -17,10 +17,10 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.183.0",
     "@aws-sdk/util-dynamodb": "^3.183.0",
-    "grpc-server-reflection": "^0.1.5",
     "@grpc/grpc-js": "^1.7.1",
     "dayjs": "^1.11.5",
     "dotenv": "^16.0.3",
+    "grpc-server-reflection": "^0.1.5",
     "lodash": "^4.17.21",
     "source-map-support": "^0.5.21",
     "topcoder-interface": "github:topcoder-platform/plat-interface-definition#feat/challenge-domain",
