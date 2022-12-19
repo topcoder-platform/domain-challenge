@@ -10,15 +10,6 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": ["typings/global.d.ts", "src/**/*"],
-  "exclude": [
-    "node_modules",
-    "src/models",
-    "src/acl/models",
-    "src/dal/models/nosql"
-  ],
-  "references": [
-    { "path": "src/models" },
-    { "path": "src/acl/models" },
-    { "path": "src/dal/models/nosql" }
-  ]
+  "exclude": ["node_modules", "src/models", "src/dal/models/nosql"],
+  "references": [{ "path": "src/models" }, { "path": "src/dal/models/nosql" }]
 }

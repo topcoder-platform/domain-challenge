@@ -1,6 +1,6 @@
 import { Value } from "../dal/models/nosql/PartiQL";
 import { ChallengeSchema } from "../schema/Challenge";
-import { Challenge } from "../models/domain-layer/challenge/Challenge";
+import { Challenge } from "../models/domain-layer/challenge/challenge";
 
 import CoreOperations from "../common/CoreOperations";
 

@@ -5,10 +5,10 @@
   "main": "index.js",
   "scripts": {
     "build:proto:client:nosql": "node bin/nosql-client",
-    "build:proto:client": "npm run build:proto:client:nosql",
+    "build:proto:client": "yarn build:proto:client:nosql",
     "build:proto:server": "node bin/server",
     "build:app": "rimraf dist && tsc -b",
-    "build": "npm run build:proto:client && npm run build:proto:server && npm run build:app",
+    "build": "yarn build:proto:client && yarn build:proto:server && yarn build:app",
     "start": "ts-node-dev --respawn --transpile-only src/server.ts"
   },
   "keywords": [],

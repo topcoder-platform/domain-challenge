@@ -16,7 +16,7 @@ import ChallengeDomain from "../domain/Challenge";
 import {
   CreateChallengeInput,
   Challenge,
-} from "../models/domain-layer/challenge/Challenge";
+} from "../models/domain-layer/challenge/challenge";
 
 class ChallengeServerImpl implements ChallengeServer {
   [name: string]: UntypedHandleCall;
