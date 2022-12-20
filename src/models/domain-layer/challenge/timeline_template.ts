@@ -1,7 +1,6 @@
 /* eslint-disable */
 import Long from "long";
 import _m0 from "protobufjs/minimal";
-import { Boolean, booleanFromJSON, booleanToJSON } from "../../common/common";
 
 export interface TimelineTemplatePhase {
   phaseId: string;
@@ -13,7 +12,7 @@ export interface TimelineTemplate {
   id: string;
   name: string;
   description?: string | undefined;
-  isActive: Boolean;
+  isActive: boolean;
   phases: TimelineTemplatePhase[];
 }
 
@@ -97,7 +96,7 @@ export const TimelineTemplatePhase = {
 };
 
 function createBaseTimelineTemplate(): TimelineTemplate {
-  return { id: "", name: "", description: undefined, isActive: 0, phases: [] };
+  return { id: "", name: "", description: undefined, isActive: false, phases: [] };
 }
 
 export const TimelineTemplate = {
@@ -111,8 +110,8 @@ export const TimelineTemplate = {
     if (message.description !== undefined) {
       writer.uint32(26).string(message.description);
     }
-    if (message.isActive !== 0) {
-      writer.uint32(32).int32(message.isActive);
+    if (message.isActive === true) {
+      writer.uint32(32).bool(message.isActive);
     }
     for (const v of message.phases) {
       TimelineTemplatePhase.encode(v!, writer.uint32(42).fork()).ldelim();
@@ -137,7 +136,7 @@ export const TimelineTemplate = {
           message.description = reader.string();
           break;
         case 4:
-          message.isActive = reader.int32() as any;
+          message.isActive = reader.bool();
           break;
         case 5:
           message.phases.push(TimelineTemplatePhase.decode(reader, reader.uint32()));
@@ -155,7 +154,7 @@ export const TimelineTemplate = {
       id: isSet(object.id) ? String(object.id) : "",
       name: isSet(object.name) ? String(object.name) : "",
       description: isSet(object.description) ? String(object.description) : undefined,
-      isActive: isSet(object.isActive) ? booleanFromJSON(object.isActive) : 0,
+      isActive: isSet(object.isActive) ? Boolean(object.isActive) : false,
       phases: Array.isArray(object?.phases) ? object.phases.map((e: any) => TimelineTemplatePhase.fromJSON(e)) : [],
     };
   },
@@ -165,7 +164,7 @@ export const TimelineTemplate = {
     message.id !== undefined && (obj.id = message.id);
     message.name !== undefined && (obj.name = message.name);
     message.description !== undefined && (obj.description = message.description);
-    message.isActive !== undefined && (obj.isActive = booleanToJSON(message.isActive));
+    message.isActive !== undefined && (obj.isActive = message.isActive);
     if (message.phases) {
       obj.phases = message.phases.map((e) => e ? TimelineTemplatePhase.toJSON(e) : undefined);
     } else {
@@ -179,7 +178,7 @@ export const TimelineTemplate = {
     message.id = object.id ?? "";
     message.name = object.name ?? "";
     message.description = object.description ?? undefined;
-    message.isActive = object.isActive ?? 0;
+    message.isActive = object.isActive ?? false;
     message.phases = object.phases?.map((e) => TimelineTemplatePhase.fromPartial(e)) || [];
     return message;
   },

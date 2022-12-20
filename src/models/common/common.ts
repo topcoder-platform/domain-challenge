@@ -102,45 +102,6 @@ export function operatorToJSON(object: Operator): string {
   }
 }
 
-export enum Boolean {
-  BOOLEAN_UNSPECIFIED = 0,
-  BOOLEAN_TRUE = 1,
-  BOOLEAN_FALSE = 2,
-  UNRECOGNIZED = -1,
-}
-
-export function booleanFromJSON(object: any): Boolean {
-  switch (object) {
-    case 0:
-    case "BOOLEAN_UNSPECIFIED":
-      return Boolean.BOOLEAN_UNSPECIFIED;
-    case 1:
-    case "BOOLEAN_TRUE":
-      return Boolean.BOOLEAN_TRUE;
-    case 2:
-    case "BOOLEAN_FALSE":
-      return Boolean.BOOLEAN_FALSE;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return Boolean.UNRECOGNIZED;
-  }
-}
-
-export function booleanToJSON(object: Boolean): string {
-  switch (object) {
-    case Boolean.BOOLEAN_UNSPECIFIED:
-      return "BOOLEAN_UNSPECIFIED";
-    case Boolean.BOOLEAN_TRUE:
-      return "BOOLEAN_TRUE";
-    case Boolean.BOOLEAN_FALSE:
-      return "BOOLEAN_FALSE";
-    case Boolean.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
-
 export enum Domain {
   DOMAIN_UNSPECIFIED = 0,
   DOMAIN_RESOURCE = 1,

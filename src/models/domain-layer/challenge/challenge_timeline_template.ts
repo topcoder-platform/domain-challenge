@@ -1,20 +1,19 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
-import { Boolean, booleanFromJSON, booleanToJSON } from "../../common/common";
 
 export interface ChallengeTimelineTemplate {
   id: string;
   trackId: string;
   typeId: string;
   timelineTemplateId: string;
-  isDefault?: Boolean | undefined;
+  isDefault: boolean;
 }
 
 export interface CreateChallengeTimelineTemplateInput {
   trackId: string;
   typeId: string;
   timelineTemplateId: string;
-  isDefault: Boolean;
+  isDefault: boolean;
 }
 
 export interface UpdateChallengeTimelineTemplateInput {
@@ -22,7 +21,7 @@ export interface UpdateChallengeTimelineTemplateInput {
   trackId?: string | undefined;
   typeId?: string | undefined;
   timelineTemplateId?: string | undefined;
-  isDefault: Boolean;
+  isDefault: boolean;
 }
 
 export interface ChallengeTimelineTemplateList {
@@ -30,7 +29,7 @@ export interface ChallengeTimelineTemplateList {
 }
 
 function createBaseChallengeTimelineTemplate(): ChallengeTimelineTemplate {
-  return { id: "", trackId: "", typeId: "", timelineTemplateId: "", isDefault: undefined };
+  return { id: "", trackId: "", typeId: "", timelineTemplateId: "", isDefault: false };
 }
 
 export const ChallengeTimelineTemplate = {
@@ -47,8 +46,8 @@ export const ChallengeTimelineTemplate = {
     if (message.timelineTemplateId !== "") {
       writer.uint32(34).string(message.timelineTemplateId);
     }
-    if (message.isDefault !== undefined) {
-      writer.uint32(40).int32(message.isDefault);
+    if (message.isDefault === true) {
+      writer.uint32(40).bool(message.isDefault);
     }
     return writer;
   },
@@ -73,7 +72,7 @@ export const ChallengeTimelineTemplate = {
           message.timelineTemplateId = reader.string();
           break;
         case 5:
-          message.isDefault = reader.int32() as any;
+          message.isDefault = reader.bool();
           break;
         default:
           reader.skipType(tag & 7);
@@ -89,7 +88,7 @@ export const ChallengeTimelineTemplate = {
       trackId: isSet(object.trackId) ? String(object.trackId) : "",
       typeId: isSet(object.typeId) ? String(object.typeId) : "",
       timelineTemplateId: isSet(object.timelineTemplateId) ? String(object.timelineTemplateId) : "",
-      isDefault: isSet(object.isDefault) ? booleanFromJSON(object.isDefault) : undefined,
+      isDefault: isSet(object.isDefault) ? Boolean(object.isDefault) : false,
     };
   },
 
@@ -99,8 +98,7 @@ export const ChallengeTimelineTemplate = {
     message.trackId !== undefined && (obj.trackId = message.trackId);
     message.typeId !== undefined && (obj.typeId = message.typeId);
     message.timelineTemplateId !== undefined && (obj.timelineTemplateId = message.timelineTemplateId);
-    message.isDefault !== undefined &&
-      (obj.isDefault = message.isDefault !== undefined ? booleanToJSON(message.isDefault) : undefined);
+    message.isDefault !== undefined && (obj.isDefault = message.isDefault);
     return obj;
   },
 
@@ -110,13 +108,13 @@ export const ChallengeTimelineTemplate = {
     message.trackId = object.trackId ?? "";
     message.typeId = object.typeId ?? "";
     message.timelineTemplateId = object.timelineTemplateId ?? "";
-    message.isDefault = object.isDefault ?? undefined;
+    message.isDefault = object.isDefault ?? false;
     return message;
   },
 };
 
 function createBaseCreateChallengeTimelineTemplateInput(): CreateChallengeTimelineTemplateInput {
-  return { trackId: "", typeId: "", timelineTemplateId: "", isDefault: 0 };
+  return { trackId: "", typeId: "", timelineTemplateId: "", isDefault: false };
 }
 
 export const CreateChallengeTimelineTemplateInput = {
@@ -130,8 +128,8 @@ export const CreateChallengeTimelineTemplateInput = {
     if (message.timelineTemplateId !== "") {
       writer.uint32(26).string(message.timelineTemplateId);
     }
-    if (message.isDefault !== 0) {
-      writer.uint32(32).int32(message.isDefault);
+    if (message.isDefault === true) {
+      writer.uint32(32).bool(message.isDefault);
     }
     return writer;
   },
@@ -153,7 +151,7 @@ export const CreateChallengeTimelineTemplateInput = {
           message.timelineTemplateId = reader.string();
           break;
         case 4:
-          message.isDefault = reader.int32() as any;
+          message.isDefault = reader.bool();
           break;
         default:
           reader.skipType(tag & 7);
@@ -168,7 +166,7 @@ export const CreateChallengeTimelineTemplateInput = {
       trackId: isSet(object.trackId) ? String(object.trackId) : "",
       typeId: isSet(object.typeId) ? String(object.typeId) : "",
       timelineTemplateId: isSet(object.timelineTemplateId) ? String(object.timelineTemplateId) : "",
-      isDefault: isSet(object.isDefault) ? booleanFromJSON(object.isDefault) : 0,
+      isDefault: isSet(object.isDefault) ? Boolean(object.isDefault) : false,
     };
   },
 
@@ -177,7 +175,7 @@ export const CreateChallengeTimelineTemplateInput = {
     message.trackId !== undefined && (obj.trackId = message.trackId);
     message.typeId !== undefined && (obj.typeId = message.typeId);
     message.timelineTemplateId !== undefined && (obj.timelineTemplateId = message.timelineTemplateId);
-    message.isDefault !== undefined && (obj.isDefault = booleanToJSON(message.isDefault));
+    message.isDefault !== undefined && (obj.isDefault = message.isDefault);
     return obj;
   },
 
@@ -188,13 +186,13 @@ export const CreateChallengeTimelineTemplateInput = {
     message.trackId = object.trackId ?? "";
     message.typeId = object.typeId ?? "";
     message.timelineTemplateId = object.timelineTemplateId ?? "";
-    message.isDefault = object.isDefault ?? 0;
+    message.isDefault = object.isDefault ?? false;
     return message;
   },
 };
 
 function createBaseUpdateChallengeTimelineTemplateInput(): UpdateChallengeTimelineTemplateInput {
-  return { id: "", trackId: undefined, typeId: undefined, timelineTemplateId: undefined, isDefault: 0 };
+  return { id: "", trackId: undefined, typeId: undefined, timelineTemplateId: undefined, isDefault: false };
 }
 
 export const UpdateChallengeTimelineTemplateInput = {
@@ -211,8 +209,8 @@ export const UpdateChallengeTimelineTemplateInput = {
     if (message.timelineTemplateId !== undefined) {
       writer.uint32(34).string(message.timelineTemplateId);
     }
-    if (message.isDefault !== 0) {
-      writer.uint32(40).int32(message.isDefault);
+    if (message.isDefault === true) {
+      writer.uint32(40).bool(message.isDefault);
     }
     return writer;
   },
@@ -237,7 +235,7 @@ export const UpdateChallengeTimelineTemplateInput = {
           message.timelineTemplateId = reader.string();
           break;
         case 5:
-          message.isDefault = reader.int32() as any;
+          message.isDefault = reader.bool();
           break;
         default:
           reader.skipType(tag & 7);
@@ -253,7 +251,7 @@ export const UpdateChallengeTimelineTemplateInput = {
       trackId: isSet(object.trackId) ? String(object.trackId) : undefined,
       typeId: isSet(object.typeId) ? String(object.typeId) : undefined,
       timelineTemplateId: isSet(object.timelineTemplateId) ? String(object.timelineTemplateId) : undefined,
-      isDefault: isSet(object.isDefault) ? booleanFromJSON(object.isDefault) : 0,
+      isDefault: isSet(object.isDefault) ? Boolean(object.isDefault) : false,
     };
   },
 
@@ -263,7 +261,7 @@ export const UpdateChallengeTimelineTemplateInput = {
     message.trackId !== undefined && (obj.trackId = message.trackId);
     message.typeId !== undefined && (obj.typeId = message.typeId);
     message.timelineTemplateId !== undefined && (obj.timelineTemplateId = message.timelineTemplateId);
-    message.isDefault !== undefined && (obj.isDefault = booleanToJSON(message.isDefault));
+    message.isDefault !== undefined && (obj.isDefault = message.isDefault);
     return obj;
   },
 
@@ -275,7 +273,7 @@ export const UpdateChallengeTimelineTemplateInput = {
     message.trackId = object.trackId ?? undefined;
     message.typeId = object.typeId ?? undefined;
     message.timelineTemplateId = object.timelineTemplateId ?? undefined;
-    message.isDefault = object.isDefault ?? 0;
+    message.isDefault = object.isDefault ?? false;
     return message;
   },
 };

@@ -1,13 +1,12 @@
 /* eslint-disable */
 import Long from "long";
 import _m0 from "protobufjs/minimal";
-import { Boolean, booleanFromJSON, booleanToJSON } from "../../common/common";
 
 export interface Phase {
   id: string;
   name: string;
   description?: string | undefined;
-  isOpen: Boolean;
+  isOpen: boolean;
   duration: number;
 }
 
@@ -24,7 +23,7 @@ export interface RemovePhaseInput {
 }
 
 function createBasePhase(): Phase {
-  return { id: "", name: "", description: undefined, isOpen: 0, duration: 0 };
+  return { id: "", name: "", description: undefined, isOpen: false, duration: 0 };
 }
 
 export const Phase = {
@@ -38,8 +37,8 @@ export const Phase = {
     if (message.description !== undefined) {
       writer.uint32(26).string(message.description);
     }
-    if (message.isOpen !== 0) {
-      writer.uint32(32).int32(message.isOpen);
+    if (message.isOpen === true) {
+      writer.uint32(32).bool(message.isOpen);
     }
     if (message.duration !== 0) {
       writer.uint32(40).int64(message.duration);
@@ -64,7 +63,7 @@ export const Phase = {
           message.description = reader.string();
           break;
         case 4:
-          message.isOpen = reader.int32() as any;
+          message.isOpen = reader.bool();
           break;
         case 5:
           message.duration = longToNumber(reader.int64() as Long);
@@ -82,7 +81,7 @@ export const Phase = {
       id: isSet(object.id) ? String(object.id) : "",
       name: isSet(object.name) ? String(object.name) : "",
       description: isSet(object.description) ? String(object.description) : undefined,
-      isOpen: isSet(object.isOpen) ? booleanFromJSON(object.isOpen) : 0,
+      isOpen: isSet(object.isOpen) ? Boolean(object.isOpen) : false,
       duration: isSet(object.duration) ? Number(object.duration) : 0,
     };
   },
@@ -92,7 +91,7 @@ export const Phase = {
     message.id !== undefined && (obj.id = message.id);
     message.name !== undefined && (obj.name = message.name);
     message.description !== undefined && (obj.description = message.description);
-    message.isOpen !== undefined && (obj.isOpen = booleanToJSON(message.isOpen));
+    message.isOpen !== undefined && (obj.isOpen = message.isOpen);
     message.duration !== undefined && (obj.duration = Math.round(message.duration));
     return obj;
   },
@@ -102,7 +101,7 @@ export const Phase = {
     message.id = object.id ?? "";
     message.name = object.name ?? "";
     message.description = object.description ?? undefined;
-    message.isOpen = object.isOpen ?? 0;
+    message.isOpen = object.isOpen ?? false;
     message.duration = object.duration ?? 0;
     return message;
   },

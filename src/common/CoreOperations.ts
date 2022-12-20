@@ -99,7 +99,8 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
 
       return Filter.fromJSON({
         name: criteria.key,
-        operator: operatorFromJSON(criteria.operator),
+        // TODO: Move "Operator" from domain and PartiQL to common definitions
+        operator: Operator.EQUAL, // operatorFromJSON(criteria.operator),
         value: {
           stringValue: criteria.value,
         },
@@ -141,7 +142,7 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
   public async create(entity: T): Promise<T> {
     const queryRequest: QueryRequest = {
       kind: {
-        $case: "query", // Bug specific to Resource Domain
+        $case: "query",
         query: {
           kind: {
             $case: "insert",
@@ -164,7 +165,7 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
   }
 
   public async update() {
-    // TODO: 2 -> Generic method to call noSql.update
+    // TODO: Handle Update
   }
 
   public async delete(lookupCriteria: LookupCriteria): Promise<T[]> {

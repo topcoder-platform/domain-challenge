@@ -1,6 +1,5 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
-import { Boolean, booleanFromJSON, booleanToJSON } from "../../common/common";
 import { Timestamp } from "../../google/protobuf/timestamp";
 
 export enum Track {
@@ -482,8 +481,8 @@ export interface Challenge_Legacy {
   reviewType: ReviewType;
   reviewScorecardId?: number | undefined;
   screeningScorecardId?: number | undefined;
-  pureV5Task?: Boolean | undefined;
-  selfService?: Boolean | undefined;
+  pureV5Task?: boolean | undefined;
+  selfService?: boolean | undefined;
   selfServiceCopilot?: string | undefined;
 }
 
@@ -558,7 +557,7 @@ export interface Challenge_Phase {
   name: PhaseName;
   phaseId: string;
   id: string;
-  open: Boolean;
+  open: boolean;
 }
 
 export interface Challenge_Winner {
@@ -567,8 +566,8 @@ export interface Challenge_Winner {
 }
 
 export interface Challenge_Task {
-  isTask: Boolean;
-  isAssigned: Boolean;
+  isTask: boolean;
+  isAssigned: boolean;
   memberId?: number | undefined;
 }
 
@@ -1150,10 +1149,10 @@ export const Challenge_Legacy = {
       writer.uint32(56).int32(message.screeningScorecardId);
     }
     if (message.pureV5Task !== undefined) {
-      writer.uint32(64).int32(message.pureV5Task);
+      writer.uint32(64).bool(message.pureV5Task);
     }
     if (message.selfService !== undefined) {
-      writer.uint32(72).int32(message.selfService);
+      writer.uint32(72).bool(message.selfService);
     }
     if (message.selfServiceCopilot !== undefined) {
       writer.uint32(82).string(message.selfServiceCopilot);
@@ -1190,10 +1189,10 @@ export const Challenge_Legacy = {
           message.screeningScorecardId = reader.int32();
           break;
         case 8:
-          message.pureV5Task = reader.int32() as any;
+          message.pureV5Task = reader.bool();
           break;
         case 9:
-          message.selfService = reader.int32() as any;
+          message.selfService = reader.bool();
           break;
         case 10:
           message.selfServiceCopilot = reader.string();
@@ -1215,8 +1214,8 @@ export const Challenge_Legacy = {
       reviewType: isSet(object.reviewType) ? reviewTypeFromJSON(object.reviewType) : 0,
       reviewScorecardId: isSet(object.reviewScorecardId) ? Number(object.reviewScorecardId) : undefined,
       screeningScorecardId: isSet(object.screeningScorecardId) ? Number(object.screeningScorecardId) : undefined,
-      pureV5Task: isSet(object.pureV5Task) ? booleanFromJSON(object.pureV5Task) : undefined,
-      selfService: isSet(object.selfService) ? booleanFromJSON(object.selfService) : undefined,
+      pureV5Task: isSet(object.pureV5Task) ? Boolean(object.pureV5Task) : undefined,
+      selfService: isSet(object.selfService) ? Boolean(object.selfService) : undefined,
       selfServiceCopilot: isSet(object.selfServiceCopilot) ? String(object.selfServiceCopilot) : undefined,
     };
   },
@@ -1230,10 +1229,8 @@ export const Challenge_Legacy = {
     message.reviewType !== undefined && (obj.reviewType = reviewTypeToJSON(message.reviewType));
     message.reviewScorecardId !== undefined && (obj.reviewScorecardId = Math.round(message.reviewScorecardId));
     message.screeningScorecardId !== undefined && (obj.screeningScorecardId = Math.round(message.screeningScorecardId));
-    message.pureV5Task !== undefined &&
-      (obj.pureV5Task = message.pureV5Task !== undefined ? booleanToJSON(message.pureV5Task) : undefined);
-    message.selfService !== undefined &&
-      (obj.selfService = message.selfService !== undefined ? booleanToJSON(message.selfService) : undefined);
+    message.pureV5Task !== undefined && (obj.pureV5Task = message.pureV5Task);
+    message.selfService !== undefined && (obj.selfService = message.selfService);
     message.selfServiceCopilot !== undefined && (obj.selfServiceCopilot = message.selfServiceCopilot);
     return obj;
   },
@@ -1587,7 +1584,7 @@ function createBaseChallenge_Phase(): Challenge_Phase {
     name: 0,
     phaseId: "",
     id: "",
-    open: 0,
+    open: false,
   };
 }
 
@@ -1617,8 +1614,8 @@ export const Challenge_Phase = {
     if (message.id !== "") {
       writer.uint32(66).string(message.id);
     }
-    if (message.open !== 0) {
-      writer.uint32(72).int32(message.open);
+    if (message.open === true) {
+      writer.uint32(72).bool(message.open);
     }
     return writer;
   },
@@ -1655,7 +1652,7 @@ export const Challenge_Phase = {
           message.id = reader.string();
           break;
         case 9:
-          message.open = reader.int32() as any;
+          message.open = reader.bool();
           break;
         default:
           reader.skipType(tag & 7);
@@ -1675,7 +1672,7 @@ export const Challenge_Phase = {
       name: isSet(object.name) ? phaseNameFromJSON(object.name) : 0,
       phaseId: isSet(object.phaseId) ? String(object.phaseId) : "",
       id: isSet(object.id) ? String(object.id) : "",
-      open: isSet(object.open) ? booleanFromJSON(object.open) : 0,
+      open: isSet(object.open) ? Boolean(object.open) : false,
     };
   },
 
@@ -1689,7 +1686,7 @@ export const Challenge_Phase = {
     message.name !== undefined && (obj.name = phaseNameToJSON(message.name));
     message.phaseId !== undefined && (obj.phaseId = message.phaseId);
     message.id !== undefined && (obj.id = message.id);
-    message.open !== undefined && (obj.open = booleanToJSON(message.open));
+    message.open !== undefined && (obj.open = message.open);
     return obj;
   },
 
@@ -1703,7 +1700,7 @@ export const Challenge_Phase = {
     message.name = object.name ?? 0;
     message.phaseId = object.phaseId ?? "";
     message.id = object.id ?? "";
-    message.open = object.open ?? 0;
+    message.open = object.open ?? false;
     return message;
   },
 };
@@ -1767,16 +1764,16 @@ export const Challenge_Winner = {
 };
 
 function createBaseChallenge_Task(): Challenge_Task {
-  return { isTask: 0, isAssigned: 0, memberId: undefined };
+  return { isTask: false, isAssigned: false, memberId: undefined };
 }
 
 export const Challenge_Task = {
   encode(message: Challenge_Task, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.isTask !== 0) {
-      writer.uint32(8).int32(message.isTask);
+    if (message.isTask === true) {
+      writer.uint32(8).bool(message.isTask);
     }
-    if (message.isAssigned !== 0) {
-      writer.uint32(16).int32(message.isAssigned);
+    if (message.isAssigned === true) {
+      writer.uint32(16).bool(message.isAssigned);
     }
     if (message.memberId !== undefined) {
       writer.uint32(24).int32(message.memberId);
@@ -1792,10 +1789,10 @@ export const Challenge_Task = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.isTask = reader.int32() as any;
+          message.isTask = reader.bool();
           break;
         case 2:
-          message.isAssigned = reader.int32() as any;
+          message.isAssigned = reader.bool();
           break;
         case 3:
           message.memberId = reader.int32();
@@ -1810,24 +1807,24 @@ export const Challenge_Task = {
 
   fromJSON(object: any): Challenge_Task {
     return {
-      isTask: isSet(object.isTask) ? booleanFromJSON(object.isTask) : 0,
-      isAssigned: isSet(object.isAssigned) ? booleanFromJSON(object.isAssigned) : 0,
+      isTask: isSet(object.isTask) ? Boolean(object.isTask) : false,
+      isAssigned: isSet(object.isAssigned) ? Boolean(object.isAssigned) : false,
       memberId: isSet(object.memberId) ? Number(object.memberId) : undefined,
     };
   },
 
   toJSON(message: Challenge_Task): unknown {
     const obj: any = {};
-    message.isTask !== undefined && (obj.isTask = booleanToJSON(message.isTask));
-    message.isAssigned !== undefined && (obj.isAssigned = booleanToJSON(message.isAssigned));
+    message.isTask !== undefined && (obj.isTask = message.isTask);
+    message.isAssigned !== undefined && (obj.isAssigned = message.isAssigned);
     message.memberId !== undefined && (obj.memberId = Math.round(message.memberId));
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<Challenge_Task>, I>>(object: I): Challenge_Task {
     const message = createBaseChallenge_Task();
-    message.isTask = object.isTask ?? 0;
-    message.isAssigned = object.isAssigned ?? 0;
+    message.isTask = object.isTask ?? false;
+    message.isAssigned = object.isAssigned ?? false;
     message.memberId = object.memberId ?? undefined;
     return message;
   },

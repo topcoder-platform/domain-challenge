@@ -1,13 +1,12 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
-import { Boolean, booleanFromJSON, booleanToJSON } from "../../common/common";
 
 export interface ChallengeType {
   id: string;
   name: string;
   description?: string | undefined;
-  isActive: Boolean;
-  isTask: Boolean;
+  isActive: boolean;
+  isTask: boolean;
   abbreviation: string;
 }
 
@@ -24,7 +23,7 @@ export interface RemoveChallengeTypeInput {
 }
 
 function createBaseChallengeType(): ChallengeType {
-  return { id: "", name: "", description: undefined, isActive: 0, isTask: 0, abbreviation: "" };
+  return { id: "", name: "", description: undefined, isActive: false, isTask: false, abbreviation: "" };
 }
 
 export const ChallengeType = {
@@ -38,11 +37,11 @@ export const ChallengeType = {
     if (message.description !== undefined) {
       writer.uint32(26).string(message.description);
     }
-    if (message.isActive !== 0) {
-      writer.uint32(32).int32(message.isActive);
+    if (message.isActive === true) {
+      writer.uint32(32).bool(message.isActive);
     }
-    if (message.isTask !== 0) {
-      writer.uint32(40).int32(message.isTask);
+    if (message.isTask === true) {
+      writer.uint32(40).bool(message.isTask);
     }
     if (message.abbreviation !== "") {
       writer.uint32(50).string(message.abbreviation);
@@ -67,10 +66,10 @@ export const ChallengeType = {
           message.description = reader.string();
           break;
         case 4:
-          message.isActive = reader.int32() as any;
+          message.isActive = reader.bool();
           break;
         case 5:
-          message.isTask = reader.int32() as any;
+          message.isTask = reader.bool();
           break;
         case 6:
           message.abbreviation = reader.string();
@@ -88,8 +87,8 @@ export const ChallengeType = {
       id: isSet(object.id) ? String(object.id) : "",
       name: isSet(object.name) ? String(object.name) : "",
       description: isSet(object.description) ? String(object.description) : undefined,
-      isActive: isSet(object.isActive) ? booleanFromJSON(object.isActive) : 0,
-      isTask: isSet(object.isTask) ? booleanFromJSON(object.isTask) : 0,
+      isActive: isSet(object.isActive) ? Boolean(object.isActive) : false,
+      isTask: isSet(object.isTask) ? Boolean(object.isTask) : false,
       abbreviation: isSet(object.abbreviation) ? String(object.abbreviation) : "",
     };
   },
@@ -99,8 +98,8 @@ export const ChallengeType = {
     message.id !== undefined && (obj.id = message.id);
     message.name !== undefined && (obj.name = message.name);
     message.description !== undefined && (obj.description = message.description);
-    message.isActive !== undefined && (obj.isActive = booleanToJSON(message.isActive));
-    message.isTask !== undefined && (obj.isTask = booleanToJSON(message.isTask));
+    message.isActive !== undefined && (obj.isActive = message.isActive);
+    message.isTask !== undefined && (obj.isTask = message.isTask);
     message.abbreviation !== undefined && (obj.abbreviation = message.abbreviation);
     return obj;
   },
@@ -110,8 +109,8 @@ export const ChallengeType = {
     message.id = object.id ?? "";
     message.name = object.name ?? "";
     message.description = object.description ?? undefined;
-    message.isActive = object.isActive ?? 0;
-    message.isTask = object.isTask ?? 0;
+    message.isActive = object.isActive ?? false;
+    message.isTask = object.isTask ?? false;
     message.abbreviation = object.abbreviation ?? "";
     return message;
   },

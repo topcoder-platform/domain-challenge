@@ -1,12 +1,11 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
-import { Boolean, booleanFromJSON, booleanToJSON } from "../../common/common";
 
 export interface ChallengeTrack {
   id: string;
   name: string;
   description?: string | undefined;
-  isActive: Boolean;
+  isActive: boolean;
   abbreviation: string;
 }
 
@@ -23,7 +22,7 @@ export interface RemoveChallengeTrackInput {
 }
 
 function createBaseChallengeTrack(): ChallengeTrack {
-  return { id: "", name: "", description: undefined, isActive: 0, abbreviation: "" };
+  return { id: "", name: "", description: undefined, isActive: false, abbreviation: "" };
 }
 
 export const ChallengeTrack = {
@@ -37,8 +36,8 @@ export const ChallengeTrack = {
     if (message.description !== undefined) {
       writer.uint32(26).string(message.description);
     }
-    if (message.isActive !== 0) {
-      writer.uint32(32).int32(message.isActive);
+    if (message.isActive === true) {
+      writer.uint32(32).bool(message.isActive);
     }
     if (message.abbreviation !== "") {
       writer.uint32(42).string(message.abbreviation);
@@ -63,7 +62,7 @@ export const ChallengeTrack = {
           message.description = reader.string();
           break;
         case 4:
-          message.isActive = reader.int32() as any;
+          message.isActive = reader.bool();
           break;
         case 5:
           message.abbreviation = reader.string();
@@ -81,7 +80,7 @@ export const ChallengeTrack = {
       id: isSet(object.id) ? String(object.id) : "",
       name: isSet(object.name) ? String(object.name) : "",
       description: isSet(object.description) ? String(object.description) : undefined,
-      isActive: isSet(object.isActive) ? booleanFromJSON(object.isActive) : 0,
+      isActive: isSet(object.isActive) ? Boolean(object.isActive) : false,
       abbreviation: isSet(object.abbreviation) ? String(object.abbreviation) : "",
     };
   },
@@ -91,7 +90,7 @@ export const ChallengeTrack = {
     message.id !== undefined && (obj.id = message.id);
     message.name !== undefined && (obj.name = message.name);
     message.description !== undefined && (obj.description = message.description);
-    message.isActive !== undefined && (obj.isActive = booleanToJSON(message.isActive));
+    message.isActive !== undefined && (obj.isActive = message.isActive);
     message.abbreviation !== undefined && (obj.abbreviation = message.abbreviation);
     return obj;
   },
@@ -101,7 +100,7 @@ export const ChallengeTrack = {
     message.id = object.id ?? "";
     message.name = object.name ?? "";
     message.description = object.description ?? undefined;
-    message.isActive = object.isActive ?? 0;
+    message.isActive = object.isActive ?? false;
     message.abbreviation = object.abbreviation ?? "";
     return message;
   },
