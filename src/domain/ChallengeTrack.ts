@@ -6,7 +6,7 @@ import { ChallengeTrack } from "../models/domain-layer/challenge/challenge_track
 import CoreOperations from "../common/CoreOperations";
 import IdGenerator from "../helpers/IdGenerator";
 
-import { ChallengeTrackSchema } from "../schema/ChallengeTrackSchema";
+import { ChallengeTrackSchema } from "../schema/ChallengeTrack";
 
 class ChallengeTrackDomain extends CoreOperations<ChallengeTrack> {
   protected toEntity(item: { [key: string]: Value }): ChallengeTrack {
