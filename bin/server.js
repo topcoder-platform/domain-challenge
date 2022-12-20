@@ -1,8 +1,9 @@
+require('dotenv').config();
 const path = require("path");
 const { execSync } = require("child_process");
 const rimraf = require("rimraf");
 
-const PROTO_DIR = path.join(__dirname, "../node_modules/topcoder-interface");
+const PROTO_DIR = process.env.LOCAL_TOPCODER_INTERFACE ? path.resolve(process.env.LOCAL_TOPCODER_INTERFACE) : path.join(__dirname, "../node_modules/topcoder-interface");
 const PROTO_REFLECTIONS = path.join(__dirname, "../reflections/reflection.bin");
 
 const MODEL_DIR = path.join(__dirname, "../src/models/");

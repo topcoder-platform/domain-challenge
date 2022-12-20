@@ -1,8 +1,9 @@
+require('dotenv').config();
 const path = require("path");
 const { execSync } = require("child_process");
 const rimraf = require("rimraf");
 
-const PROTO_DIR = path.join(
+const PROTO_DIR = process.env.LOCAL_TOPCODER_INTERFACE ? path.join(process.env.LOCAL_TOPCODER_INTERFACE, '/data-access-layer/nosql') : path.join(
   __dirname,
   "../node_modules/topcoder-interface/data-access-layer/nosql"
 );

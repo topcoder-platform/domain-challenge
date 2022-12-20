@@ -16,6 +16,10 @@ import {
   ChallengeTrackServer,
   ChallengeTrackService,
 } from "./service/ChallengeTrackService";
+import {
+  ChallengeTypeServer,
+  ChallengeTypeService,
+} from "./service/ChallengeTypeService";
 
 const { ENV, GRPC_SERVER_HOST = "", GRPC_SERVER_PORT = 9092 } = process.env;
 
@@ -36,6 +40,7 @@ server.addService(
 );
 
 server.addService(ChallengeTrackService, new ChallengeTrackServer());
+server.addService(ChallengeTypeService, new ChallengeTypeServer());
 
 server.bindAsync(
   `${GRPC_SERVER_HOST}:${GRPC_SERVER_PORT}`,
