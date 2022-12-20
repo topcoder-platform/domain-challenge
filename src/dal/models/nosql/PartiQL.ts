@@ -12,13 +12,7 @@ import {
   UntypedServiceImplementation,
 } from "@grpc/grpc-js";
 import _m0 from "protobufjs/minimal";
-import {
-  ListValue,
-  NullValue,
-  nullValueFromJSON,
-  nullValueToJSON,
-  Struct,
-} from "./google/protobuf/struct";
+import { ListValue, NullValue, nullValueFromJSON, nullValueToJSON, Struct } from "./google/protobuf/struct";
 
 export enum DataType {
   BOOLEAN = 0,
@@ -444,13 +438,10 @@ export interface ReadQuery {
 }
 
 export interface WriteQuery {
-  kind?:
-    | { $case: "insert"; insert: InsertQuery }
-    | { $case: "update"; update: UpdateQuery }
-    | {
-        $case: "delete";
-        delete: DeleteQuery;
-      };
+  kind?: { $case: "insert"; insert: InsertQuery } | { $case: "update"; update: UpdateQuery } | {
+    $case: "delete";
+    delete: DeleteQuery;
+  };
 }
 
 export interface BulkWriteQuery {
@@ -458,20 +449,14 @@ export interface BulkWriteQuery {
 }
 
 export interface BulkQuery {
-  kind?:
-    | { $case: "read"; read: ReadQuery }
-    | { $case: "BulkWriteQuery"; BulkWriteQuery: WriteQuery };
+  kind?: { $case: "read"; read: ReadQuery } | { $case: "BulkWriteQuery"; BulkWriteQuery: WriteQuery };
 }
 
 export interface Query {
-  kind?:
-    | { $case: "select"; select: SelectQuery }
-    | { $case: "insert"; insert: InsertQuery }
-    | {
-        $case: "update";
-        update: UpdateQuery;
-      }
-    | { $case: "delete"; delete: DeleteQuery };
+  kind?: { $case: "select"; select: SelectQuery } | { $case: "insert"; insert: InsertQuery } | {
+    $case: "update";
+    update: UpdateQuery;
+  } | { $case: "delete"; delete: DeleteQuery };
 }
 
 export interface Response {
@@ -480,9 +465,7 @@ export interface Response {
 }
 
 export interface QueryRequest {
-  kind?:
-    | { $case: "query"; query: Query }
-    | { $case: "queries"; queries: BulkQuery };
+  kind?: { $case: "query"; query: Query } | { $case: "queries"; queries: BulkQuery };
 }
 
 export interface ResponseError {
@@ -490,9 +473,7 @@ export interface ResponseError {
 }
 
 export interface QueryResponse {
-  kind?:
-    | { $case: "response"; response: Response }
-    | { $case: "error"; error: ResponseError };
+  kind?: { $case: "response"; response: Response } | { $case: "error"; error: ResponseError };
 }
 
 function createBaseStringSet(): StringSet {
@@ -500,10 +481,7 @@ function createBaseStringSet(): StringSet {
 }
 
 export const StringSet = {
-  encode(
-    message: StringSet,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: StringSet, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.values) {
       writer.uint32(10).string(v!);
     }
@@ -529,11 +507,7 @@ export const StringSet = {
   },
 
   fromJSON(object: any): StringSet {
-    return {
-      values: Array.isArray(object?.values)
-        ? object.values.map((e: any) => String(e))
-        : [],
-    };
+    return { values: Array.isArray(object?.values) ? object.values.map((e: any) => String(e)) : [] };
   },
 
   toJSON(message: StringSet): unknown {
@@ -546,9 +520,7 @@ export const StringSet = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<StringSet>, I>>(
-    object: I
-  ): StringSet {
+  fromPartial<I extends Exact<DeepPartial<StringSet>, I>>(object: I): StringSet {
     const message = createBaseStringSet();
     message.values = object.values?.map((e) => e) || [];
     return message;
@@ -560,10 +532,7 @@ function createBaseNumberSet(): NumberSet {
 }
 
 export const NumberSet = {
-  encode(
-    message: NumberSet,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: NumberSet, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     writer.uint32(10).fork();
     for (const v of message.values) {
       writer.double(v);
@@ -598,11 +567,7 @@ export const NumberSet = {
   },
 
   fromJSON(object: any): NumberSet {
-    return {
-      values: Array.isArray(object?.values)
-        ? object.values.map((e: any) => Number(e))
-        : [],
-    };
+    return { values: Array.isArray(object?.values) ? object.values.map((e: any) => Number(e)) : [] };
   },
 
   toJSON(message: NumberSet): unknown {
@@ -615,9 +580,7 @@ export const NumberSet = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<NumberSet>, I>>(
-    object: I
-  ): NumberSet {
+  fromPartial<I extends Exact<DeepPartial<NumberSet>, I>>(object: I): NumberSet {
     const message = createBaseNumberSet();
     message.values = object.values?.map((e) => e) || [];
     return message;
@@ -637,16 +600,10 @@ export const Value = {
       writer.uint32(18).bytes(message.kind.binary);
     }
     if (message.kind?.$case === "listValue") {
-      ListValue.encode(
-        ListValue.wrap(message.kind.listValue),
-        writer.uint32(26).fork()
-      ).ldelim();
+      ListValue.encode(ListValue.wrap(message.kind.listValue), writer.uint32(26).fork()).ldelim();
     }
     if (message.kind?.$case === "mapValue") {
-      Struct.encode(
-        Struct.wrap(message.kind.mapValue),
-        writer.uint32(34).fork()
-      ).ldelim();
+      Struct.encode(Struct.wrap(message.kind.mapValue), writer.uint32(34).fork()).ldelim();
     }
     if (message.kind?.$case === "nullValue") {
       writer.uint32(40).int32(message.kind.nullValue);
@@ -655,19 +612,13 @@ export const Value = {
       writer.uint32(49).double(message.kind.numberValue);
     }
     if (message.kind?.$case === "numberSetValue") {
-      NumberSet.encode(
-        message.kind.numberSetValue,
-        writer.uint32(58).fork()
-      ).ldelim();
+      NumberSet.encode(message.kind.numberSetValue, writer.uint32(58).fork()).ldelim();
     }
     if (message.kind?.$case === "stringValue") {
       writer.uint32(66).string(message.kind.stringValue);
     }
     if (message.kind?.$case === "stringSetValue") {
-      StringSet.encode(
-        message.kind.stringSetValue,
-        writer.uint32(74).fork()
-      ).ldelim();
+      StringSet.encode(message.kind.stringSetValue, writer.uint32(74).fork()).ldelim();
     }
     return writer;
   },
@@ -686,42 +637,25 @@ export const Value = {
           message.kind = { $case: "binary", binary: reader.bytes() as Buffer };
           break;
         case 3:
-          message.kind = {
-            $case: "listValue",
-            listValue: ListValue.unwrap(
-              ListValue.decode(reader, reader.uint32())
-            ),
-          };
+          message.kind = { $case: "listValue", listValue: ListValue.unwrap(ListValue.decode(reader, reader.uint32())) };
           break;
         case 4:
-          message.kind = {
-            $case: "mapValue",
-            mapValue: Struct.unwrap(Struct.decode(reader, reader.uint32())),
-          };
+          message.kind = { $case: "mapValue", mapValue: Struct.unwrap(Struct.decode(reader, reader.uint32())) };
           break;
         case 5:
-          message.kind = {
-            $case: "nullValue",
-            nullValue: reader.int32() as any,
-          };
+          message.kind = { $case: "nullValue", nullValue: reader.int32() as any };
           break;
         case 6:
           message.kind = { $case: "numberValue", numberValue: reader.double() };
           break;
         case 7:
-          message.kind = {
-            $case: "numberSetValue",
-            numberSetValue: NumberSet.decode(reader, reader.uint32()),
-          };
+          message.kind = { $case: "numberSetValue", numberSetValue: NumberSet.decode(reader, reader.uint32()) };
           break;
         case 8:
           message.kind = { $case: "stringValue", stringValue: reader.string() };
           break;
         case 9:
-          message.kind = {
-            $case: "stringSetValue",
-            stringSetValue: StringSet.decode(reader, reader.uint32()),
-          };
+          message.kind = { $case: "stringSetValue", stringSetValue: StringSet.decode(reader, reader.uint32()) };
           break;
         default:
           reader.skipType(tag & 7);
@@ -736,10 +670,7 @@ export const Value = {
       kind: isSet(object.boolean)
         ? { $case: "boolean", boolean: Boolean(object.boolean) }
         : isSet(object.binary)
-        ? {
-            $case: "binary",
-            binary: Buffer.from(bytesFromBase64(object.binary)),
-          }
+        ? { $case: "binary", binary: Buffer.from(bytesFromBase64(object.binary)) }
         : isSet(object.listValue)
         ? { $case: "listValue", listValue: [...object.listValue] }
         : isSet(object.mapValue)
@@ -749,17 +680,11 @@ export const Value = {
         : isSet(object.numberValue)
         ? { $case: "numberValue", numberValue: Number(object.numberValue) }
         : isSet(object.numberSetValue)
-        ? {
-            $case: "numberSetValue",
-            numberSetValue: NumberSet.fromJSON(object.numberSetValue),
-          }
+        ? { $case: "numberSetValue", numberSetValue: NumberSet.fromJSON(object.numberSetValue) }
         : isSet(object.stringValue)
         ? { $case: "stringValue", stringValue: String(object.stringValue) }
         : isSet(object.stringSetValue)
-        ? {
-            $case: "stringSetValue",
-            stringSetValue: StringSet.fromJSON(object.stringSetValue),
-          }
+        ? { $case: "stringSetValue", stringSetValue: StringSet.fromJSON(object.stringSetValue) }
         : undefined,
     };
   },
@@ -768,69 +693,35 @@ export const Value = {
     const obj: any = {};
     message.kind?.$case === "boolean" && (obj.boolean = message.kind?.boolean);
     message.kind?.$case === "binary" &&
-      (obj.binary =
-        message.kind?.binary !== undefined
-          ? base64FromBytes(message.kind?.binary)
-          : undefined);
-    message.kind?.$case === "listValue" &&
-      (obj.listValue = message.kind?.listValue);
-    message.kind?.$case === "mapValue" &&
-      (obj.mapValue = message.kind?.mapValue);
+      (obj.binary = message.kind?.binary !== undefined ? base64FromBytes(message.kind?.binary) : undefined);
+    message.kind?.$case === "listValue" && (obj.listValue = message.kind?.listValue);
+    message.kind?.$case === "mapValue" && (obj.mapValue = message.kind?.mapValue);
     message.kind?.$case === "nullValue" &&
-      (obj.nullValue =
-        message.kind?.nullValue !== undefined
-          ? nullValueToJSON(message.kind?.nullValue)
-          : undefined);
-    message.kind?.$case === "numberValue" &&
-      (obj.numberValue = message.kind?.numberValue);
+      (obj.nullValue = message.kind?.nullValue !== undefined ? nullValueToJSON(message.kind?.nullValue) : undefined);
+    message.kind?.$case === "numberValue" && (obj.numberValue = message.kind?.numberValue);
     message.kind?.$case === "numberSetValue" &&
-      (obj.numberSetValue = message.kind?.numberSetValue
-        ? NumberSet.toJSON(message.kind?.numberSetValue)
-        : undefined);
-    message.kind?.$case === "stringValue" &&
-      (obj.stringValue = message.kind?.stringValue);
+      (obj.numberSetValue = message.kind?.numberSetValue ? NumberSet.toJSON(message.kind?.numberSetValue) : undefined);
+    message.kind?.$case === "stringValue" && (obj.stringValue = message.kind?.stringValue);
     message.kind?.$case === "stringSetValue" &&
-      (obj.stringSetValue = message.kind?.stringSetValue
-        ? StringSet.toJSON(message.kind?.stringSetValue)
-        : undefined);
+      (obj.stringSetValue = message.kind?.stringSetValue ? StringSet.toJSON(message.kind?.stringSetValue) : undefined);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<Value>, I>>(object: I): Value {
     const message = createBaseValue();
-    if (
-      object.kind?.$case === "boolean" &&
-      object.kind?.boolean !== undefined &&
-      object.kind?.boolean !== null
-    ) {
+    if (object.kind?.$case === "boolean" && object.kind?.boolean !== undefined && object.kind?.boolean !== null) {
       message.kind = { $case: "boolean", boolean: object.kind.boolean };
     }
-    if (
-      object.kind?.$case === "binary" &&
-      object.kind?.binary !== undefined &&
-      object.kind?.binary !== null
-    ) {
+    if (object.kind?.$case === "binary" && object.kind?.binary !== undefined && object.kind?.binary !== null) {
       message.kind = { $case: "binary", binary: object.kind.binary };
     }
-    if (
-      object.kind?.$case === "listValue" &&
-      object.kind?.listValue !== undefined &&
-      object.kind?.listValue !== null
-    ) {
+    if (object.kind?.$case === "listValue" && object.kind?.listValue !== undefined && object.kind?.listValue !== null) {
       message.kind = { $case: "listValue", listValue: object.kind.listValue };
     }
-    if (
-      object.kind?.$case === "mapValue" &&
-      object.kind?.mapValue !== undefined &&
-      object.kind?.mapValue !== null
-    ) {
+    if (object.kind?.$case === "mapValue" && object.kind?.mapValue !== undefined && object.kind?.mapValue !== null) {
       message.kind = { $case: "mapValue", mapValue: object.kind.mapValue };
     }
-    if (
-      object.kind?.$case === "nullValue" &&
-      object.kind?.nullValue !== undefined &&
-      object.kind?.nullValue !== null
-    ) {
+    if (object.kind?.$case === "nullValue" && object.kind?.nullValue !== undefined && object.kind?.nullValue !== null) {
       message.kind = { $case: "nullValue", nullValue: object.kind.nullValue };
     }
     if (
@@ -838,40 +729,28 @@ export const Value = {
       object.kind?.numberValue !== undefined &&
       object.kind?.numberValue !== null
     ) {
-      message.kind = {
-        $case: "numberValue",
-        numberValue: object.kind.numberValue,
-      };
+      message.kind = { $case: "numberValue", numberValue: object.kind.numberValue };
     }
     if (
       object.kind?.$case === "numberSetValue" &&
       object.kind?.numberSetValue !== undefined &&
       object.kind?.numberSetValue !== null
     ) {
-      message.kind = {
-        $case: "numberSetValue",
-        numberSetValue: NumberSet.fromPartial(object.kind.numberSetValue),
-      };
+      message.kind = { $case: "numberSetValue", numberSetValue: NumberSet.fromPartial(object.kind.numberSetValue) };
     }
     if (
       object.kind?.$case === "stringValue" &&
       object.kind?.stringValue !== undefined &&
       object.kind?.stringValue !== null
     ) {
-      message.kind = {
-        $case: "stringValue",
-        stringValue: object.kind.stringValue,
-      };
+      message.kind = { $case: "stringValue", stringValue: object.kind.stringValue };
     }
     if (
       object.kind?.$case === "stringSetValue" &&
       object.kind?.stringSetValue !== undefined &&
       object.kind?.stringSetValue !== null
     ) {
-      message.kind = {
-        $case: "stringSetValue",
-        stringSetValue: StringSet.fromPartial(object.kind.stringSetValue),
-      };
+      message.kind = { $case: "stringSetValue", stringSetValue: StringSet.fromPartial(object.kind.stringSetValue) };
     }
     return message;
   },
@@ -882,10 +761,7 @@ function createBaseAttribute(): Attribute {
 }
 
 export const Attribute = {
-  encode(
-    message: Attribute,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: Attribute, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
@@ -930,9 +806,7 @@ export const Attribute = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<Attribute>, I>>(
-    object: I
-  ): Attribute {
+  fromPartial<I extends Exact<DeepPartial<Attribute>, I>>(object: I): Attribute {
     const message = createBaseAttribute();
     message.name = object.name ?? "";
     message.type = object.type ?? 0;
@@ -945,10 +819,7 @@ function createBaseFilter(): Filter {
 }
 
 export const Filter = {
-  encode(
-    message: Filter,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: Filter, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
@@ -996,10 +867,8 @@ export const Filter = {
   toJSON(message: Filter): unknown {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
-    message.operator !== undefined &&
-      (obj.operator = operatorToJSON(message.operator));
-    message.value !== undefined &&
-      (obj.value = message.value ? Value.toJSON(message.value) : undefined);
+    message.operator !== undefined && (obj.operator = operatorToJSON(message.operator));
+    message.value !== undefined && (obj.value = message.value ? Value.toJSON(message.value) : undefined);
     return obj;
   },
 
@@ -1007,29 +876,17 @@ export const Filter = {
     const message = createBaseFilter();
     message.name = object.name ?? "";
     message.operator = object.operator ?? 0;
-    message.value =
-      object.value !== undefined && object.value !== null
-        ? Value.fromPartial(object.value)
-        : undefined;
+    message.value = (object.value !== undefined && object.value !== null) ? Value.fromPartial(object.value) : undefined;
     return message;
   },
 };
 
 function createBaseSelectQuery(): SelectQuery {
-  return {
-    table: "",
-    index: undefined,
-    attributes: [],
-    filters: [],
-    nextToken: undefined,
-  };
+  return { table: "", index: undefined, attributes: [], filters: [], nextToken: undefined };
 }
 
 export const SelectQuery = {
-  encode(
-    message: SelectQuery,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: SelectQuery, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.table !== "") {
       writer.uint32(10).string(message.table);
     }
@@ -1082,12 +939,8 @@ export const SelectQuery = {
     return {
       table: isSet(object.table) ? String(object.table) : "",
       index: isSet(object.index) ? String(object.index) : undefined,
-      attributes: Array.isArray(object?.attributes)
-        ? object.attributes.map((e: any) => Attribute.fromJSON(e))
-        : [],
-      filters: Array.isArray(object?.filters)
-        ? object.filters.map((e: any) => Filter.fromJSON(e))
-        : [],
+      attributes: Array.isArray(object?.attributes) ? object.attributes.map((e: any) => Attribute.fromJSON(e)) : [],
+      filters: Array.isArray(object?.filters) ? object.filters.map((e: any) => Filter.fromJSON(e)) : [],
       nextToken: isSet(object.nextToken) ? String(object.nextToken) : undefined,
     };
   },
@@ -1097,16 +950,12 @@ export const SelectQuery = {
     message.table !== undefined && (obj.table = message.table);
     message.index !== undefined && (obj.index = message.index);
     if (message.attributes) {
-      obj.attributes = message.attributes.map((e) =>
-        e ? Attribute.toJSON(e) : undefined
-      );
+      obj.attributes = message.attributes.map((e) => e ? Attribute.toJSON(e) : undefined);
     } else {
       obj.attributes = [];
     }
     if (message.filters) {
-      obj.filters = message.filters.map((e) =>
-        e ? Filter.toJSON(e) : undefined
-      );
+      obj.filters = message.filters.map((e) => e ? Filter.toJSON(e) : undefined);
     } else {
       obj.filters = [];
     }
@@ -1114,14 +963,11 @@ export const SelectQuery = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SelectQuery>, I>>(
-    object: I
-  ): SelectQuery {
+  fromPartial<I extends Exact<DeepPartial<SelectQuery>, I>>(object: I): SelectQuery {
     const message = createBaseSelectQuery();
     message.table = object.table ?? "";
     message.index = object.index ?? undefined;
-    message.attributes =
-      object.attributes?.map((e) => Attribute.fromPartial(e)) || [];
+    message.attributes = object.attributes?.map((e) => Attribute.fromPartial(e)) || [];
     message.filters = object.filters?.map((e) => Filter.fromPartial(e)) || [];
     message.nextToken = object.nextToken ?? undefined;
     return message;
@@ -1133,18 +979,12 @@ function createBaseInsertQuery(): InsertQuery {
 }
 
 export const InsertQuery = {
-  encode(
-    message: InsertQuery,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: InsertQuery, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.table !== "") {
       writer.uint32(10).string(message.table);
     }
     if (message.attributes !== undefined) {
-      Struct.encode(
-        Struct.wrap(message.attributes),
-        writer.uint32(18).fork()
-      ).ldelim();
+      Struct.encode(Struct.wrap(message.attributes), writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -1160,9 +1000,7 @@ export const InsertQuery = {
           message.table = reader.string();
           break;
         case 2:
-          message.attributes = Struct.unwrap(
-            Struct.decode(reader, reader.uint32())
-          );
+          message.attributes = Struct.unwrap(Struct.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -1186,9 +1024,7 @@ export const InsertQuery = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<InsertQuery>, I>>(
-    object: I
-  ): InsertQuery {
+  fromPartial<I extends Exact<DeepPartial<InsertQuery>, I>>(object: I): InsertQuery {
     const message = createBaseInsertQuery();
     message.table = object.table ?? "";
     message.attributes = object.attributes ?? undefined;
@@ -1201,10 +1037,7 @@ function createBaseUpdateOperation(): UpdateOperation {
 }
 
 export const UpdateOperation = {
-  encode(
-    message: UpdateOperation,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: UpdateOperation, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.action !== 0) {
       writer.uint32(8).int32(message.action);
     }
@@ -1258,26 +1091,19 @@ export const UpdateOperation = {
 
   toJSON(message: UpdateOperation): unknown {
     const obj: any = {};
-    message.action !== undefined &&
-      (obj.action = updateActionToJSON(message.action));
+    message.action !== undefined && (obj.action = updateActionToJSON(message.action));
     message.attribute !== undefined && (obj.attribute = message.attribute);
     message.type !== undefined && (obj.type = updateTypeToJSON(message.type));
-    message.value !== undefined &&
-      (obj.value = message.value ? Value.toJSON(message.value) : undefined);
+    message.value !== undefined && (obj.value = message.value ? Value.toJSON(message.value) : undefined);
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<UpdateOperation>, I>>(
-    object: I
-  ): UpdateOperation {
+  fromPartial<I extends Exact<DeepPartial<UpdateOperation>, I>>(object: I): UpdateOperation {
     const message = createBaseUpdateOperation();
     message.action = object.action ?? 0;
     message.attribute = object.attribute ?? "";
     message.type = object.type ?? 0;
-    message.value =
-      object.value !== undefined && object.value !== null
-        ? Value.fromPartial(object.value)
-        : undefined;
+    message.value = (object.value !== undefined && object.value !== null) ? Value.fromPartial(object.value) : undefined;
     return message;
   },
 };
@@ -1287,10 +1113,7 @@ function createBaseUpdateQuery(): UpdateQuery {
 }
 
 export const UpdateQuery = {
-  encode(
-    message: UpdateQuery,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: UpdateQuery, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.table !== "") {
       writer.uint32(10).string(message.table);
     }
@@ -1336,15 +1159,9 @@ export const UpdateQuery = {
   fromJSON(object: any): UpdateQuery {
     return {
       table: isSet(object.table) ? String(object.table) : "",
-      updates: Array.isArray(object?.updates)
-        ? object.updates.map((e: any) => UpdateOperation.fromJSON(e))
-        : [],
-      filters: Array.isArray(object?.filters)
-        ? object.filters.map((e: any) => Filter.fromJSON(e))
-        : [],
-      returnValues: isSet(object.returnValues)
-        ? returnValuesFromJSON(object.returnValues)
-        : undefined,
+      updates: Array.isArray(object?.updates) ? object.updates.map((e: any) => UpdateOperation.fromJSON(e)) : [],
+      filters: Array.isArray(object?.filters) ? object.filters.map((e: any) => Filter.fromJSON(e)) : [],
+      returnValues: isSet(object.returnValues) ? returnValuesFromJSON(object.returnValues) : undefined,
     };
   },
 
@@ -1352,34 +1169,24 @@ export const UpdateQuery = {
     const obj: any = {};
     message.table !== undefined && (obj.table = message.table);
     if (message.updates) {
-      obj.updates = message.updates.map((e) =>
-        e ? UpdateOperation.toJSON(e) : undefined
-      );
+      obj.updates = message.updates.map((e) => e ? UpdateOperation.toJSON(e) : undefined);
     } else {
       obj.updates = [];
     }
     if (message.filters) {
-      obj.filters = message.filters.map((e) =>
-        e ? Filter.toJSON(e) : undefined
-      );
+      obj.filters = message.filters.map((e) => e ? Filter.toJSON(e) : undefined);
     } else {
       obj.filters = [];
     }
     message.returnValues !== undefined &&
-      (obj.returnValues =
-        message.returnValues !== undefined
-          ? returnValuesToJSON(message.returnValues)
-          : undefined);
+      (obj.returnValues = message.returnValues !== undefined ? returnValuesToJSON(message.returnValues) : undefined);
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<UpdateQuery>, I>>(
-    object: I
-  ): UpdateQuery {
+  fromPartial<I extends Exact<DeepPartial<UpdateQuery>, I>>(object: I): UpdateQuery {
     const message = createBaseUpdateQuery();
     message.table = object.table ?? "";
-    message.updates =
-      object.updates?.map((e) => UpdateOperation.fromPartial(e)) || [];
+    message.updates = object.updates?.map((e) => UpdateOperation.fromPartial(e)) || [];
     message.filters = object.filters?.map((e) => Filter.fromPartial(e)) || [];
     message.returnValues = object.returnValues ?? undefined;
     return message;
@@ -1391,10 +1198,7 @@ function createBaseDeleteQuery(): DeleteQuery {
 }
 
 export const DeleteQuery = {
-  encode(
-    message: DeleteQuery,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: DeleteQuery, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.table !== "") {
       writer.uint32(10).string(message.table);
     }
@@ -1434,12 +1238,8 @@ export const DeleteQuery = {
   fromJSON(object: any): DeleteQuery {
     return {
       table: isSet(object.table) ? String(object.table) : "",
-      filters: Array.isArray(object?.filters)
-        ? object.filters.map((e: any) => Filter.fromJSON(e))
-        : [],
-      returnValues: isSet(object.returnValues)
-        ? returnValuesFromJSON(object.returnValues)
-        : undefined,
+      filters: Array.isArray(object?.filters) ? object.filters.map((e: any) => Filter.fromJSON(e)) : [],
+      returnValues: isSet(object.returnValues) ? returnValuesFromJSON(object.returnValues) : undefined,
     };
   },
 
@@ -1447,23 +1247,16 @@ export const DeleteQuery = {
     const obj: any = {};
     message.table !== undefined && (obj.table = message.table);
     if (message.filters) {
-      obj.filters = message.filters.map((e) =>
-        e ? Filter.toJSON(e) : undefined
-      );
+      obj.filters = message.filters.map((e) => e ? Filter.toJSON(e) : undefined);
     } else {
       obj.filters = [];
     }
     message.returnValues !== undefined &&
-      (obj.returnValues =
-        message.returnValues !== undefined
-          ? returnValuesToJSON(message.returnValues)
-          : undefined);
+      (obj.returnValues = message.returnValues !== undefined ? returnValuesToJSON(message.returnValues) : undefined);
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeleteQuery>, I>>(
-    object: I
-  ): DeleteQuery {
+  fromPartial<I extends Exact<DeepPartial<DeleteQuery>, I>>(object: I): DeleteQuery {
     const message = createBaseDeleteQuery();
     message.table = object.table ?? "";
     message.filters = object.filters?.map((e) => Filter.fromPartial(e)) || [];
@@ -1477,10 +1270,7 @@ function createBaseReadQuery(): ReadQuery {
 }
 
 export const ReadQuery = {
-  encode(
-    message: ReadQuery,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: ReadQuery, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.query) {
       SelectQuery.encode(v!, writer.uint32(10).fork()).ldelim();
     }
@@ -1506,28 +1296,20 @@ export const ReadQuery = {
   },
 
   fromJSON(object: any): ReadQuery {
-    return {
-      query: Array.isArray(object?.query)
-        ? object.query.map((e: any) => SelectQuery.fromJSON(e))
-        : [],
-    };
+    return { query: Array.isArray(object?.query) ? object.query.map((e: any) => SelectQuery.fromJSON(e)) : [] };
   },
 
   toJSON(message: ReadQuery): unknown {
     const obj: any = {};
     if (message.query) {
-      obj.query = message.query.map((e) =>
-        e ? SelectQuery.toJSON(e) : undefined
-      );
+      obj.query = message.query.map((e) => e ? SelectQuery.toJSON(e) : undefined);
     } else {
       obj.query = [];
     }
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ReadQuery>, I>>(
-    object: I
-  ): ReadQuery {
+  fromPartial<I extends Exact<DeepPartial<ReadQuery>, I>>(object: I): ReadQuery {
     const message = createBaseReadQuery();
     message.query = object.query?.map((e) => SelectQuery.fromPartial(e)) || [];
     return message;
@@ -1539,27 +1321,15 @@ function createBaseWriteQuery(): WriteQuery {
 }
 
 export const WriteQuery = {
-  encode(
-    message: WriteQuery,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: WriteQuery, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.kind?.$case === "insert") {
-      InsertQuery.encode(
-        message.kind.insert,
-        writer.uint32(10).fork()
-      ).ldelim();
+      InsertQuery.encode(message.kind.insert, writer.uint32(10).fork()).ldelim();
     }
     if (message.kind?.$case === "update") {
-      UpdateQuery.encode(
-        message.kind.update,
-        writer.uint32(18).fork()
-      ).ldelim();
+      UpdateQuery.encode(message.kind.update, writer.uint32(18).fork()).ldelim();
     }
     if (message.kind?.$case === "delete") {
-      DeleteQuery.encode(
-        message.kind.delete,
-        writer.uint32(26).fork()
-      ).ldelim();
+      DeleteQuery.encode(message.kind.delete, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -1572,22 +1342,13 @@ export const WriteQuery = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.kind = {
-            $case: "insert",
-            insert: InsertQuery.decode(reader, reader.uint32()),
-          };
+          message.kind = { $case: "insert", insert: InsertQuery.decode(reader, reader.uint32()) };
           break;
         case 2:
-          message.kind = {
-            $case: "update",
-            update: UpdateQuery.decode(reader, reader.uint32()),
-          };
+          message.kind = { $case: "update", update: UpdateQuery.decode(reader, reader.uint32()) };
           break;
         case 3:
-          message.kind = {
-            $case: "delete",
-            delete: DeleteQuery.decode(reader, reader.uint32()),
-          };
+          message.kind = { $case: "delete", delete: DeleteQuery.decode(reader, reader.uint32()) };
           break;
         default:
           reader.skipType(tag & 7);
@@ -1612,53 +1373,24 @@ export const WriteQuery = {
   toJSON(message: WriteQuery): unknown {
     const obj: any = {};
     message.kind?.$case === "insert" &&
-      (obj.insert = message.kind?.insert
-        ? InsertQuery.toJSON(message.kind?.insert)
-        : undefined);
+      (obj.insert = message.kind?.insert ? InsertQuery.toJSON(message.kind?.insert) : undefined);
     message.kind?.$case === "update" &&
-      (obj.update = message.kind?.update
-        ? UpdateQuery.toJSON(message.kind?.update)
-        : undefined);
+      (obj.update = message.kind?.update ? UpdateQuery.toJSON(message.kind?.update) : undefined);
     message.kind?.$case === "delete" &&
-      (obj.delete = message.kind?.delete
-        ? DeleteQuery.toJSON(message.kind?.delete)
-        : undefined);
+      (obj.delete = message.kind?.delete ? DeleteQuery.toJSON(message.kind?.delete) : undefined);
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<WriteQuery>, I>>(
-    object: I
-  ): WriteQuery {
+  fromPartial<I extends Exact<DeepPartial<WriteQuery>, I>>(object: I): WriteQuery {
     const message = createBaseWriteQuery();
-    if (
-      object.kind?.$case === "insert" &&
-      object.kind?.insert !== undefined &&
-      object.kind?.insert !== null
-    ) {
-      message.kind = {
-        $case: "insert",
-        insert: InsertQuery.fromPartial(object.kind.insert),
-      };
+    if (object.kind?.$case === "insert" && object.kind?.insert !== undefined && object.kind?.insert !== null) {
+      message.kind = { $case: "insert", insert: InsertQuery.fromPartial(object.kind.insert) };
     }
-    if (
-      object.kind?.$case === "update" &&
-      object.kind?.update !== undefined &&
-      object.kind?.update !== null
-    ) {
-      message.kind = {
-        $case: "update",
-        update: UpdateQuery.fromPartial(object.kind.update),
-      };
+    if (object.kind?.$case === "update" && object.kind?.update !== undefined && object.kind?.update !== null) {
+      message.kind = { $case: "update", update: UpdateQuery.fromPartial(object.kind.update) };
     }
-    if (
-      object.kind?.$case === "delete" &&
-      object.kind?.delete !== undefined &&
-      object.kind?.delete !== null
-    ) {
-      message.kind = {
-        $case: "delete",
-        delete: DeleteQuery.fromPartial(object.kind.delete),
-      };
+    if (object.kind?.$case === "delete" && object.kind?.delete !== undefined && object.kind?.delete !== null) {
+      message.kind = { $case: "delete", delete: DeleteQuery.fromPartial(object.kind.delete) };
     }
     return message;
   },
@@ -1669,10 +1401,7 @@ function createBaseBulkWriteQuery(): BulkWriteQuery {
 }
 
 export const BulkWriteQuery = {
-  encode(
-    message: BulkWriteQuery,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: BulkWriteQuery, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.queries) {
       WriteQuery.encode(v!, writer.uint32(10).fork()).ldelim();
     }
@@ -1698,31 +1427,22 @@ export const BulkWriteQuery = {
   },
 
   fromJSON(object: any): BulkWriteQuery {
-    return {
-      queries: Array.isArray(object?.queries)
-        ? object.queries.map((e: any) => WriteQuery.fromJSON(e))
-        : [],
-    };
+    return { queries: Array.isArray(object?.queries) ? object.queries.map((e: any) => WriteQuery.fromJSON(e)) : [] };
   },
 
   toJSON(message: BulkWriteQuery): unknown {
     const obj: any = {};
     if (message.queries) {
-      obj.queries = message.queries.map((e) =>
-        e ? WriteQuery.toJSON(e) : undefined
-      );
+      obj.queries = message.queries.map((e) => e ? WriteQuery.toJSON(e) : undefined);
     } else {
       obj.queries = [];
     }
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<BulkWriteQuery>, I>>(
-    object: I
-  ): BulkWriteQuery {
+  fromPartial<I extends Exact<DeepPartial<BulkWriteQuery>, I>>(object: I): BulkWriteQuery {
     const message = createBaseBulkWriteQuery();
-    message.queries =
-      object.queries?.map((e) => WriteQuery.fromPartial(e)) || [];
+    message.queries = object.queries?.map((e) => WriteQuery.fromPartial(e)) || [];
     return message;
   },
 };
@@ -1732,18 +1452,12 @@ function createBaseBulkQuery(): BulkQuery {
 }
 
 export const BulkQuery = {
-  encode(
-    message: BulkQuery,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: BulkQuery, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.kind?.$case === "read") {
       ReadQuery.encode(message.kind.read, writer.uint32(10).fork()).ldelim();
     }
     if (message.kind?.$case === "BulkWriteQuery") {
-      WriteQuery.encode(
-        message.kind.BulkWriteQuery,
-        writer.uint32(18).fork()
-      ).ldelim();
+      WriteQuery.encode(message.kind.BulkWriteQuery, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -1756,16 +1470,10 @@ export const BulkQuery = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.kind = {
-            $case: "read",
-            read: ReadQuery.decode(reader, reader.uint32()),
-          };
+          message.kind = { $case: "read", read: ReadQuery.decode(reader, reader.uint32()) };
           break;
         case 2:
-          message.kind = {
-            $case: "BulkWriteQuery",
-            BulkWriteQuery: WriteQuery.decode(reader, reader.uint32()),
-          };
+          message.kind = { $case: "BulkWriteQuery", BulkWriteQuery: WriteQuery.decode(reader, reader.uint32()) };
           break;
         default:
           reader.skipType(tag & 7);
@@ -1780,10 +1488,7 @@ export const BulkQuery = {
       kind: isSet(object.read)
         ? { $case: "read", read: ReadQuery.fromJSON(object.read) }
         : isSet(object.BulkWriteQuery)
-        ? {
-            $case: "BulkWriteQuery",
-            BulkWriteQuery: WriteQuery.fromJSON(object.BulkWriteQuery),
-          }
+        ? { $case: "BulkWriteQuery", BulkWriteQuery: WriteQuery.fromJSON(object.BulkWriteQuery) }
         : undefined,
     };
   },
@@ -1791,39 +1496,23 @@ export const BulkQuery = {
   toJSON(message: BulkQuery): unknown {
     const obj: any = {};
     message.kind?.$case === "read" &&
-      (obj.read = message.kind?.read
-        ? ReadQuery.toJSON(message.kind?.read)
-        : undefined);
+      (obj.read = message.kind?.read ? ReadQuery.toJSON(message.kind?.read) : undefined);
     message.kind?.$case === "BulkWriteQuery" &&
-      (obj.BulkWriteQuery = message.kind?.BulkWriteQuery
-        ? WriteQuery.toJSON(message.kind?.BulkWriteQuery)
-        : undefined);
+      (obj.BulkWriteQuery = message.kind?.BulkWriteQuery ? WriteQuery.toJSON(message.kind?.BulkWriteQuery) : undefined);
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<BulkQuery>, I>>(
-    object: I
-  ): BulkQuery {
+  fromPartial<I extends Exact<DeepPartial<BulkQuery>, I>>(object: I): BulkQuery {
     const message = createBaseBulkQuery();
-    if (
-      object.kind?.$case === "read" &&
-      object.kind?.read !== undefined &&
-      object.kind?.read !== null
-    ) {
-      message.kind = {
-        $case: "read",
-        read: ReadQuery.fromPartial(object.kind.read),
-      };
+    if (object.kind?.$case === "read" && object.kind?.read !== undefined && object.kind?.read !== null) {
+      message.kind = { $case: "read", read: ReadQuery.fromPartial(object.kind.read) };
     }
     if (
       object.kind?.$case === "BulkWriteQuery" &&
       object.kind?.BulkWriteQuery !== undefined &&
       object.kind?.BulkWriteQuery !== null
     ) {
-      message.kind = {
-        $case: "BulkWriteQuery",
-        BulkWriteQuery: WriteQuery.fromPartial(object.kind.BulkWriteQuery),
-      };
+      message.kind = { $case: "BulkWriteQuery", BulkWriteQuery: WriteQuery.fromPartial(object.kind.BulkWriteQuery) };
     }
     return message;
   },
@@ -1836,28 +1525,16 @@ function createBaseQuery(): Query {
 export const Query = {
   encode(message: Query, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.kind?.$case === "select") {
-      SelectQuery.encode(
-        message.kind.select,
-        writer.uint32(10).fork()
-      ).ldelim();
+      SelectQuery.encode(message.kind.select, writer.uint32(10).fork()).ldelim();
     }
     if (message.kind?.$case === "insert") {
-      InsertQuery.encode(
-        message.kind.insert,
-        writer.uint32(18).fork()
-      ).ldelim();
+      InsertQuery.encode(message.kind.insert, writer.uint32(18).fork()).ldelim();
     }
     if (message.kind?.$case === "update") {
-      UpdateQuery.encode(
-        message.kind.update,
-        writer.uint32(26).fork()
-      ).ldelim();
+      UpdateQuery.encode(message.kind.update, writer.uint32(26).fork()).ldelim();
     }
     if (message.kind?.$case === "delete") {
-      DeleteQuery.encode(
-        message.kind.delete,
-        writer.uint32(34).fork()
-      ).ldelim();
+      DeleteQuery.encode(message.kind.delete, writer.uint32(34).fork()).ldelim();
     }
     return writer;
   },
@@ -1870,28 +1547,16 @@ export const Query = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.kind = {
-            $case: "select",
-            select: SelectQuery.decode(reader, reader.uint32()),
-          };
+          message.kind = { $case: "select", select: SelectQuery.decode(reader, reader.uint32()) };
           break;
         case 2:
-          message.kind = {
-            $case: "insert",
-            insert: InsertQuery.decode(reader, reader.uint32()),
-          };
+          message.kind = { $case: "insert", insert: InsertQuery.decode(reader, reader.uint32()) };
           break;
         case 3:
-          message.kind = {
-            $case: "update",
-            update: UpdateQuery.decode(reader, reader.uint32()),
-          };
+          message.kind = { $case: "update", update: UpdateQuery.decode(reader, reader.uint32()) };
           break;
         case 4:
-          message.kind = {
-            $case: "delete",
-            delete: DeleteQuery.decode(reader, reader.uint32()),
-          };
+          message.kind = { $case: "delete", delete: DeleteQuery.decode(reader, reader.uint32()) };
           break;
         default:
           reader.skipType(tag & 7);
@@ -1918,65 +1583,29 @@ export const Query = {
   toJSON(message: Query): unknown {
     const obj: any = {};
     message.kind?.$case === "select" &&
-      (obj.select = message.kind?.select
-        ? SelectQuery.toJSON(message.kind?.select)
-        : undefined);
+      (obj.select = message.kind?.select ? SelectQuery.toJSON(message.kind?.select) : undefined);
     message.kind?.$case === "insert" &&
-      (obj.insert = message.kind?.insert
-        ? InsertQuery.toJSON(message.kind?.insert)
-        : undefined);
+      (obj.insert = message.kind?.insert ? InsertQuery.toJSON(message.kind?.insert) : undefined);
     message.kind?.$case === "update" &&
-      (obj.update = message.kind?.update
-        ? UpdateQuery.toJSON(message.kind?.update)
-        : undefined);
+      (obj.update = message.kind?.update ? UpdateQuery.toJSON(message.kind?.update) : undefined);
     message.kind?.$case === "delete" &&
-      (obj.delete = message.kind?.delete
-        ? DeleteQuery.toJSON(message.kind?.delete)
-        : undefined);
+      (obj.delete = message.kind?.delete ? DeleteQuery.toJSON(message.kind?.delete) : undefined);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<Query>, I>>(object: I): Query {
     const message = createBaseQuery();
-    if (
-      object.kind?.$case === "select" &&
-      object.kind?.select !== undefined &&
-      object.kind?.select !== null
-    ) {
-      message.kind = {
-        $case: "select",
-        select: SelectQuery.fromPartial(object.kind.select),
-      };
+    if (object.kind?.$case === "select" && object.kind?.select !== undefined && object.kind?.select !== null) {
+      message.kind = { $case: "select", select: SelectQuery.fromPartial(object.kind.select) };
     }
-    if (
-      object.kind?.$case === "insert" &&
-      object.kind?.insert !== undefined &&
-      object.kind?.insert !== null
-    ) {
-      message.kind = {
-        $case: "insert",
-        insert: InsertQuery.fromPartial(object.kind.insert),
-      };
+    if (object.kind?.$case === "insert" && object.kind?.insert !== undefined && object.kind?.insert !== null) {
+      message.kind = { $case: "insert", insert: InsertQuery.fromPartial(object.kind.insert) };
     }
-    if (
-      object.kind?.$case === "update" &&
-      object.kind?.update !== undefined &&
-      object.kind?.update !== null
-    ) {
-      message.kind = {
-        $case: "update",
-        update: UpdateQuery.fromPartial(object.kind.update),
-      };
+    if (object.kind?.$case === "update" && object.kind?.update !== undefined && object.kind?.update !== null) {
+      message.kind = { $case: "update", update: UpdateQuery.fromPartial(object.kind.update) };
     }
-    if (
-      object.kind?.$case === "delete" &&
-      object.kind?.delete !== undefined &&
-      object.kind?.delete !== null
-    ) {
-      message.kind = {
-        $case: "delete",
-        delete: DeleteQuery.fromPartial(object.kind.delete),
-      };
+    if (object.kind?.$case === "delete" && object.kind?.delete !== undefined && object.kind?.delete !== null) {
+      message.kind = { $case: "delete", delete: DeleteQuery.fromPartial(object.kind.delete) };
     }
     return message;
   },
@@ -1987,10 +1616,7 @@ function createBaseResponse(): Response {
 }
 
 export const Response = {
-  encode(
-    message: Response,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: Response, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.items) {
       Struct.encode(Struct.wrap(v!), writer.uint32(10).fork()).ldelim();
     }
@@ -2008,9 +1634,7 @@ export const Response = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.items.push(
-            Struct.unwrap(Struct.decode(reader, reader.uint32()))
-          );
+          message.items.push(Struct.unwrap(Struct.decode(reader, reader.uint32())));
           break;
         case 2:
           message.nextToken = reader.string();
@@ -2054,10 +1678,7 @@ function createBaseQueryRequest(): QueryRequest {
 }
 
 export const QueryRequest = {
-  encode(
-    message: QueryRequest,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: QueryRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.kind?.$case === "query") {
       Query.encode(message.kind.query, writer.uint32(10).fork()).ldelim();
     }
@@ -2075,16 +1696,10 @@ export const QueryRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.kind = {
-            $case: "query",
-            query: Query.decode(reader, reader.uint32()),
-          };
+          message.kind = { $case: "query", query: Query.decode(reader, reader.uint32()) };
           break;
         case 2:
-          message.kind = {
-            $case: "queries",
-            queries: BulkQuery.decode(reader, reader.uint32()),
-          };
+          message.kind = { $case: "queries", queries: BulkQuery.decode(reader, reader.uint32()) };
           break;
         default:
           reader.skipType(tag & 7);
@@ -2107,39 +1722,19 @@ export const QueryRequest = {
   toJSON(message: QueryRequest): unknown {
     const obj: any = {};
     message.kind?.$case === "query" &&
-      (obj.query = message.kind?.query
-        ? Query.toJSON(message.kind?.query)
-        : undefined);
+      (obj.query = message.kind?.query ? Query.toJSON(message.kind?.query) : undefined);
     message.kind?.$case === "queries" &&
-      (obj.queries = message.kind?.queries
-        ? BulkQuery.toJSON(message.kind?.queries)
-        : undefined);
+      (obj.queries = message.kind?.queries ? BulkQuery.toJSON(message.kind?.queries) : undefined);
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<QueryRequest>, I>>(
-    object: I
-  ): QueryRequest {
+  fromPartial<I extends Exact<DeepPartial<QueryRequest>, I>>(object: I): QueryRequest {
     const message = createBaseQueryRequest();
-    if (
-      object.kind?.$case === "query" &&
-      object.kind?.query !== undefined &&
-      object.kind?.query !== null
-    ) {
-      message.kind = {
-        $case: "query",
-        query: Query.fromPartial(object.kind.query),
-      };
+    if (object.kind?.$case === "query" && object.kind?.query !== undefined && object.kind?.query !== null) {
+      message.kind = { $case: "query", query: Query.fromPartial(object.kind.query) };
     }
-    if (
-      object.kind?.$case === "queries" &&
-      object.kind?.queries !== undefined &&
-      object.kind?.queries !== null
-    ) {
-      message.kind = {
-        $case: "queries",
-        queries: BulkQuery.fromPartial(object.kind.queries),
-      };
+    if (object.kind?.$case === "queries" && object.kind?.queries !== undefined && object.kind?.queries !== null) {
+      message.kind = { $case: "queries", queries: BulkQuery.fromPartial(object.kind.queries) };
     }
     return message;
   },
@@ -2150,10 +1745,7 @@ function createBaseResponseError(): ResponseError {
 }
 
 export const ResponseError = {
-  encode(
-    message: ResponseError,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: ResponseError, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.message !== "") {
       writer.uint32(10).string(message.message);
     }
@@ -2188,9 +1780,7 @@ export const ResponseError = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ResponseError>, I>>(
-    object: I
-  ): ResponseError {
+  fromPartial<I extends Exact<DeepPartial<ResponseError>, I>>(object: I): ResponseError {
     const message = createBaseResponseError();
     message.message = object.message ?? "";
     return message;
@@ -2202,18 +1792,12 @@ function createBaseQueryResponse(): QueryResponse {
 }
 
 export const QueryResponse = {
-  encode(
-    message: QueryResponse,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: QueryResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.kind?.$case === "response") {
       Response.encode(message.kind.response, writer.uint32(10).fork()).ldelim();
     }
     if (message.kind?.$case === "error") {
-      ResponseError.encode(
-        message.kind.error,
-        writer.uint32(18).fork()
-      ).ldelim();
+      ResponseError.encode(message.kind.error, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -2226,16 +1810,10 @@ export const QueryResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.kind = {
-            $case: "response",
-            response: Response.decode(reader, reader.uint32()),
-          };
+          message.kind = { $case: "response", response: Response.decode(reader, reader.uint32()) };
           break;
         case 2:
-          message.kind = {
-            $case: "error",
-            error: ResponseError.decode(reader, reader.uint32()),
-          };
+          message.kind = { $case: "error", error: ResponseError.decode(reader, reader.uint32()) };
           break;
         default:
           reader.skipType(tag & 7);
@@ -2258,39 +1836,19 @@ export const QueryResponse = {
   toJSON(message: QueryResponse): unknown {
     const obj: any = {};
     message.kind?.$case === "response" &&
-      (obj.response = message.kind?.response
-        ? Response.toJSON(message.kind?.response)
-        : undefined);
+      (obj.response = message.kind?.response ? Response.toJSON(message.kind?.response) : undefined);
     message.kind?.$case === "error" &&
-      (obj.error = message.kind?.error
-        ? ResponseError.toJSON(message.kind?.error)
-        : undefined);
+      (obj.error = message.kind?.error ? ResponseError.toJSON(message.kind?.error) : undefined);
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<QueryResponse>, I>>(
-    object: I
-  ): QueryResponse {
+  fromPartial<I extends Exact<DeepPartial<QueryResponse>, I>>(object: I): QueryResponse {
     const message = createBaseQueryResponse();
-    if (
-      object.kind?.$case === "response" &&
-      object.kind?.response !== undefined &&
-      object.kind?.response !== null
-    ) {
-      message.kind = {
-        $case: "response",
-        response: Response.fromPartial(object.kind.response),
-      };
+    if (object.kind?.$case === "response" && object.kind?.response !== undefined && object.kind?.response !== null) {
+      message.kind = { $case: "response", response: Response.fromPartial(object.kind.response) };
     }
-    if (
-      object.kind?.$case === "error" &&
-      object.kind?.error !== undefined &&
-      object.kind?.error !== null
-    ) {
-      message.kind = {
-        $case: "error",
-        error: ResponseError.fromPartial(object.kind.error),
-      };
+    if (object.kind?.$case === "error" && object.kind?.error !== undefined && object.kind?.error !== null) {
+      message.kind = { $case: "error", error: ResponseError.fromPartial(object.kind.error) };
     }
     return message;
   },
@@ -2302,11 +1860,9 @@ export const PartiQLQueryService = {
     path: "/topcoder.dal.partiql.PartiQLQuery/Query",
     requestStream: false,
     responseStream: false,
-    requestSerialize: (value: QueryRequest) =>
-      Buffer.from(QueryRequest.encode(value).finish()),
+    requestSerialize: (value: QueryRequest) => Buffer.from(QueryRequest.encode(value).finish()),
     requestDeserialize: (value: Buffer) => QueryRequest.decode(value),
-    responseSerialize: (value: QueryResponse) =>
-      Buffer.from(QueryResponse.encode(value).finish()),
+    responseSerialize: (value: QueryResponse) => Buffer.from(QueryResponse.encode(value).finish()),
     responseDeserialize: (value: Buffer) => QueryResponse.decode(value),
   },
 } as const;
@@ -2318,30 +1874,26 @@ export interface PartiQLQueryServer extends UntypedServiceImplementation {
 export interface PartiQLQueryClient extends Client {
   query(
     request: QueryRequest,
-    callback: (error: ServiceError | null, response: QueryResponse) => void
+    callback: (error: ServiceError | null, response: QueryResponse) => void,
   ): ClientUnaryCall;
   query(
     request: QueryRequest,
     metadata: Metadata,
-    callback: (error: ServiceError | null, response: QueryResponse) => void
+    callback: (error: ServiceError | null, response: QueryResponse) => void,
   ): ClientUnaryCall;
   query(
     request: QueryRequest,
     metadata: Metadata,
     options: Partial<CallOptions>,
-    callback: (error: ServiceError | null, response: QueryResponse) => void
+    callback: (error: ServiceError | null, response: QueryResponse) => void,
   ): ClientUnaryCall;
 }
 
 export const PartiQLQueryClient = makeGenericClientConstructor(
   PartiQLQueryService,
-  "topcoder.dal.partiql.PartiQLQuery"
+  "topcoder.dal.partiql.PartiQLQuery",
 ) as unknown as {
-  new (
-    address: string,
-    credentials: ChannelCredentials,
-    options?: Partial<ClientOptions>
-  ): PartiQLQueryClient;
+  new (address: string, credentials: ChannelCredentials, options?: Partial<ClientOptions>): PartiQLQueryClient;
   service: typeof PartiQLQueryService;
 };
 
@@ -2389,35 +1941,17 @@ function base64FromBytes(arr: Uint8Array): string {
   }
 }
 
-type Builtin =
-  | Date
-  | Function
-  | Uint8Array
-  | string
-  | number
-  | boolean
-  | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends { $case: string }
-  ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & {
-      $case: T["$case"];
-    }
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & {
-      [K in Exclude<keyof I, KeysOfUnion<P>>]: never;
-    };
+type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isObject(value: any): boolean {
   return typeof value === "object" && value !== null;

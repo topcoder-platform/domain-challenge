@@ -10,15 +10,22 @@ export interface ChallengeTrack {
 }
 
 export interface CreateChallengeTrackInput {
-  challengeTrack?: ChallengeTrack;
+  name: string;
+  description?: string | undefined;
+  isActive: boolean;
+  abbreviation: string;
 }
 
 export interface UpdateChallengeTrackInput {
-  challengeTrack?: ChallengeTrack;
+  id: string;
+  name: string;
+  description?: string | undefined;
+  isActive: boolean;
+  abbreviation: string;
 }
 
-export interface RemoveChallengeTrackInput {
-  id: string;
+export interface ChallengeTrackList {
+  challengeTracks: ChallengeTrack[];
 }
 
 function createBaseChallengeTrack(): ChallengeTrack {
@@ -107,13 +114,22 @@ export const ChallengeTrack = {
 };
 
 function createBaseCreateChallengeTrackInput(): CreateChallengeTrackInput {
-  return { challengeTrack: undefined };
+  return { name: "", description: undefined, isActive: false, abbreviation: "" };
 }
 
 export const CreateChallengeTrackInput = {
   encode(message: CreateChallengeTrackInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.challengeTrack !== undefined) {
-      ChallengeTrack.encode(message.challengeTrack, writer.uint32(10).fork()).ldelim();
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.description !== undefined) {
+      writer.uint32(18).string(message.description);
+    }
+    if (message.isActive === true) {
+      writer.uint32(24).bool(message.isActive);
+    }
+    if (message.abbreviation !== "") {
+      writer.uint32(34).string(message.abbreviation);
     }
     return writer;
   },
@@ -126,7 +142,16 @@ export const CreateChallengeTrackInput = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.challengeTrack = ChallengeTrack.decode(reader, reader.uint32());
+          message.name = reader.string();
+          break;
+        case 2:
+          message.description = reader.string();
+          break;
+        case 3:
+          message.isActive = reader.bool();
+          break;
+        case 4:
+          message.abbreviation = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -138,34 +163,52 @@ export const CreateChallengeTrackInput = {
 
   fromJSON(object: any): CreateChallengeTrackInput {
     return {
-      challengeTrack: isSet(object.challengeTrack) ? ChallengeTrack.fromJSON(object.challengeTrack) : undefined,
+      name: isSet(object.name) ? String(object.name) : "",
+      description: isSet(object.description) ? String(object.description) : undefined,
+      isActive: isSet(object.isActive) ? Boolean(object.isActive) : false,
+      abbreviation: isSet(object.abbreviation) ? String(object.abbreviation) : "",
     };
   },
 
   toJSON(message: CreateChallengeTrackInput): unknown {
     const obj: any = {};
-    message.challengeTrack !== undefined &&
-      (obj.challengeTrack = message.challengeTrack ? ChallengeTrack.toJSON(message.challengeTrack) : undefined);
+    message.name !== undefined && (obj.name = message.name);
+    message.description !== undefined && (obj.description = message.description);
+    message.isActive !== undefined && (obj.isActive = message.isActive);
+    message.abbreviation !== undefined && (obj.abbreviation = message.abbreviation);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<CreateChallengeTrackInput>, I>>(object: I): CreateChallengeTrackInput {
     const message = createBaseCreateChallengeTrackInput();
-    message.challengeTrack = (object.challengeTrack !== undefined && object.challengeTrack !== null)
-      ? ChallengeTrack.fromPartial(object.challengeTrack)
-      : undefined;
+    message.name = object.name ?? "";
+    message.description = object.description ?? undefined;
+    message.isActive = object.isActive ?? false;
+    message.abbreviation = object.abbreviation ?? "";
     return message;
   },
 };
 
 function createBaseUpdateChallengeTrackInput(): UpdateChallengeTrackInput {
-  return { challengeTrack: undefined };
+  return { id: "", name: "", description: undefined, isActive: false, abbreviation: "" };
 }
 
 export const UpdateChallengeTrackInput = {
   encode(message: UpdateChallengeTrackInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.challengeTrack !== undefined) {
-      ChallengeTrack.encode(message.challengeTrack, writer.uint32(10).fork()).ldelim();
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.description !== undefined) {
+      writer.uint32(26).string(message.description);
+    }
+    if (message.isActive === true) {
+      writer.uint32(32).bool(message.isActive);
+    }
+    if (message.abbreviation !== "") {
+      writer.uint32(42).string(message.abbreviation);
     }
     return writer;
   },
@@ -178,7 +221,19 @@ export const UpdateChallengeTrackInput = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.challengeTrack = ChallengeTrack.decode(reader, reader.uint32());
+          message.id = reader.string();
+          break;
+        case 2:
+          message.name = reader.string();
+          break;
+        case 3:
+          message.description = reader.string();
+          break;
+        case 4:
+          message.isActive = reader.bool();
+          break;
+        case 5:
+          message.abbreviation = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -190,47 +245,56 @@ export const UpdateChallengeTrackInput = {
 
   fromJSON(object: any): UpdateChallengeTrackInput {
     return {
-      challengeTrack: isSet(object.challengeTrack) ? ChallengeTrack.fromJSON(object.challengeTrack) : undefined,
+      id: isSet(object.id) ? String(object.id) : "",
+      name: isSet(object.name) ? String(object.name) : "",
+      description: isSet(object.description) ? String(object.description) : undefined,
+      isActive: isSet(object.isActive) ? Boolean(object.isActive) : false,
+      abbreviation: isSet(object.abbreviation) ? String(object.abbreviation) : "",
     };
   },
 
   toJSON(message: UpdateChallengeTrackInput): unknown {
     const obj: any = {};
-    message.challengeTrack !== undefined &&
-      (obj.challengeTrack = message.challengeTrack ? ChallengeTrack.toJSON(message.challengeTrack) : undefined);
+    message.id !== undefined && (obj.id = message.id);
+    message.name !== undefined && (obj.name = message.name);
+    message.description !== undefined && (obj.description = message.description);
+    message.isActive !== undefined && (obj.isActive = message.isActive);
+    message.abbreviation !== undefined && (obj.abbreviation = message.abbreviation);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<UpdateChallengeTrackInput>, I>>(object: I): UpdateChallengeTrackInput {
     const message = createBaseUpdateChallengeTrackInput();
-    message.challengeTrack = (object.challengeTrack !== undefined && object.challengeTrack !== null)
-      ? ChallengeTrack.fromPartial(object.challengeTrack)
-      : undefined;
+    message.id = object.id ?? "";
+    message.name = object.name ?? "";
+    message.description = object.description ?? undefined;
+    message.isActive = object.isActive ?? false;
+    message.abbreviation = object.abbreviation ?? "";
     return message;
   },
 };
 
-function createBaseRemoveChallengeTrackInput(): RemoveChallengeTrackInput {
-  return { id: "" };
+function createBaseChallengeTrackList(): ChallengeTrackList {
+  return { challengeTracks: [] };
 }
 
-export const RemoveChallengeTrackInput = {
-  encode(message: RemoveChallengeTrackInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== "") {
-      writer.uint32(10).string(message.id);
+export const ChallengeTrackList = {
+  encode(message: ChallengeTrackList, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.challengeTracks) {
+      ChallengeTrack.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): RemoveChallengeTrackInput {
+  decode(input: _m0.Reader | Uint8Array, length?: number): ChallengeTrackList {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseRemoveChallengeTrackInput();
+    const message = createBaseChallengeTrackList();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.id = reader.string();
+          message.challengeTracks.push(ChallengeTrack.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -240,19 +304,27 @@ export const RemoveChallengeTrackInput = {
     return message;
   },
 
-  fromJSON(object: any): RemoveChallengeTrackInput {
-    return { id: isSet(object.id) ? String(object.id) : "" };
+  fromJSON(object: any): ChallengeTrackList {
+    return {
+      challengeTracks: Array.isArray(object?.challengeTracks)
+        ? object.challengeTracks.map((e: any) => ChallengeTrack.fromJSON(e))
+        : [],
+    };
   },
 
-  toJSON(message: RemoveChallengeTrackInput): unknown {
+  toJSON(message: ChallengeTrackList): unknown {
     const obj: any = {};
-    message.id !== undefined && (obj.id = message.id);
+    if (message.challengeTracks) {
+      obj.challengeTracks = message.challengeTracks.map((e) => e ? ChallengeTrack.toJSON(e) : undefined);
+    } else {
+      obj.challengeTracks = [];
+    }
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RemoveChallengeTrackInput>, I>>(object: I): RemoveChallengeTrackInput {
-    const message = createBaseRemoveChallengeTrackInput();
-    message.id = object.id ?? "";
+  fromPartial<I extends Exact<DeepPartial<ChallengeTrackList>, I>>(object: I): ChallengeTrackList {
+    const message = createBaseChallengeTrackList();
+    message.challengeTracks = object.challengeTracks?.map((e) => ChallengeTrack.fromPartial(e)) || [];
     return message;
   },
 };
