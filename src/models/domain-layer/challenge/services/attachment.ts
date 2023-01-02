@@ -1,6 +1,7 @@
 /* eslint-disable */
 import { handleUnaryCall, UntypedServiceImplementation } from "@grpc/grpc-js";
-import { Attachment, CreateAttachmentInput, RemoveAttachmentInput, UpdateAttachmentInput } from "../attachment";
+import { LookupCriteria } from "../../../common/common";
+import { Attachment, AttachmentList, CreateAttachmentInput, UpdateAttachmentInput } from "../attachment";
 
 export type AttachmentService = typeof AttachmentService;
 export const AttachmentService = {
@@ -22,19 +23,19 @@ export const AttachmentService = {
     responseSerialize: (value: Attachment) => Buffer.from(Attachment.encode(value).finish()),
     responseDeserialize: (value: Buffer) => Attachment.decode(value),
   },
-  remove: {
-    path: "/topcoder.domain.service.attachment.Attachment/Remove",
+  delete: {
+    path: "/topcoder.domain.service.attachment.Attachment/Delete",
     requestStream: false,
     responseStream: false,
-    requestSerialize: (value: RemoveAttachmentInput) => Buffer.from(RemoveAttachmentInput.encode(value).finish()),
-    requestDeserialize: (value: Buffer) => RemoveAttachmentInput.decode(value),
-    responseSerialize: (value: Attachment) => Buffer.from(Attachment.encode(value).finish()),
-    responseDeserialize: (value: Buffer) => Attachment.decode(value),
+    requestSerialize: (value: LookupCriteria) => Buffer.from(LookupCriteria.encode(value).finish()),
+    requestDeserialize: (value: Buffer) => LookupCriteria.decode(value),
+    responseSerialize: (value: AttachmentList) => Buffer.from(AttachmentList.encode(value).finish()),
+    responseDeserialize: (value: Buffer) => AttachmentList.decode(value),
   },
 } as const;
 
 export interface AttachmentServer extends UntypedServiceImplementation {
   create: handleUnaryCall<CreateAttachmentInput, Attachment>;
   update: handleUnaryCall<UpdateAttachmentInput, Attachment>;
-  remove: handleUnaryCall<RemoveAttachmentInput, Attachment>;
+  delete: handleUnaryCall<LookupCriteria, AttachmentList>;
 }

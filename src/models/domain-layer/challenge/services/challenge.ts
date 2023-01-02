@@ -1,6 +1,7 @@
 /* eslint-disable */
 import { handleUnaryCall, UntypedServiceImplementation } from "@grpc/grpc-js";
-import { Challenge, CreateChallengeInput } from "../challenge";
+import { LookupCriteria, ScanRequest, ScanResult } from "../../../common/common";
+import { Challenge, ChallengeList, CreateChallengeInput, UpdateChallengeInput } from "../challenge";
 
 export type ChallengeService = typeof ChallengeService;
 export const ChallengeService = {
@@ -13,8 +14,48 @@ export const ChallengeService = {
     responseSerialize: (value: Challenge) => Buffer.from(Challenge.encode(value).finish()),
     responseDeserialize: (value: Buffer) => Challenge.decode(value),
   },
+  scan: {
+    path: "/topcoder.domain.service.challenge.Challenge/Scan",
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: (value: ScanRequest) => Buffer.from(ScanRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer) => ScanRequest.decode(value),
+    responseSerialize: (value: ScanResult) => Buffer.from(ScanResult.encode(value).finish()),
+    responseDeserialize: (value: Buffer) => ScanResult.decode(value),
+  },
+  lookup: {
+    path: "/topcoder.domain.service.challenge.Challenge/Lookup",
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: (value: LookupCriteria) => Buffer.from(LookupCriteria.encode(value).finish()),
+    requestDeserialize: (value: Buffer) => LookupCriteria.decode(value),
+    responseSerialize: (value: Challenge) => Buffer.from(Challenge.encode(value).finish()),
+    responseDeserialize: (value: Buffer) => Challenge.decode(value),
+  },
+  update: {
+    path: "/topcoder.domain.service.challenge.Challenge/Update",
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: (value: UpdateChallengeInput) => Buffer.from(UpdateChallengeInput.encode(value).finish()),
+    requestDeserialize: (value: Buffer) => UpdateChallengeInput.decode(value),
+    responseSerialize: (value: ChallengeList) => Buffer.from(ChallengeList.encode(value).finish()),
+    responseDeserialize: (value: Buffer) => ChallengeList.decode(value),
+  },
+  delete: {
+    path: "/topcoder.domain.service.challenge.Challenge/Delete",
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: (value: LookupCriteria) => Buffer.from(LookupCriteria.encode(value).finish()),
+    requestDeserialize: (value: Buffer) => LookupCriteria.decode(value),
+    responseSerialize: (value: ChallengeList) => Buffer.from(ChallengeList.encode(value).finish()),
+    responseDeserialize: (value: Buffer) => ChallengeList.decode(value),
+  },
 } as const;
 
 export interface ChallengeServer extends UntypedServiceImplementation {
   create: handleUnaryCall<CreateChallengeInput, Challenge>;
+  scan: handleUnaryCall<ScanRequest, ScanResult>;
+  lookup: handleUnaryCall<LookupCriteria, Challenge>;
+  update: handleUnaryCall<UpdateChallengeInput, ChallengeList>;
+  delete: handleUnaryCall<LookupCriteria, ChallengeList>;
 }

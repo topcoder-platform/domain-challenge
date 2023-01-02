@@ -1,6 +1,7 @@
 const path = require("path");
-const { execSync } = require("child_process");
 const rimraf = require("rimraf");
+
+const { execSync } = require("child_process");
 
 const PROTO_DIR = path.join(
   __dirname,

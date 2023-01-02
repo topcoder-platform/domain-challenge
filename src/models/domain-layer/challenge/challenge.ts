@@ -627,6 +627,10 @@ export interface Challenge_PrizeSet_Prize {
   type: string;
 }
 
+export interface ChallengeList {
+  challenges: Challenge[];
+}
+
 export interface CreateChallengeInput {
   typeId: string;
   /**
@@ -712,10 +716,6 @@ export interface CreateChallengeInput {
 
 export interface UpdateChallengeInput {
   challenge?: Challenge;
-}
-
-export interface RemoveChallengeInput {
-  id: string;
 }
 
 function createBaseChallenge(): Challenge {
@@ -1959,6 +1959,59 @@ export const Challenge_PrizeSet_Prize = {
   },
 };
 
+function createBaseChallengeList(): ChallengeList {
+  return { challenges: [] };
+}
+
+export const ChallengeList = {
+  encode(message: ChallengeList, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.challenges) {
+      Challenge.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ChallengeList {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseChallengeList();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.challenges.push(Challenge.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ChallengeList {
+    return {
+      challenges: Array.isArray(object?.challenges) ? object.challenges.map((e: any) => Challenge.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: ChallengeList): unknown {
+    const obj: any = {};
+    if (message.challenges) {
+      obj.challenges = message.challenges.map((e) => e ? Challenge.toJSON(e) : undefined);
+    } else {
+      obj.challenges = [];
+    }
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ChallengeList>, I>>(object: I): ChallengeList {
+    const message = createBaseChallengeList();
+    message.challenges = object.challenges?.map((e) => Challenge.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 function createBaseCreateChallengeInput(): CreateChallengeInput {
   return { typeId: "", trackId: "" };
 }
@@ -2063,53 +2116,6 @@ export const UpdateChallengeInput = {
     message.challenge = (object.challenge !== undefined && object.challenge !== null)
       ? Challenge.fromPartial(object.challenge)
       : undefined;
-    return message;
-  },
-};
-
-function createBaseRemoveChallengeInput(): RemoveChallengeInput {
-  return { id: "" };
-}
-
-export const RemoveChallengeInput = {
-  encode(message: RemoveChallengeInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== "") {
-      writer.uint32(10).string(message.id);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): RemoveChallengeInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseRemoveChallengeInput();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.id = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): RemoveChallengeInput {
-    return { id: isSet(object.id) ? String(object.id) : "" };
-  },
-
-  toJSON(message: RemoveChallengeInput): unknown {
-    const obj: any = {};
-    message.id !== undefined && (obj.id = message.id);
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<RemoveChallengeInput>, I>>(object: I): RemoveChallengeInput {
-    const message = createBaseRemoveChallengeInput();
-    message.id = object.id ?? "";
     return message;
   },
 };

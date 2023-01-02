@@ -9,6 +9,10 @@ export interface ChallengeTrack {
   abbreviation: string;
 }
 
+export interface ChallengeTrackList {
+  challengeTracks: ChallengeTrack[];
+}
+
 export interface CreateChallengeTrackInput {
   name: string;
   description?: string | undefined;
@@ -22,10 +26,6 @@ export interface UpdateChallengeTrackInput {
   description?: string | undefined;
   isActive: boolean;
   abbreviation: string;
-}
-
-export interface ChallengeTrackList {
-  challengeTracks: ChallengeTrack[];
 }
 
 function createBaseChallengeTrack(): ChallengeTrack {
@@ -109,6 +109,61 @@ export const ChallengeTrack = {
     message.description = object.description ?? undefined;
     message.isActive = object.isActive ?? false;
     message.abbreviation = object.abbreviation ?? "";
+    return message;
+  },
+};
+
+function createBaseChallengeTrackList(): ChallengeTrackList {
+  return { challengeTracks: [] };
+}
+
+export const ChallengeTrackList = {
+  encode(message: ChallengeTrackList, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.challengeTracks) {
+      ChallengeTrack.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): ChallengeTrackList {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseChallengeTrackList();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.challengeTracks.push(ChallengeTrack.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ChallengeTrackList {
+    return {
+      challengeTracks: Array.isArray(object?.challengeTracks)
+        ? object.challengeTracks.map((e: any) => ChallengeTrack.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: ChallengeTrackList): unknown {
+    const obj: any = {};
+    if (message.challengeTracks) {
+      obj.challengeTracks = message.challengeTracks.map((e) => e ? ChallengeTrack.toJSON(e) : undefined);
+    } else {
+      obj.challengeTracks = [];
+    }
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ChallengeTrackList>, I>>(object: I): ChallengeTrackList {
+    const message = createBaseChallengeTrackList();
+    message.challengeTracks = object.challengeTracks?.map((e) => ChallengeTrack.fromPartial(e)) || [];
     return message;
   },
 };
@@ -270,61 +325,6 @@ export const UpdateChallengeTrackInput = {
     message.description = object.description ?? undefined;
     message.isActive = object.isActive ?? false;
     message.abbreviation = object.abbreviation ?? "";
-    return message;
-  },
-};
-
-function createBaseChallengeTrackList(): ChallengeTrackList {
-  return { challengeTracks: [] };
-}
-
-export const ChallengeTrackList = {
-  encode(message: ChallengeTrackList, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.challengeTracks) {
-      ChallengeTrack.encode(v!, writer.uint32(10).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ChallengeTrackList {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseChallengeTrackList();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.challengeTracks.push(ChallengeTrack.decode(reader, reader.uint32()));
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ChallengeTrackList {
-    return {
-      challengeTracks: Array.isArray(object?.challengeTracks)
-        ? object.challengeTracks.map((e: any) => ChallengeTrack.fromJSON(e))
-        : [],
-    };
-  },
-
-  toJSON(message: ChallengeTrackList): unknown {
-    const obj: any = {};
-    if (message.challengeTracks) {
-      obj.challengeTracks = message.challengeTracks.map((e) => e ? ChallengeTrack.toJSON(e) : undefined);
-    } else {
-      obj.challengeTracks = [];
-    }
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<ChallengeTrackList>, I>>(object: I): ChallengeTrackList {
-    const message = createBaseChallengeTrackList();
-    message.challengeTracks = object.challengeTracks?.map((e) => ChallengeTrack.fromPartial(e)) || [];
     return message;
   },
 };

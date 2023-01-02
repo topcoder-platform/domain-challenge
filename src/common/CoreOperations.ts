@@ -1,26 +1,30 @@
 // TODO: Move this to @topcoder-framework
-
 import { noSqlClient } from "../dal/client/nosql";
+
+// TODO: Import from @topcoder-framework/lib-common
+import {
+  LookupCriteria,
+  ScanCriteria,
+  ScanResult,
+} from "../models/common/common";
+
+// TODO: Import from @topcoder-framework/lib-common
+import { Value } from "../models/google/protobuf/struct";
 
 import {
   Attribute,
   Filter,
   Operator,
-  operatorFromJSON,
   QueryRequest,
   QueryResponse,
   Response,
   ReturnValues,
   SelectQuery,
-  Value,
+  Value as PartiQLValue,
 } from "../../dist/dal/models/nosql/PartiQL";
-
-import {
-  LookupCriteria,
-  ScanCriteria,
-  ScanResult,
-  FilterValue,
-} from "../../dist/models/common/common";
+import { StatusBuilder } from "@grpc/grpc-js";
+import { Status } from "@grpc/grpc-js/build/src/constants";
+import { GrpcError } from "./GrpcError";
 
 export type ValueType =
   | "nullValue"
@@ -46,8 +50,6 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
   ) {}
 
   public async lookup(lookupCriteria: LookupCriteria): Promise<T> {
-    const filterValue: Value = this.getFilterValue(lookupCriteria.value!);
-
     const selectQuery: SelectQuery = {
       table: this.entityName,
       attributes: this.entityAttributes,
@@ -55,7 +57,7 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
         {
           name: lookupCriteria.key,
           operator: Operator.EQUAL,
-          value: filterValue!,
+          value: this.getFilterValue(lookupCriteria.value),
         },
       ],
     };
@@ -76,14 +78,28 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
 
     switch (queryResponse.kind?.$case) {
       case "error":
-        throw new Error(queryResponse.kind?.error?.message);
+        throw new GrpcError(
+          new StatusBuilder()
+            .withCode(Status.INTERNAL) // TODO: Map error code
+            .withDetails(queryResponse.kind?.error?.message)
+            .build()
+        );
       case "response":
         if (queryResponse.kind?.response?.items?.length > 0) {
-          return this.toEntity(queryResponse.kind?.response?.items![0]);
+          return this.toEntity(queryResponse.kind?.response?.items[0]);
         }
     }
 
-    throw new Error("Not Found");
+    throw new GrpcError(
+      new StatusBuilder()
+        .withCode(Status.NOT_FOUND)
+        .withDetails(
+          `Entity not found: ${lookupCriteria.key} = ${Value.unwrap(
+            (lookupCriteria.value as { value: Value }).value
+          )}`
+        )
+        .build()
+    );
   }
 
   public async scan(
@@ -169,8 +185,6 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
   }
 
   public async delete(lookupCriteria: LookupCriteria): Promise<T[]> {
-    const filterValue: Value = this.getFilterValue(lookupCriteria.value!);
-
     const queryRequest: QueryRequest = {
       kind: {
         $case: "query",
@@ -183,7 +197,7 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
                 {
                   name: lookupCriteria.key,
                   operator: Operator.EQUAL,
-                  value: filterValue,
+                  value: this.getFilterValue(lookupCriteria.value),
                 },
               ],
               returnValues: ReturnValues.ALL_OLD,
@@ -196,29 +210,42 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
     const queryResponse: QueryResponse = await noSqlClient.query(queryRequest);
 
     if (queryResponse.kind?.$case === "error") {
-      throw new Error(queryResponse.kind?.error?.message);
+      throw new GrpcError(
+        new StatusBuilder()
+          .withCode(Status.INTERNAL)
+          .withDetails(queryResponse.kind?.error?.message)
+          .build()
+      );
     }
 
     const response: Response = queryResponse.kind?.response!;
 
     if (response.items?.length === 0) {
-      throw new Error("Not Found");
+      throw new GrpcError(
+        new StatusBuilder()
+          .withCode(Status.NOT_FOUND)
+          .withDetails(
+            `Entity not found: ${lookupCriteria.key} = ${Value.unwrap(
+              (lookupCriteria.value as { value: Value }).value
+            )}`
+          )
+          .build()
+      );
     }
 
     return response.items.map((item) => this.toEntity(item));
   }
 
-  private getFilterValue(filterValue: FilterValue): Value {
-    let value: Value;
+  private getFilterValue(filter: unknown): PartiQLValue {
+    const filterValue = (filter as { value: Value }).value;
+    let value: PartiQLValue;
 
-    console.log("filterValue", filterValue);
-
-    switch (filterValue.value?.$case) {
+    switch (filterValue.kind?.$case) {
       case "numberValue":
         value = {
           kind: {
             $case: "numberValue",
-            numberValue: filterValue.value?.numberValue,
+            numberValue: filterValue.kind.numberValue,
           },
         };
         break;
@@ -226,18 +253,29 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
         value = {
           kind: {
             $case: "stringValue",
-            stringValue: filterValue.value?.stringValue,
+            stringValue: filterValue.kind.stringValue,
           },
         };
         break;
+      case "boolValue":
+        value = {
+          kind: {
+            $case: "boolean",
+            boolean: filterValue.kind.boolValue,
+          },
+        };
+        break;
+
       default:
-        throw new Error("Lookups are only supported for string and number");
+        throw new Error(
+          "Lookups are only supported for string, number & boolean value"
+        );
     }
 
     return value;
   }
 
-  protected abstract toEntity(response: { [key: string]: Value }): T;
+  protected abstract toEntity(response: { [key: string]: PartiQLValue }): T;
 }
 
 export default CoreOperations;

@@ -11,16 +11,16 @@ export interface Attachment {
   description?: string | undefined;
 }
 
+export interface AttachmentList {
+  challengeTimelineTemplates: Attachment[];
+}
+
 export interface CreateAttachmentInput {
   attachment?: Attachment;
 }
 
 export interface UpdateAttachmentInput {
   attachment?: Attachment;
-}
-
-export interface RemoveAttachmentInput {
-  id: string;
 }
 
 function createBaseAttachment(): Attachment {
@@ -113,6 +113,63 @@ export const Attachment = {
     message.name = object.name ?? "";
     message.challengeId = object.challengeId ?? "";
     message.description = object.description ?? undefined;
+    return message;
+  },
+};
+
+function createBaseAttachmentList(): AttachmentList {
+  return { challengeTimelineTemplates: [] };
+}
+
+export const AttachmentList = {
+  encode(message: AttachmentList, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.challengeTimelineTemplates) {
+      Attachment.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): AttachmentList {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAttachmentList();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.challengeTimelineTemplates.push(Attachment.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AttachmentList {
+    return {
+      challengeTimelineTemplates: Array.isArray(object?.challengeTimelineTemplates)
+        ? object.challengeTimelineTemplates.map((e: any) => Attachment.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: AttachmentList): unknown {
+    const obj: any = {};
+    if (message.challengeTimelineTemplates) {
+      obj.challengeTimelineTemplates = message.challengeTimelineTemplates.map((e) =>
+        e ? Attachment.toJSON(e) : undefined
+      );
+    } else {
+      obj.challengeTimelineTemplates = [];
+    }
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<AttachmentList>, I>>(object: I): AttachmentList {
+    const message = createBaseAttachmentList();
+    message.challengeTimelineTemplates = object.challengeTimelineTemplates?.map((e) => Attachment.fromPartial(e)) || [];
     return message;
   },
 };
@@ -213,53 +270,6 @@ export const UpdateAttachmentInput = {
     message.attachment = (object.attachment !== undefined && object.attachment !== null)
       ? Attachment.fromPartial(object.attachment)
       : undefined;
-    return message;
-  },
-};
-
-function createBaseRemoveAttachmentInput(): RemoveAttachmentInput {
-  return { id: "" };
-}
-
-export const RemoveAttachmentInput = {
-  encode(message: RemoveAttachmentInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== "") {
-      writer.uint32(10).string(message.id);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): RemoveAttachmentInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseRemoveAttachmentInput();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.id = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): RemoveAttachmentInput {
-    return { id: isSet(object.id) ? String(object.id) : "" };
-  },
-
-  toJSON(message: RemoveAttachmentInput): unknown {
-    const obj: any = {};
-    message.id !== undefined && (obj.id = message.id);
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<RemoveAttachmentInput>, I>>(object: I): RemoveAttachmentInput {
-    const message = createBaseRemoveAttachmentInput();
-    message.id = object.id ?? "";
     return message;
   },
 };

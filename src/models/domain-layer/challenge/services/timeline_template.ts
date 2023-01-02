@@ -1,14 +1,33 @@
 /* eslint-disable */
 import { handleUnaryCall, UntypedServiceImplementation } from "@grpc/grpc-js";
+import { LookupCriteria, ScanRequest, ScanResult } from "../../../common/common";
 import {
   CreateTimelineTemplateInput,
-  RemoveTimelineTemplateInput,
   TimelineTemplate,
+  TimelineTemplateList,
   UpdateTimelineTemplateInput,
 } from "../timeline_template";
 
 export type TimelineTemplateService = typeof TimelineTemplateService;
 export const TimelineTemplateService = {
+  scan: {
+    path: "/topcoder.domain.service.timeline_template.TimelineTemplate/Scan",
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: (value: ScanRequest) => Buffer.from(ScanRequest.encode(value).finish()),
+    requestDeserialize: (value: Buffer) => ScanRequest.decode(value),
+    responseSerialize: (value: ScanResult) => Buffer.from(ScanResult.encode(value).finish()),
+    responseDeserialize: (value: Buffer) => ScanResult.decode(value),
+  },
+  lookup: {
+    path: "/topcoder.domain.service.timeline_template.TimelineTemplate/Lookup",
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: (value: LookupCriteria) => Buffer.from(LookupCriteria.encode(value).finish()),
+    requestDeserialize: (value: Buffer) => LookupCriteria.decode(value),
+    responseSerialize: (value: TimelineTemplate) => Buffer.from(TimelineTemplate.encode(value).finish()),
+    responseDeserialize: (value: Buffer) => TimelineTemplate.decode(value),
+  },
   create: {
     path: "/topcoder.domain.service.timeline_template.TimelineTemplate/Create",
     requestStream: false,
@@ -19,8 +38,8 @@ export const TimelineTemplateService = {
     responseSerialize: (value: TimelineTemplate) => Buffer.from(TimelineTemplate.encode(value).finish()),
     responseDeserialize: (value: Buffer) => TimelineTemplate.decode(value),
   },
-  upadte: {
-    path: "/topcoder.domain.service.timeline_template.TimelineTemplate/Upadte",
+  update: {
+    path: "/topcoder.domain.service.timeline_template.TimelineTemplate/Update",
     requestStream: false,
     responseStream: false,
     requestSerialize: (value: UpdateTimelineTemplateInput) =>
@@ -29,20 +48,21 @@ export const TimelineTemplateService = {
     responseSerialize: (value: TimelineTemplate) => Buffer.from(TimelineTemplate.encode(value).finish()),
     responseDeserialize: (value: Buffer) => TimelineTemplate.decode(value),
   },
-  remove: {
-    path: "/topcoder.domain.service.timeline_template.TimelineTemplate/Remove",
+  delete: {
+    path: "/topcoder.domain.service.timeline_template.TimelineTemplate/Delete",
     requestStream: false,
     responseStream: false,
-    requestSerialize: (value: RemoveTimelineTemplateInput) =>
-      Buffer.from(RemoveTimelineTemplateInput.encode(value).finish()),
-    requestDeserialize: (value: Buffer) => RemoveTimelineTemplateInput.decode(value),
-    responseSerialize: (value: TimelineTemplate) => Buffer.from(TimelineTemplate.encode(value).finish()),
-    responseDeserialize: (value: Buffer) => TimelineTemplate.decode(value),
+    requestSerialize: (value: LookupCriteria) => Buffer.from(LookupCriteria.encode(value).finish()),
+    requestDeserialize: (value: Buffer) => LookupCriteria.decode(value),
+    responseSerialize: (value: TimelineTemplateList) => Buffer.from(TimelineTemplateList.encode(value).finish()),
+    responseDeserialize: (value: Buffer) => TimelineTemplateList.decode(value),
   },
 } as const;
 
 export interface TimelineTemplateServer extends UntypedServiceImplementation {
+  scan: handleUnaryCall<ScanRequest, ScanResult>;
+  lookup: handleUnaryCall<LookupCriteria, TimelineTemplate>;
   create: handleUnaryCall<CreateTimelineTemplateInput, TimelineTemplate>;
-  upadte: handleUnaryCall<UpdateTimelineTemplateInput, TimelineTemplate>;
-  remove: handleUnaryCall<RemoveTimelineTemplateInput, TimelineTemplate>;
+  update: handleUnaryCall<UpdateTimelineTemplateInput, TimelineTemplate>;
+  delete: handleUnaryCall<LookupCriteria, TimelineTemplateList>;
 }

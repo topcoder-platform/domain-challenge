@@ -1,4 +1,11 @@
-import { handleUnaryCall, sendUnaryData, ServerUnaryCall } from "@grpc/grpc-js";
+import {
+  handleUnaryCall,
+  sendUnaryData,
+  ServerErrorResponse,
+  StatusObject,
+  StatusBuilder,
+  ServerUnaryCall,
+} from "@grpc/grpc-js";
 import {
   ScanRequest,
   ScanResult,
@@ -18,6 +25,7 @@ import {
 } from "../models/domain-layer/challenge/services/challenge_timeline_template";
 
 import Domain from "../domain/ChallengeTimelineTemplate";
+import { Status } from "@grpc/grpc-js/build/src/constants";
 
 class ChallengeTimelineTemplatServerImpl
   implements ChallengeTimelineTemplateServer
@@ -49,9 +57,13 @@ class ChallengeTimelineTemplatServerImpl
   ): Promise<void> => {
     const { request: lookupCriteria } = call;
 
-    const challengeTimelineTemplate = await Domain.lookup(lookupCriteria);
-
-    callback(null, challengeTimelineTemplate);
+    Domain.lookup(lookupCriteria)
+      .then((challengeTimelineTemplate) => {
+        callback(null, challengeTimelineTemplate);
+      })
+      .catch((error: StatusObject) => {
+        callback(error, null);
+      });
   };
 
   create: handleUnaryCall<
@@ -66,9 +78,13 @@ class ChallengeTimelineTemplatServerImpl
   ): Promise<void> => {
     const { request: createRequestInput } = call;
 
-    const challengeTimelineTemplate = await Domain.create(createRequestInput);
-
-    callback(null, challengeTimelineTemplate);
+    Domain.create(createRequestInput)
+      .then((challengeTimelineTemplate) => {
+        callback(null, challengeTimelineTemplate);
+      })
+      .catch((error: StatusObject) => {
+        callback(error, null);
+      });
   };
 
   update: handleUnaryCall<
@@ -92,12 +108,18 @@ class ChallengeTimelineTemplatServerImpl
     ): Promise<void> => {
       const { request: lookupCriteria } = call;
 
-      const challengeTimelineTemplateList = await Domain.delete(lookupCriteria);
-
-      callback(
-        null,
-        ChallengeTimelineTemplateList.fromJSON(challengeTimelineTemplateList)
-      );
+      Domain.delete(lookupCriteria)
+        .then((challengeTimelineTemplateList) => {
+          callback(
+            null,
+            ChallengeTimelineTemplateList.fromJSON(
+              challengeTimelineTemplateList
+            )
+          );
+        })
+        .catch((error) => {
+          callback(error, null);
+        });
     };
 }
 

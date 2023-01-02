@@ -1398,9 +1398,9 @@ to-regex-range@^5.0.1:
   dependencies:
     is-number "^7.0.0"
 
-"topcoder-interface@github:topcoder-platform/plat-interface-definition#feat/challenge-domain":
+"topcoder-interface@github:topcoder-platform/plat-interface-definition":
   version "1.0.0"
-  resolved "https://codeload.github.com/topcoder-platform/plat-interface-definition/tar.gz/1068bc9ad586ddc3bce9c8a4af3d26d1bd044761"
+  resolved "https://codeload.github.com/topcoder-platform/plat-interface-definition/tar.gz/806b3f38b3876964dba15aa48d58ddda86b0f9a8"
 
 tree-kill@^1.2.2:
   version "1.2.2"
