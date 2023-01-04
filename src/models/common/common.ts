@@ -213,10 +213,7 @@ function createBaseScanCriteria(): ScanCriteria {
 }
 
 export const ScanCriteria = {
-  encode(
-    message: ScanCriteria,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: ScanCriteria, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.key !== "") {
       writer.uint32(10).string(message.key);
     }
@@ -224,10 +221,7 @@ export const ScanCriteria = {
       writer.uint32(16).int32(message.operator);
     }
     if (message.value !== undefined) {
-      Value.encode(
-        Value.wrap(message.value),
-        writer.uint32(26).fork()
-      ).ldelim();
+      Value.encode(Value.wrap(message.value), writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -259,9 +253,7 @@ export const ScanCriteria = {
   fromJSON(object: any): ScanCriteria {
     return {
       key: isSet(object.key) ? String(object.key) : "",
-      operator: isSet(object.operator)
-        ? operatorFromJSON(object.operator)
-        : undefined,
+      operator: isSet(object.operator) ? operatorFromJSON(object.operator) : undefined,
       value: isSet(object?.value) ? object.value : undefined,
     };
   },
@@ -270,17 +262,12 @@ export const ScanCriteria = {
     const obj: any = {};
     message.key !== undefined && (obj.key = message.key);
     message.operator !== undefined &&
-      (obj.operator =
-        message.operator !== undefined
-          ? operatorToJSON(message.operator)
-          : undefined);
+      (obj.operator = message.operator !== undefined ? operatorToJSON(message.operator) : undefined);
     message.value !== undefined && (obj.value = message.value);
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ScanCriteria>, I>>(
-    object: I
-  ): ScanCriteria {
+  fromPartial<I extends Exact<DeepPartial<ScanCriteria>, I>>(object: I): ScanCriteria {
     const message = createBaseScanCriteria();
     message.key = object.key ?? "";
     message.operator = object.operator ?? undefined;
@@ -294,10 +281,7 @@ function createBaseScanRequest(): ScanRequest {
 }
 
 export const ScanRequest = {
-  encode(
-    message: ScanRequest,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: ScanRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.nextToken !== undefined) {
       writer.uint32(10).string(message.nextToken);
     }
@@ -318,9 +302,7 @@ export const ScanRequest = {
           message.nextToken = reader.string();
           break;
         case 2:
-          message.scanCriteria.push(
-            ScanCriteria.decode(reader, reader.uint32())
-          );
+          message.scanCriteria.push(ScanCriteria.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -343,22 +325,17 @@ export const ScanRequest = {
     const obj: any = {};
     message.nextToken !== undefined && (obj.nextToken = message.nextToken);
     if (message.scanCriteria) {
-      obj.scanCriteria = message.scanCriteria.map((e) =>
-        e ? ScanCriteria.toJSON(e) : undefined
-      );
+      obj.scanCriteria = message.scanCriteria.map((e) => e ? ScanCriteria.toJSON(e) : undefined);
     } else {
       obj.scanCriteria = [];
     }
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ScanRequest>, I>>(
-    object: I
-  ): ScanRequest {
+  fromPartial<I extends Exact<DeepPartial<ScanRequest>, I>>(object: I): ScanRequest {
     const message = createBaseScanRequest();
     message.nextToken = object.nextToken ?? undefined;
-    message.scanCriteria =
-      object.scanCriteria?.map((e) => ScanCriteria.fromPartial(e)) || [];
+    message.scanCriteria = object.scanCriteria?.map((e) => ScanCriteria.fromPartial(e)) || [];
     return message;
   },
 };
@@ -368,10 +345,7 @@ function createBaseScanResult(): ScanResult {
 }
 
 export const ScanResult = {
-  encode(
-    message: ScanResult,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: ScanResult, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.nextToken !== undefined) {
       writer.uint32(10).string(message.nextToken);
     }
@@ -392,9 +366,7 @@ export const ScanResult = {
           message.nextToken = reader.string();
           break;
         case 2:
-          message.items.push(
-            Struct.unwrap(Struct.decode(reader, reader.uint32()))
-          );
+          message.items.push(Struct.unwrap(Struct.decode(reader, reader.uint32())));
           break;
         default:
           reader.skipType(tag & 7);
@@ -422,9 +394,7 @@ export const ScanResult = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<ScanResult>, I>>(
-    object: I
-  ): ScanResult {
+  fromPartial<I extends Exact<DeepPartial<ScanResult>, I>>(object: I): ScanResult {
     const message = createBaseScanResult();
     message.nextToken = object.nextToken ?? undefined;
     message.items = object.items?.map((e) => e) || [];
@@ -437,18 +407,12 @@ function createBaseLookupCriteria(): LookupCriteria {
 }
 
 export const LookupCriteria = {
-  encode(
-    message: LookupCriteria,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: LookupCriteria, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.key !== "") {
       writer.uint32(10).string(message.key);
     }
     if (message.value !== undefined) {
-      Value.encode(
-        Value.wrap(message.value),
-        writer.uint32(26).fork()
-      ).ldelim();
+      Value.encode(Value.wrap(message.value), writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -475,10 +439,7 @@ export const LookupCriteria = {
   },
 
   fromJSON(object: any): LookupCriteria {
-    return {
-      key: isSet(object.key) ? String(object.key) : "",
-      value: isSet(object?.value) ? object.value : undefined,
-    };
+    return { key: isSet(object.key) ? String(object.key) : "", value: isSet(object?.value) ? object.value : undefined };
   },
 
   toJSON(message: LookupCriteria): unknown {
@@ -488,9 +449,7 @@ export const LookupCriteria = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<LookupCriteria>, I>>(
-    object: I
-  ): LookupCriteria {
+  fromPartial<I extends Exact<DeepPartial<LookupCriteria>, I>>(object: I): LookupCriteria {
     const message = createBaseLookupCriteria();
     message.key = object.key ?? "";
     message.value = object.value ?? undefined;
@@ -503,23 +462,14 @@ function createBaseGoogleProtobufTypesPlaceholder(): GoogleProtobufTypesPlacehol
 }
 
 export const GoogleProtobufTypesPlaceholder = {
-  encode(
-    message: GoogleProtobufTypesPlaceholder,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: GoogleProtobufTypesPlaceholder, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.timestamp !== undefined) {
-      Timestamp.encode(
-        toTimestamp(message.timestamp),
-        writer.uint32(10).fork()
-      ).ldelim();
+      Timestamp.encode(toTimestamp(message.timestamp), writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(
-    input: _m0.Reader | Uint8Array,
-    length?: number
-  ): GoogleProtobufTypesPlaceholder {
+  decode(input: _m0.Reader | Uint8Array, length?: number): GoogleProtobufTypesPlaceholder {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseGoogleProtobufTypesPlaceholder();
@@ -527,9 +477,7 @@ export const GoogleProtobufTypesPlaceholder = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.timestamp = fromTimestamp(
-            Timestamp.decode(reader, reader.uint32())
-          );
+          message.timestamp = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -540,22 +488,17 @@ export const GoogleProtobufTypesPlaceholder = {
   },
 
   fromJSON(object: any): GoogleProtobufTypesPlaceholder {
-    return {
-      timestamp: isSet(object.timestamp)
-        ? fromJsonTimestamp(object.timestamp)
-        : undefined,
-    };
+    return { timestamp: isSet(object.timestamp) ? fromJsonTimestamp(object.timestamp) : undefined };
   },
 
   toJSON(message: GoogleProtobufTypesPlaceholder): unknown {
     const obj: any = {};
-    message.timestamp !== undefined &&
-      (obj.timestamp = message.timestamp.toISOString());
+    message.timestamp !== undefined && (obj.timestamp = message.timestamp.toISOString());
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<GoogleProtobufTypesPlaceholder>, I>>(
-    object: I
+    object: I,
   ): GoogleProtobufTypesPlaceholder {
     const message = createBaseGoogleProtobufTypesPlaceholder();
     message.timestamp = object.timestamp ?? undefined;
@@ -563,35 +506,17 @@ export const GoogleProtobufTypesPlaceholder = {
   },
 };
 
-type Builtin =
-  | Date
-  | Function
-  | Uint8Array
-  | string
-  | number
-  | boolean
-  | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends { $case: string }
-  ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & {
-      $case: T["$case"];
-    }
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & {
-      [K in Exclude<keyof I, KeysOfUnion<P>>]: never;
-    };
+type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function toTimestamp(date: Date): Timestamp {
   const seconds = date.getTime() / 1_000;

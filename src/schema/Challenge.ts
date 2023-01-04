@@ -1,15 +1,15 @@
-import { DataType } from "../dal/models/nosql/PartiQL";
+import { DataType } from "../dal/models/nosql/parti_ql";
 
 export const ChallengeSchema = {
   tableName: "Challenge",
   attributes: [
     {
       name: "id",
-      type: DataType.STRING,
+      type: DataType.DATA_TYPE_STRING,
     },
     {
       name: "phases",
-      type: DataType.STRING,
+      type: DataType.DATA_TYPE_STRING,
     },
   ],
   indices: {},

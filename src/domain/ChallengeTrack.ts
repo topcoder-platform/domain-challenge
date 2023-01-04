@@ -1,5 +1,5 @@
 import { CreateChallengeTrackInput } from "./../models/domain-layer/challenge/challenge_track";
-import { Value } from "../dal/models/nosql/PartiQL";
+import { Value } from "../dal/models/nosql/parti_ql";
 
 import { ChallengeTrack } from "../models/domain-layer/challenge/challenge_track";
 

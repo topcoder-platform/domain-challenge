@@ -1,7 +1,5 @@
 import { CreateChallengeTimelineTemplateInput } from "./../models/domain-layer/challenge/challenge_timeline_template";
-import { CreateTimelineTemplateInput } from "./../models/domain-layer/challenge/timeline_template";
-import { CreateAttachmentInput } from "./../models/domain-layer/challenge/attachment";
-import { Value } from "../dal/models/nosql/PartiQL";
+import { Value } from "../dal/models/nosql/parti_ql";
 
 import { ChallengeTimelineTemplateSchema } from "../schema/ChallengeTimelineTemplate";
 import { ChallengeTimelineTemplate } from "../models/domain-layer/challenge/challenge_timeline_template";

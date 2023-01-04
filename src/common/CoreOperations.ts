@@ -13,15 +13,18 @@ import { Value } from "../models/google/protobuf/struct";
 
 import {
   Attribute,
+  DataType,
   Filter,
   Operator,
   QueryRequest,
   QueryResponse,
   Response,
-  ReturnValues,
+  ReturnValue,
   SelectQuery,
+  UpdateAction,
+  UpdateType,
   Value as PartiQLValue,
-} from "../../dist/dal/models/nosql/PartiQL";
+} from "../dal/models/nosql/parti_ql";
 import { StatusBuilder } from "@grpc/grpc-js";
 import { Status } from "@grpc/grpc-js/build/src/constants";
 import { GrpcError } from "./GrpcError";
@@ -49,6 +52,15 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
     private entityIndexList: DynamoTableIndex
   ) {}
 
+  private attributesKeyTypeMap: { [key: string]: DataType } =
+    this.entityAttributes.reduce(
+      (map, attribute) => ({
+        ...map,
+        [attribute.name]: attribute.type,
+      }),
+      {}
+    );
+
   public async lookup(lookupCriteria: LookupCriteria): Promise<T> {
     const selectQuery: SelectQuery = {
       table: this.entityName,
@@ -56,7 +68,7 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
       filters: [
         {
           name: lookupCriteria.key,
-          operator: Operator.EQUAL,
+          operator: Operator.OPERATOR_EQUAL,
           value: this.getFilterValue(lookupCriteria.value),
         },
       ],
@@ -106,22 +118,7 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
     scanCriteria: ScanCriteria[],
     nextToken: string | undefined
   ): Promise<ScanResult> {
-    let index: string | null = null;
-
-    const filters: Filter[] = scanCriteria.map((criteria) => {
-      if (index == null && this.entityIndexList[criteria.key] != null) {
-        index = this.entityIndexList[criteria.key].index!;
-      }
-
-      return Filter.fromJSON({
-        name: criteria.key,
-        // TODO: Move "Operator" from domain and PartiQL to common definitions
-        operator: Operator.EQUAL, // operatorFromJSON(criteria.operator),
-        value: {
-          stringValue: criteria.value,
-        },
-      });
-    });
+    const { index, filters } = this.toFilters(scanCriteria);
 
     const queryRequest: QueryRequest = {
       kind: {
@@ -180,11 +177,59 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
     return entity;
   }
 
-  public async update() {
-    // TODO: Handle Update
+  public async update(
+    scanCriteria: ScanCriteria[],
+    entity: unknown
+  ): Promise<{ items: T[] }> {
+    if (typeof entity != "object" || entity == null) {
+      throw new Error("Expected key-value pairs to update");
+    }
+
+    const { filters } = this.toFilters(scanCriteria);
+    const queryRequest: QueryRequest = {
+      kind: {
+        $case: "query",
+        query: {
+          kind: {
+            $case: "update",
+            update: {
+              table: this.entityName,
+              // TODO: Write a convenience method in @topcoder-framework/lib-common to support additional update operations like LIST_APPEND, SET_ADD, SET_REMOVE, etc
+              updates: Object.entries(entity).map(([key, value]) => ({
+                action: UpdateAction.UPDATE_ACTION_SET,
+                type: UpdateType.UPDATE_TYPE_VALUE,
+                attribute: key,
+                value: this.toValue(key, value),
+              })),
+              filters,
+              returnValue: ReturnValue.RETURN_VALUE_ALL_NEW,
+            },
+          },
+        },
+      },
+    };
+
+    const queryResponse: QueryResponse = await noSqlClient.query(queryRequest);
+
+    if (queryResponse.kind?.$case === "error") {
+      throw new Error(queryResponse.kind?.error?.message);
+    }
+    const response: Response = queryResponse.kind?.response!;
+    if (response.items?.length === 0) {
+      throw new GrpcError(
+        new StatusBuilder()
+          .withCode(Status.NOT_FOUND)
+          .withDetails(`No record matched the filter criteria`)
+          .build()
+      );
+    }
+
+    return {
+      items: response.items.map((item) => this.toEntity(item)),
+    };
   }
 
-  public async delete(lookupCriteria: LookupCriteria): Promise<T[]> {
+  public async delete(lookupCriteria: LookupCriteria): Promise<{ items: T[] }> {
     const queryRequest: QueryRequest = {
       kind: {
         $case: "query",
@@ -196,11 +241,11 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
               filters: [
                 {
                   name: lookupCriteria.key,
-                  operator: Operator.EQUAL,
+                  operator: Operator.OPERATOR_EQUAL,
                   value: this.getFilterValue(lookupCriteria.value),
                 },
               ],
-              returnValues: ReturnValues.ALL_OLD,
+              returnValues: ReturnValue.RETURN_VALUE_ALL_OLD,
             },
           },
         },
@@ -233,7 +278,35 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
       );
     }
 
-    return response.items.map((item) => this.toEntity(item));
+    return {
+      items: response.items.map((item) => this.toEntity(item)),
+    };
+  }
+
+  private toFilters(scanCriteria: ScanCriteria[]): {
+    index: string | null;
+    filters: Filter[];
+  } {
+    let index: string | null = null;
+    const filters: Filter[] = scanCriteria.map((criteria) => {
+      if (index == null && this.entityIndexList[criteria.key] != null) {
+        index = this.entityIndexList[criteria.key].index!;
+      }
+
+      return Filter.fromJSON({
+        name: criteria.key,
+        // TODO: Map operator from topcoder.common.Operator to PartiQL.Operator
+        operator: Operator.OPERATOR_EQUAL,
+        value: {
+          stringValue: criteria.value,
+        },
+      });
+    });
+
+    return {
+      index,
+      filters,
+    };
   }
 
   private getFilterValue(filter: unknown): PartiQLValue {
@@ -273,6 +346,83 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
     }
 
     return value;
+  }
+
+  private toValue(key: string, value: unknown): PartiQLValue {
+    const dataType: DataType = this.attributesKeyTypeMap[key];
+
+    if (dataType == null) {
+      throw new Error(`Unknown attribute: ${key}`);
+    }
+
+    if (dataType == DataType.DATA_TYPE_STRING) {
+      return {
+        kind: {
+          $case: "stringValue",
+          stringValue: value as string,
+        },
+      };
+    }
+
+    if (dataType == DataType.DATA_TYPE_NUMBER) {
+      return {
+        kind: {
+          $case: "numberValue",
+          numberValue: value as number,
+        },
+      };
+    }
+
+    if (dataType == DataType.DATA_TYPE_BOOLEAN) {
+      return {
+        kind: {
+          $case: "boolean",
+          boolean: value as boolean,
+        },
+      };
+    }
+
+    if (dataType == DataType.DATA_TYPE_LIST) {
+      return {
+        kind: {
+          $case: "listValue",
+          listValue: (value as unknown[]).map((item) => item),
+        },
+      };
+    }
+
+    if (dataType == DataType.DATA_TYPE_MAP) {
+      return {
+        kind: {
+          $case: "mapValue",
+          mapValue: value as { [key: string]: unknown },
+        },
+      };
+    }
+
+    if (dataType === DataType.DATA_TYPE_STRING_SET) {
+      return {
+        kind: {
+          $case: "stringSetValue",
+          stringSetValue: {
+            values: value as string[],
+          },
+        },
+      };
+    }
+
+    if (dataType === DataType.DATA_TYPE_NUMBER_SET) {
+      return {
+        kind: {
+          $case: "numberSetValue",
+          numberSetValue: {
+            values: value as number[],
+          },
+        },
+      };
+    }
+
+    throw new Error(`Unsupported data type: ${dataType}`);
   }
 
   protected abstract toEntity(response: { [key: string]: PartiQLValue }): T;

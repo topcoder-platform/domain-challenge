@@ -1,27 +1,27 @@
-import { DataType } from "../dal/models/nosql/PartiQL";
+import { DataType } from "../dal/models/nosql/parti_ql";
 
 export const ChallengeTimelineTemplateSchema = {
   tableName: "ChallengeTimelineTemplate",
   attributes: [
     {
       name: "id",
-      type: DataType.STRING,
+      type: DataType.DATA_TYPE_STRING,
     },
     {
       name: "isDefault",
-      type: DataType.BOOLEAN,
+      type: DataType.DATA_TYPE_BOOLEAN,
     },
     {
       name: "timelineTemplateId",
-      type: DataType.STRING,
+      type: DataType.DATA_TYPE_STRING,
     },
     {
       name: "trackId",
-      type: DataType.STRING,
+      type: DataType.DATA_TYPE_STRING,
     },
     {
       name: "typeId",
-      type: DataType.STRING,
+      type: DataType.DATA_TYPE_STRING,
     },
   ],
   indices: {},

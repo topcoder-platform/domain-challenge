@@ -12,7 +12,7 @@
     "start": "ts-node-dev --respawn --transpile-only src/server.ts"
   },
   "keywords": [],
-  "author": "Rakib Ansary",
+  "author": "Rakib Ansary <rakibansary@topcoder.com>",
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.183.0",
@@ -23,7 +23,7 @@
     "grpc-server-reflection": "^0.1.5",
     "lodash": "^4.17.21",
     "source-map-support": "^0.5.21",
-    "topcoder-interface": "github:topcoder-platform/plat-interface-definition",
+    "topcoder-interface": "github:topcoder-platform/plat-interface-definition#v0.0.4",
     "uuidv4": "^6.2.13"
   },
   "volta": {

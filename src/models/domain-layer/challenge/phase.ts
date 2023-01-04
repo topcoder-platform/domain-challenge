@@ -11,7 +11,7 @@ export interface Phase {
 }
 
 export interface PhaseList {
-  phases: Phase[];
+  items: Phase[];
 }
 
 export interface CreatePhaseInput {
@@ -115,12 +115,12 @@ export const Phase = {
 };
 
 function createBasePhaseList(): PhaseList {
-  return { phases: [] };
+  return { items: [] };
 }
 
 export const PhaseList = {
   encode(message: PhaseList, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.phases) {
+    for (const v of message.items) {
       Phase.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
@@ -134,7 +134,7 @@ export const PhaseList = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.phases.push(Phase.decode(reader, reader.uint32()));
+          message.items.push(Phase.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -145,22 +145,22 @@ export const PhaseList = {
   },
 
   fromJSON(object: any): PhaseList {
-    return { phases: Array.isArray(object?.phases) ? object.phases.map((e: any) => Phase.fromJSON(e)) : [] };
+    return { items: Array.isArray(object?.items) ? object.items.map((e: any) => Phase.fromJSON(e)) : [] };
   },
 
   toJSON(message: PhaseList): unknown {
     const obj: any = {};
-    if (message.phases) {
-      obj.phases = message.phases.map((e) => e ? Phase.toJSON(e) : undefined);
+    if (message.items) {
+      obj.items = message.items.map((e) => e ? Phase.toJSON(e) : undefined);
     } else {
-      obj.phases = [];
+      obj.items = [];
     }
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<PhaseList>, I>>(object: I): PhaseList {
     const message = createBasePhaseList();
-    message.phases = object.phases?.map((e) => Phase.fromPartial(e)) || [];
+    message.items = object.items?.map((e) => Phase.fromPartial(e)) || [];
     return message;
   },
 };

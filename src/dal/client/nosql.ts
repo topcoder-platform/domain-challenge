@@ -9,7 +9,7 @@ import {
   PartiQLQueryClient,
   QueryRequest,
   QueryResponse,
-} from "../models/nosql/PartiQL";
+} from "../models/nosql/parti_ql";
 
 class NoSQLClient {
   // https://github.com/grpc/grpc/blob/master/doc/keepalive.md

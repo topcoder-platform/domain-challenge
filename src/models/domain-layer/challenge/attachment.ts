@@ -12,7 +12,7 @@ export interface Attachment {
 }
 
 export interface AttachmentList {
-  challengeTimelineTemplates: Attachment[];
+  items: Attachment[];
 }
 
 export interface CreateAttachmentInput {
@@ -118,12 +118,12 @@ export const Attachment = {
 };
 
 function createBaseAttachmentList(): AttachmentList {
-  return { challengeTimelineTemplates: [] };
+  return { items: [] };
 }
 
 export const AttachmentList = {
   encode(message: AttachmentList, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.challengeTimelineTemplates) {
+    for (const v of message.items) {
       Attachment.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
@@ -137,7 +137,7 @@ export const AttachmentList = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.challengeTimelineTemplates.push(Attachment.decode(reader, reader.uint32()));
+          message.items.push(Attachment.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -148,28 +148,22 @@ export const AttachmentList = {
   },
 
   fromJSON(object: any): AttachmentList {
-    return {
-      challengeTimelineTemplates: Array.isArray(object?.challengeTimelineTemplates)
-        ? object.challengeTimelineTemplates.map((e: any) => Attachment.fromJSON(e))
-        : [],
-    };
+    return { items: Array.isArray(object?.items) ? object.items.map((e: any) => Attachment.fromJSON(e)) : [] };
   },
 
   toJSON(message: AttachmentList): unknown {
     const obj: any = {};
-    if (message.challengeTimelineTemplates) {
-      obj.challengeTimelineTemplates = message.challengeTimelineTemplates.map((e) =>
-        e ? Attachment.toJSON(e) : undefined
-      );
+    if (message.items) {
+      obj.items = message.items.map((e) => e ? Attachment.toJSON(e) : undefined);
     } else {
-      obj.challengeTimelineTemplates = [];
+      obj.items = [];
     }
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<AttachmentList>, I>>(object: I): AttachmentList {
     const message = createBaseAttachmentList();
-    message.challengeTimelineTemplates = object.challengeTimelineTemplates?.map((e) => Attachment.fromPartial(e)) || [];
+    message.items = object.items?.map((e) => Attachment.fromPartial(e)) || [];
     return message;
   },
 };

@@ -10,7 +10,7 @@ export interface ChallengeTrack {
 }
 
 export interface ChallengeTrackList {
-  challengeTracks: ChallengeTrack[];
+  items: ChallengeTrack[];
 }
 
 export interface CreateChallengeTrackInput {
@@ -114,12 +114,12 @@ export const ChallengeTrack = {
 };
 
 function createBaseChallengeTrackList(): ChallengeTrackList {
-  return { challengeTracks: [] };
+  return { items: [] };
 }
 
 export const ChallengeTrackList = {
   encode(message: ChallengeTrackList, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.challengeTracks) {
+    for (const v of message.items) {
       ChallengeTrack.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
@@ -133,7 +133,7 @@ export const ChallengeTrackList = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.challengeTracks.push(ChallengeTrack.decode(reader, reader.uint32()));
+          message.items.push(ChallengeTrack.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -144,26 +144,22 @@ export const ChallengeTrackList = {
   },
 
   fromJSON(object: any): ChallengeTrackList {
-    return {
-      challengeTracks: Array.isArray(object?.challengeTracks)
-        ? object.challengeTracks.map((e: any) => ChallengeTrack.fromJSON(e))
-        : [],
-    };
+    return { items: Array.isArray(object?.items) ? object.items.map((e: any) => ChallengeTrack.fromJSON(e)) : [] };
   },
 
   toJSON(message: ChallengeTrackList): unknown {
     const obj: any = {};
-    if (message.challengeTracks) {
-      obj.challengeTracks = message.challengeTracks.map((e) => e ? ChallengeTrack.toJSON(e) : undefined);
+    if (message.items) {
+      obj.items = message.items.map((e) => e ? ChallengeTrack.toJSON(e) : undefined);
     } else {
-      obj.challengeTracks = [];
+      obj.items = [];
     }
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<ChallengeTrackList>, I>>(object: I): ChallengeTrackList {
     const message = createBaseChallengeTrackList();
-    message.challengeTracks = object.challengeTracks?.map((e) => ChallengeTrack.fromPartial(e)) || [];
+    message.items = object.items?.map((e) => ChallengeTrack.fromPartial(e)) || [];
     return message;
   },
 };

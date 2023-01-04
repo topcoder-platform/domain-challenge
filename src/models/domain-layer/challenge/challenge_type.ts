@@ -11,7 +11,7 @@ export interface ChallengeType {
 }
 
 export interface ChallengeTypeList {
-  challengeTypes: ChallengeType[];
+  items: ChallengeType[];
 }
 
 export interface CreateChallengeTypeInput {
@@ -126,12 +126,12 @@ export const ChallengeType = {
 };
 
 function createBaseChallengeTypeList(): ChallengeTypeList {
-  return { challengeTypes: [] };
+  return { items: [] };
 }
 
 export const ChallengeTypeList = {
   encode(message: ChallengeTypeList, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.challengeTypes) {
+    for (const v of message.items) {
       ChallengeType.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
@@ -145,7 +145,7 @@ export const ChallengeTypeList = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.challengeTypes.push(ChallengeType.decode(reader, reader.uint32()));
+          message.items.push(ChallengeType.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -156,26 +156,22 @@ export const ChallengeTypeList = {
   },
 
   fromJSON(object: any): ChallengeTypeList {
-    return {
-      challengeTypes: Array.isArray(object?.challengeTypes)
-        ? object.challengeTypes.map((e: any) => ChallengeType.fromJSON(e))
-        : [],
-    };
+    return { items: Array.isArray(object?.items) ? object.items.map((e: any) => ChallengeType.fromJSON(e)) : [] };
   },
 
   toJSON(message: ChallengeTypeList): unknown {
     const obj: any = {};
-    if (message.challengeTypes) {
-      obj.challengeTypes = message.challengeTypes.map((e) => e ? ChallengeType.toJSON(e) : undefined);
+    if (message.items) {
+      obj.items = message.items.map((e) => e ? ChallengeType.toJSON(e) : undefined);
     } else {
-      obj.challengeTypes = [];
+      obj.items = [];
     }
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<ChallengeTypeList>, I>>(object: I): ChallengeTypeList {
     const message = createBaseChallengeTypeList();
-    message.challengeTypes = object.challengeTypes?.map((e) => ChallengeType.fromPartial(e)) || [];
+    message.items = object.items?.map((e) => ChallengeType.fromPartial(e)) || [];
     return message;
   },
 };

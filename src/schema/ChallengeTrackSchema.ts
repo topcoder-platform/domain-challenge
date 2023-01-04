@@ -1,27 +1,27 @@
-import { DataType } from "../dal/models/nosql/PartiQL";
+import { DataType } from "../dal/models/nosql/parti_ql";
 
 export const ChallengeTrackSchema = {
   tableName: "ChallengeTrack",
   attributes: [
     {
       name: "id",
-      type: DataType.STRING,
+      type: DataType.DATA_TYPE_STRING,
     },
     {
       name: "isActive",
-      type: DataType.BOOLEAN,
+      type: DataType.DATA_TYPE_BOOLEAN,
     },
     {
       name: "abbreviation",
-      type: DataType.STRING,
+      type: DataType.DATA_TYPE_STRING,
     },
     {
       name: "description",
-      type: DataType.STRING,
+      type: DataType.DATA_TYPE_STRING,
     },
     {
       name: "name",
-      type: DataType.STRING,
+      type: DataType.DATA_TYPE_STRING,
     },
   ],
   indices: {},

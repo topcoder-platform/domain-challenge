@@ -5,7 +5,11 @@ import {
   sendUnaryData,
 } from "@grpc/grpc-js";
 
-import { ScanRequest, ScanResult } from "../models/common/common";
+import {
+  LookupCriteria,
+  ScanRequest,
+  ScanResult,
+} from "../models/common/common";
 
 import {
   ChallengeServer,
@@ -16,6 +20,8 @@ import ChallengeDomain from "../domain/Challenge";
 import {
   CreateChallengeInput,
   Challenge,
+  ChallengeList,
+  UpdateChallengeInput,
 } from "../models/domain-layer/challenge/challenge";
 
 class ChallengeServerImpl implements ChallengeServer {
@@ -24,18 +30,14 @@ class ChallengeServerImpl implements ChallengeServer {
   create: handleUnaryCall<CreateChallengeInput, Challenge> = async (
     call: ServerUnaryCall<CreateChallengeInput, Challenge>,
     callback: sendUnaryData<Challenge>
-  ): Promise<Challenge> => {
-    const { request: createChallengeInput } = call;
-
-    // if (challenge.discussions && challenge.discussions.length > 0) {
-    //   for (let i = 0; i < challenge.discussions.length; i += 1) {
-    //     challenge.discussions[i].id = uuid()
-    //     challenge.discussions[i].name = challenge.discussions[i].name.substring(0, config.FORUM_TITLE_LENGTH_LIMIT)
-    //   }
-    // }
-
-    return Promise.resolve({} as unknown as Challenge);
+  ): Promise<void> => {
+    // const { request: createChallengeInput } = call;
   };
+
+  lookup: handleUnaryCall<LookupCriteria, Challenge> = async (
+    call: ServerUnaryCall<LookupCriteria, Challenge>,
+    callback: sendUnaryData<Challenge>
+  ): Promise<void> => {};
 
   scan: handleUnaryCall<ScanRequest, ScanResult> = async (
     call: ServerUnaryCall<ScanRequest, ScanResult>,
@@ -52,6 +54,16 @@ class ChallengeServerImpl implements ChallengeServer {
 
     callback(null, { items, nextToken });
   };
+
+  update: handleUnaryCall<UpdateChallengeInput, ChallengeList> = async (
+    call: ServerUnaryCall<UpdateChallengeInput, ChallengeList>,
+    callback: sendUnaryData<ChallengeList>
+  ): Promise<void> => {};
+
+  delete: handleUnaryCall<LookupCriteria, ChallengeList> = async (
+    call: ServerUnaryCall<LookupCriteria, ChallengeList>,
+    callback: sendUnaryData<ChallengeList>
+  ): Promise<void> => {};
 }
 
 export { ChallengeServerImpl as ChallengeServer, ChallengeService };

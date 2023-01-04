@@ -1,9 +1,7 @@
 import {
   handleUnaryCall,
   sendUnaryData,
-  ServerErrorResponse,
   StatusObject,
-  StatusBuilder,
   ServerUnaryCall,
 } from "@grpc/grpc-js";
 import {
@@ -17,6 +15,7 @@ import {
   CreateChallengeTimelineTemplateInput,
   UpdateChallengeTimelineTemplateInput,
   ChallengeTimelineTemplateList,
+  UpdateChallengeTimelineTemplateInput_UpdateInput,
 } from "../models/domain-layer/challenge/challenge_timeline_template";
 
 import {
@@ -25,7 +24,6 @@ import {
 } from "../models/domain-layer/challenge/services/challenge_timeline_template";
 
 import Domain from "../domain/ChallengeTimelineTemplate";
-import { Status } from "@grpc/grpc-js/build/src/constants";
 
 class ChallengeTimelineTemplatServerImpl
   implements ChallengeTimelineTemplateServer
@@ -77,7 +75,6 @@ class ChallengeTimelineTemplatServerImpl
     callback: sendUnaryData<ChallengeTimelineTemplate>
   ): Promise<void> => {
     const { request: createRequestInput } = call;
-
     Domain.create(createRequestInput)
       .then((challengeTimelineTemplate) => {
         callback(null, challengeTimelineTemplate);
@@ -97,8 +94,20 @@ class ChallengeTimelineTemplatServerImpl
     >,
     callback: sendUnaryData<ChallengeTimelineTemplateList>
   ): Promise<void> => {
-    // TODO: Handle update
-    callback(new Error("Not implemented"), null);
+    const {
+      request: { updateInput, filterCriteria },
+    } = call;
+
+    Domain.update(filterCriteria, updateInput)
+      .then((challengeTimelineTemplateList) => {
+        callback(
+          null,
+          ChallengeTimelineTemplateList.fromJSON(challengeTimelineTemplateList)
+        );
+      })
+      .catch((error: StatusObject) => {
+        callback(error, null);
+      });
   };
 
   delete: handleUnaryCall<LookupCriteria, ChallengeTimelineTemplateList> =
