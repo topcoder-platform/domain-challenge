@@ -1,5 +1,6 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
+import { ScanCriteria } from "../../common/common";
 
 export interface ChallengeType {
   id: string;
@@ -23,7 +24,11 @@ export interface CreateChallengeTypeInput {
 }
 
 export interface UpdateChallengeTypeInput {
-  id: string;
+  filterCriteria: ScanCriteria[];
+  updateInput?: UpdateChallengeTypeInput_UpdateInput;
+}
+
+export interface UpdateChallengeTypeInput_UpdateInput {
   name: string;
   description?: string | undefined;
   isActive: boolean;
@@ -262,14 +267,81 @@ export const CreateChallengeTypeInput = {
 };
 
 function createBaseUpdateChallengeTypeInput(): UpdateChallengeTypeInput {
-  return { id: "", name: "", description: undefined, isActive: false, isTask: false, abbreviation: "" };
+  return { filterCriteria: [], updateInput: undefined };
 }
 
 export const UpdateChallengeTypeInput = {
   encode(message: UpdateChallengeTypeInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== "") {
-      writer.uint32(10).string(message.id);
+    for (const v of message.filterCriteria) {
+      ScanCriteria.encode(v!, writer.uint32(10).fork()).ldelim();
     }
+    if (message.updateInput !== undefined) {
+      UpdateChallengeTypeInput_UpdateInput.encode(message.updateInput, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeTypeInput {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateChallengeTypeInput();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.filterCriteria.push(ScanCriteria.decode(reader, reader.uint32()));
+          break;
+        case 2:
+          message.updateInput = UpdateChallengeTypeInput_UpdateInput.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateChallengeTypeInput {
+    return {
+      filterCriteria: Array.isArray(object?.filterCriteria)
+        ? object.filterCriteria.map((e: any) => ScanCriteria.fromJSON(e))
+        : [],
+      updateInput: isSet(object.updateInput)
+        ? UpdateChallengeTypeInput_UpdateInput.fromJSON(object.updateInput)
+        : undefined,
+    };
+  },
+
+  toJSON(message: UpdateChallengeTypeInput): unknown {
+    const obj: any = {};
+    if (message.filterCriteria) {
+      obj.filterCriteria = message.filterCriteria.map((e) => e ? ScanCriteria.toJSON(e) : undefined);
+    } else {
+      obj.filterCriteria = [];
+    }
+    message.updateInput !== undefined && (obj.updateInput = message.updateInput
+      ? UpdateChallengeTypeInput_UpdateInput.toJSON(message.updateInput)
+      : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<UpdateChallengeTypeInput>, I>>(object: I): UpdateChallengeTypeInput {
+    const message = createBaseUpdateChallengeTypeInput();
+    message.filterCriteria = object.filterCriteria?.map((e) => ScanCriteria.fromPartial(e)) || [];
+    message.updateInput = (object.updateInput !== undefined && object.updateInput !== null)
+      ? UpdateChallengeTypeInput_UpdateInput.fromPartial(object.updateInput)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseUpdateChallengeTypeInput_UpdateInput(): UpdateChallengeTypeInput_UpdateInput {
+  return { name: "", description: undefined, isActive: false, isTask: false, abbreviation: "" };
+}
+
+export const UpdateChallengeTypeInput_UpdateInput = {
+  encode(message: UpdateChallengeTypeInput_UpdateInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
     }
@@ -288,16 +360,13 @@ export const UpdateChallengeTypeInput = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeTypeInput {
+  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeTypeInput_UpdateInput {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseUpdateChallengeTypeInput();
+    const message = createBaseUpdateChallengeTypeInput_UpdateInput();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
-          message.id = reader.string();
-          break;
         case 2:
           message.name = reader.string();
           break;
@@ -321,9 +390,8 @@ export const UpdateChallengeTypeInput = {
     return message;
   },
 
-  fromJSON(object: any): UpdateChallengeTypeInput {
+  fromJSON(object: any): UpdateChallengeTypeInput_UpdateInput {
     return {
-      id: isSet(object.id) ? String(object.id) : "",
       name: isSet(object.name) ? String(object.name) : "",
       description: isSet(object.description) ? String(object.description) : undefined,
       isActive: isSet(object.isActive) ? Boolean(object.isActive) : false,
@@ -332,9 +400,8 @@ export const UpdateChallengeTypeInput = {
     };
   },
 
-  toJSON(message: UpdateChallengeTypeInput): unknown {
+  toJSON(message: UpdateChallengeTypeInput_UpdateInput): unknown {
     const obj: any = {};
-    message.id !== undefined && (obj.id = message.id);
     message.name !== undefined && (obj.name = message.name);
     message.description !== undefined && (obj.description = message.description);
     message.isActive !== undefined && (obj.isActive = message.isActive);
@@ -343,9 +410,10 @@ export const UpdateChallengeTypeInput = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<UpdateChallengeTypeInput>, I>>(object: I): UpdateChallengeTypeInput {
-    const message = createBaseUpdateChallengeTypeInput();
-    message.id = object.id ?? "";
+  fromPartial<I extends Exact<DeepPartial<UpdateChallengeTypeInput_UpdateInput>, I>>(
+    object: I,
+  ): UpdateChallengeTypeInput_UpdateInput {
+    const message = createBaseUpdateChallengeTypeInput_UpdateInput();
     message.name = object.name ?? "";
     message.description = object.description ?? undefined;
     message.isActive = object.isActive ?? false;

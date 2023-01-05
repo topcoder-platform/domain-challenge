@@ -1,6 +1,7 @@
 /* eslint-disable */
 import Long from "long";
 import _m0 from "protobufjs/minimal";
+import { ScanCriteria } from "../../common/common";
 
 export interface Attachment {
   id: string;
@@ -20,7 +21,16 @@ export interface CreateAttachmentInput {
 }
 
 export interface UpdateAttachmentInput {
-  attachment?: Attachment;
+  filterCriteria: ScanCriteria[];
+  updateInput?: UpdateAttachmentInput_UpdateInput;
+}
+
+export interface UpdateAttachmentInput_UpdateInput {
+  url: string;
+  fileSize: number;
+  name: string;
+  challengeId: string;
+  description?: string | undefined;
 }
 
 function createBaseAttachment(): Attachment {
@@ -219,13 +229,16 @@ export const CreateAttachmentInput = {
 };
 
 function createBaseUpdateAttachmentInput(): UpdateAttachmentInput {
-  return { attachment: undefined };
+  return { filterCriteria: [], updateInput: undefined };
 }
 
 export const UpdateAttachmentInput = {
   encode(message: UpdateAttachmentInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.attachment !== undefined) {
-      Attachment.encode(message.attachment, writer.uint32(10).fork()).ldelim();
+    for (const v of message.filterCriteria) {
+      ScanCriteria.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.updateInput !== undefined) {
+      UpdateAttachmentInput_UpdateInput.encode(message.updateInput, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -238,7 +251,10 @@ export const UpdateAttachmentInput = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.attachment = Attachment.decode(reader, reader.uint32());
+          message.filterCriteria.push(ScanCriteria.decode(reader, reader.uint32()));
+          break;
+        case 2:
+          message.updateInput = UpdateAttachmentInput_UpdateInput.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -249,21 +265,123 @@ export const UpdateAttachmentInput = {
   },
 
   fromJSON(object: any): UpdateAttachmentInput {
-    return { attachment: isSet(object.attachment) ? Attachment.fromJSON(object.attachment) : undefined };
+    return {
+      filterCriteria: Array.isArray(object?.filterCriteria)
+        ? object.filterCriteria.map((e: any) => ScanCriteria.fromJSON(e))
+        : [],
+      updateInput: isSet(object.updateInput)
+        ? UpdateAttachmentInput_UpdateInput.fromJSON(object.updateInput)
+        : undefined,
+    };
   },
 
   toJSON(message: UpdateAttachmentInput): unknown {
     const obj: any = {};
-    message.attachment !== undefined &&
-      (obj.attachment = message.attachment ? Attachment.toJSON(message.attachment) : undefined);
+    if (message.filterCriteria) {
+      obj.filterCriteria = message.filterCriteria.map((e) => e ? ScanCriteria.toJSON(e) : undefined);
+    } else {
+      obj.filterCriteria = [];
+    }
+    message.updateInput !== undefined &&
+      (obj.updateInput = message.updateInput
+        ? UpdateAttachmentInput_UpdateInput.toJSON(message.updateInput)
+        : undefined);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<UpdateAttachmentInput>, I>>(object: I): UpdateAttachmentInput {
     const message = createBaseUpdateAttachmentInput();
-    message.attachment = (object.attachment !== undefined && object.attachment !== null)
-      ? Attachment.fromPartial(object.attachment)
+    message.filterCriteria = object.filterCriteria?.map((e) => ScanCriteria.fromPartial(e)) || [];
+    message.updateInput = (object.updateInput !== undefined && object.updateInput !== null)
+      ? UpdateAttachmentInput_UpdateInput.fromPartial(object.updateInput)
       : undefined;
+    return message;
+  },
+};
+
+function createBaseUpdateAttachmentInput_UpdateInput(): UpdateAttachmentInput_UpdateInput {
+  return { url: "", fileSize: 0, name: "", challengeId: "", description: undefined };
+}
+
+export const UpdateAttachmentInput_UpdateInput = {
+  encode(message: UpdateAttachmentInput_UpdateInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.url !== "") {
+      writer.uint32(18).string(message.url);
+    }
+    if (message.fileSize !== 0) {
+      writer.uint32(24).int64(message.fileSize);
+    }
+    if (message.name !== "") {
+      writer.uint32(34).string(message.name);
+    }
+    if (message.challengeId !== "") {
+      writer.uint32(42).string(message.challengeId);
+    }
+    if (message.description !== undefined) {
+      writer.uint32(50).string(message.description);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateAttachmentInput_UpdateInput {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateAttachmentInput_UpdateInput();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 2:
+          message.url = reader.string();
+          break;
+        case 3:
+          message.fileSize = longToNumber(reader.int64() as Long);
+          break;
+        case 4:
+          message.name = reader.string();
+          break;
+        case 5:
+          message.challengeId = reader.string();
+          break;
+        case 6:
+          message.description = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateAttachmentInput_UpdateInput {
+    return {
+      url: isSet(object.url) ? String(object.url) : "",
+      fileSize: isSet(object.fileSize) ? Number(object.fileSize) : 0,
+      name: isSet(object.name) ? String(object.name) : "",
+      challengeId: isSet(object.challengeId) ? String(object.challengeId) : "",
+      description: isSet(object.description) ? String(object.description) : undefined,
+    };
+  },
+
+  toJSON(message: UpdateAttachmentInput_UpdateInput): unknown {
+    const obj: any = {};
+    message.url !== undefined && (obj.url = message.url);
+    message.fileSize !== undefined && (obj.fileSize = Math.round(message.fileSize));
+    message.name !== undefined && (obj.name = message.name);
+    message.challengeId !== undefined && (obj.challengeId = message.challengeId);
+    message.description !== undefined && (obj.description = message.description);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<UpdateAttachmentInput_UpdateInput>, I>>(
+    object: I,
+  ): UpdateAttachmentInput_UpdateInput {
+    const message = createBaseUpdateAttachmentInput_UpdateInput();
+    message.url = object.url ?? "";
+    message.fileSize = object.fileSize ?? 0;
+    message.name = object.name ?? "";
+    message.challengeId = object.challengeId ?? "";
+    message.description = object.description ?? undefined;
     return message;
   },
 };

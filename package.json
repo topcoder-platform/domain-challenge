@@ -23,7 +23,7 @@
     "grpc-server-reflection": "^0.1.5",
     "lodash": "^4.17.21",
     "source-map-support": "^0.5.21",
-    "topcoder-interface": "github:topcoder-platform/plat-interface-definition#v0.0.4",
+    "topcoder-interface": "github:topcoder-platform/plat-interface-definition#feat/update-interfaces",
     "uuidv4": "^6.2.13"
   },
   "volta": {

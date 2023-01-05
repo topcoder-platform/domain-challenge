@@ -1,6 +1,7 @@
 /* eslint-disable */
 import Long from "long";
 import _m0 from "protobufjs/minimal";
+import { ScanCriteria } from "../../common/common";
 
 export interface Phase {
   id: string;
@@ -22,7 +23,11 @@ export interface CreatePhaseInput {
 }
 
 export interface UpdatePhaseInput {
-  id: string;
+  filterCriteria: ScanCriteria[];
+  updateInput?: UpdatePhaseInput_UpdateInput;
+}
+
+export interface UpdatePhaseInput_UpdateInput {
   name: string;
   description?: string | undefined;
   isOpen: boolean;
@@ -242,14 +247,78 @@ export const CreatePhaseInput = {
 };
 
 function createBaseUpdatePhaseInput(): UpdatePhaseInput {
-  return { id: "", name: "", description: undefined, isOpen: false, duration: 0 };
+  return { filterCriteria: [], updateInput: undefined };
 }
 
 export const UpdatePhaseInput = {
   encode(message: UpdatePhaseInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== "") {
-      writer.uint32(10).string(message.id);
+    for (const v of message.filterCriteria) {
+      ScanCriteria.encode(v!, writer.uint32(10).fork()).ldelim();
     }
+    if (message.updateInput !== undefined) {
+      UpdatePhaseInput_UpdateInput.encode(message.updateInput, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): UpdatePhaseInput {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdatePhaseInput();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.filterCriteria.push(ScanCriteria.decode(reader, reader.uint32()));
+          break;
+        case 2:
+          message.updateInput = UpdatePhaseInput_UpdateInput.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdatePhaseInput {
+    return {
+      filterCriteria: Array.isArray(object?.filterCriteria)
+        ? object.filterCriteria.map((e: any) => ScanCriteria.fromJSON(e))
+        : [],
+      updateInput: isSet(object.updateInput) ? UpdatePhaseInput_UpdateInput.fromJSON(object.updateInput) : undefined,
+    };
+  },
+
+  toJSON(message: UpdatePhaseInput): unknown {
+    const obj: any = {};
+    if (message.filterCriteria) {
+      obj.filterCriteria = message.filterCriteria.map((e) => e ? ScanCriteria.toJSON(e) : undefined);
+    } else {
+      obj.filterCriteria = [];
+    }
+    message.updateInput !== undefined &&
+      (obj.updateInput = message.updateInput ? UpdatePhaseInput_UpdateInput.toJSON(message.updateInput) : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<UpdatePhaseInput>, I>>(object: I): UpdatePhaseInput {
+    const message = createBaseUpdatePhaseInput();
+    message.filterCriteria = object.filterCriteria?.map((e) => ScanCriteria.fromPartial(e)) || [];
+    message.updateInput = (object.updateInput !== undefined && object.updateInput !== null)
+      ? UpdatePhaseInput_UpdateInput.fromPartial(object.updateInput)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseUpdatePhaseInput_UpdateInput(): UpdatePhaseInput_UpdateInput {
+  return { name: "", description: undefined, isOpen: false, duration: 0 };
+}
+
+export const UpdatePhaseInput_UpdateInput = {
+  encode(message: UpdatePhaseInput_UpdateInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
     }
@@ -265,16 +334,13 @@ export const UpdatePhaseInput = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): UpdatePhaseInput {
+  decode(input: _m0.Reader | Uint8Array, length?: number): UpdatePhaseInput_UpdateInput {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseUpdatePhaseInput();
+    const message = createBaseUpdatePhaseInput_UpdateInput();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
-          message.id = reader.string();
-          break;
         case 2:
           message.name = reader.string();
           break;
@@ -295,9 +361,8 @@ export const UpdatePhaseInput = {
     return message;
   },
 
-  fromJSON(object: any): UpdatePhaseInput {
+  fromJSON(object: any): UpdatePhaseInput_UpdateInput {
     return {
-      id: isSet(object.id) ? String(object.id) : "",
       name: isSet(object.name) ? String(object.name) : "",
       description: isSet(object.description) ? String(object.description) : undefined,
       isOpen: isSet(object.isOpen) ? Boolean(object.isOpen) : false,
@@ -305,9 +370,8 @@ export const UpdatePhaseInput = {
     };
   },
 
-  toJSON(message: UpdatePhaseInput): unknown {
+  toJSON(message: UpdatePhaseInput_UpdateInput): unknown {
     const obj: any = {};
-    message.id !== undefined && (obj.id = message.id);
     message.name !== undefined && (obj.name = message.name);
     message.description !== undefined && (obj.description = message.description);
     message.isOpen !== undefined && (obj.isOpen = message.isOpen);
@@ -315,9 +379,8 @@ export const UpdatePhaseInput = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<UpdatePhaseInput>, I>>(object: I): UpdatePhaseInput {
-    const message = createBaseUpdatePhaseInput();
-    message.id = object.id ?? "";
+  fromPartial<I extends Exact<DeepPartial<UpdatePhaseInput_UpdateInput>, I>>(object: I): UpdatePhaseInput_UpdateInput {
+    const message = createBaseUpdatePhaseInput_UpdateInput();
     message.name = object.name ?? "";
     message.description = object.description ?? undefined;
     message.isOpen = object.isOpen ?? false;

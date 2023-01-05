@@ -1,5 +1,6 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
+import { ScanCriteria } from "../../common/common";
 
 export interface ChallengeTrack {
   id: string;
@@ -21,7 +22,11 @@ export interface CreateChallengeTrackInput {
 }
 
 export interface UpdateChallengeTrackInput {
-  id: string;
+  filterCriteria: ScanCriteria[];
+  updateInput?: UpdateChallengeTrackInput_UpdateInput;
+}
+
+export interface UpdateChallengeTrackInput_UpdateInput {
   name: string;
   description?: string | undefined;
   isActive: boolean;
@@ -241,14 +246,81 @@ export const CreateChallengeTrackInput = {
 };
 
 function createBaseUpdateChallengeTrackInput(): UpdateChallengeTrackInput {
-  return { id: "", name: "", description: undefined, isActive: false, abbreviation: "" };
+  return { filterCriteria: [], updateInput: undefined };
 }
 
 export const UpdateChallengeTrackInput = {
   encode(message: UpdateChallengeTrackInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== "") {
-      writer.uint32(10).string(message.id);
+    for (const v of message.filterCriteria) {
+      ScanCriteria.encode(v!, writer.uint32(10).fork()).ldelim();
     }
+    if (message.updateInput !== undefined) {
+      UpdateChallengeTrackInput_UpdateInput.encode(message.updateInput, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeTrackInput {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateChallengeTrackInput();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.filterCriteria.push(ScanCriteria.decode(reader, reader.uint32()));
+          break;
+        case 2:
+          message.updateInput = UpdateChallengeTrackInput_UpdateInput.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateChallengeTrackInput {
+    return {
+      filterCriteria: Array.isArray(object?.filterCriteria)
+        ? object.filterCriteria.map((e: any) => ScanCriteria.fromJSON(e))
+        : [],
+      updateInput: isSet(object.updateInput)
+        ? UpdateChallengeTrackInput_UpdateInput.fromJSON(object.updateInput)
+        : undefined,
+    };
+  },
+
+  toJSON(message: UpdateChallengeTrackInput): unknown {
+    const obj: any = {};
+    if (message.filterCriteria) {
+      obj.filterCriteria = message.filterCriteria.map((e) => e ? ScanCriteria.toJSON(e) : undefined);
+    } else {
+      obj.filterCriteria = [];
+    }
+    message.updateInput !== undefined && (obj.updateInput = message.updateInput
+      ? UpdateChallengeTrackInput_UpdateInput.toJSON(message.updateInput)
+      : undefined);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<UpdateChallengeTrackInput>, I>>(object: I): UpdateChallengeTrackInput {
+    const message = createBaseUpdateChallengeTrackInput();
+    message.filterCriteria = object.filterCriteria?.map((e) => ScanCriteria.fromPartial(e)) || [];
+    message.updateInput = (object.updateInput !== undefined && object.updateInput !== null)
+      ? UpdateChallengeTrackInput_UpdateInput.fromPartial(object.updateInput)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseUpdateChallengeTrackInput_UpdateInput(): UpdateChallengeTrackInput_UpdateInput {
+  return { name: "", description: undefined, isActive: false, abbreviation: "" };
+}
+
+export const UpdateChallengeTrackInput_UpdateInput = {
+  encode(message: UpdateChallengeTrackInput_UpdateInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
     }
@@ -264,16 +336,13 @@ export const UpdateChallengeTrackInput = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeTrackInput {
+  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeTrackInput_UpdateInput {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseUpdateChallengeTrackInput();
+    const message = createBaseUpdateChallengeTrackInput_UpdateInput();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
-          message.id = reader.string();
-          break;
         case 2:
           message.name = reader.string();
           break;
@@ -294,9 +363,8 @@ export const UpdateChallengeTrackInput = {
     return message;
   },
 
-  fromJSON(object: any): UpdateChallengeTrackInput {
+  fromJSON(object: any): UpdateChallengeTrackInput_UpdateInput {
     return {
-      id: isSet(object.id) ? String(object.id) : "",
       name: isSet(object.name) ? String(object.name) : "",
       description: isSet(object.description) ? String(object.description) : undefined,
       isActive: isSet(object.isActive) ? Boolean(object.isActive) : false,
@@ -304,9 +372,8 @@ export const UpdateChallengeTrackInput = {
     };
   },
 
-  toJSON(message: UpdateChallengeTrackInput): unknown {
+  toJSON(message: UpdateChallengeTrackInput_UpdateInput): unknown {
     const obj: any = {};
-    message.id !== undefined && (obj.id = message.id);
     message.name !== undefined && (obj.name = message.name);
     message.description !== undefined && (obj.description = message.description);
     message.isActive !== undefined && (obj.isActive = message.isActive);
@@ -314,9 +381,10 @@ export const UpdateChallengeTrackInput = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<UpdateChallengeTrackInput>, I>>(object: I): UpdateChallengeTrackInput {
-    const message = createBaseUpdateChallengeTrackInput();
-    message.id = object.id ?? "";
+  fromPartial<I extends Exact<DeepPartial<UpdateChallengeTrackInput_UpdateInput>, I>>(
+    object: I,
+  ): UpdateChallengeTrackInput_UpdateInput {
+    const message = createBaseUpdateChallengeTrackInput_UpdateInput();
     message.name = object.name ?? "";
     message.description = object.description ?? undefined;
     message.isActive = object.isActive ?? false;
