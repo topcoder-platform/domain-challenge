@@ -17,6 +17,15 @@ import {
   ChallengeTrackService,
 } from "./service/ChallengeTrackService";
 
+import {
+  ChallengeTypeServer,
+  ChallengeTypeService,
+} from "./service/ChallengeTypeService";
+import {
+  AttachmentServer,
+  AttachmentService,
+} from "./service/AttachmentService";
+
 const { ENV, GRPC_SERVER_HOST = "", GRPC_SERVER_PORT = 9092 } = process.env;
 
 const server = new Server({
@@ -36,6 +45,8 @@ server.addService(
 );
 
 server.addService(ChallengeTrackService, new ChallengeTrackServer());
+server.addService(ChallengeTypeService, new ChallengeTypeServer());
+server.addService(AttachmentService, new AttachmentServer());
 
 server.bindAsync(
   `${GRPC_SERVER_HOST}:${GRPC_SERVER_PORT}`,

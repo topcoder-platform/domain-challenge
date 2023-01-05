@@ -1402,7 +1402,7 @@ to-regex-range@^5.0.1:
 
 "topcoder-interface@github:topcoder-platform/plat-interface-definition#feat/update-interfaces":
   version "1.0.0"
-  resolved "https://codeload.github.com/topcoder-platform/plat-interface-definition/tar.gz/3f4b0735d3a4c792362c0611caf5bf65f752b51f"
+  resolved "https://codeload.github.com/topcoder-platform/plat-interface-definition/tar.gz/16927d592e73cffb6e6aef3faf4221a5efffb789"
 
 tree-kill@^1.2.2:
   version "1.2.2"

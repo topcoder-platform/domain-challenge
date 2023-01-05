@@ -17,7 +17,11 @@ export interface AttachmentList {
 }
 
 export interface CreateAttachmentInput {
-  attachment?: Attachment;
+  url: string;
+  fileSize: number;
+  name: string;
+  challengeId: string;
+  description?: string | undefined;
 }
 
 export interface UpdateAttachmentInput {
@@ -179,13 +183,25 @@ export const AttachmentList = {
 };
 
 function createBaseCreateAttachmentInput(): CreateAttachmentInput {
-  return { attachment: undefined };
+  return { url: "", fileSize: 0, name: "", challengeId: "", description: undefined };
 }
 
 export const CreateAttachmentInput = {
   encode(message: CreateAttachmentInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.attachment !== undefined) {
-      Attachment.encode(message.attachment, writer.uint32(10).fork()).ldelim();
+    if (message.url !== "") {
+      writer.uint32(10).string(message.url);
+    }
+    if (message.fileSize !== 0) {
+      writer.uint32(16).int64(message.fileSize);
+    }
+    if (message.name !== "") {
+      writer.uint32(26).string(message.name);
+    }
+    if (message.challengeId !== "") {
+      writer.uint32(34).string(message.challengeId);
+    }
+    if (message.description !== undefined) {
+      writer.uint32(42).string(message.description);
     }
     return writer;
   },
@@ -198,7 +214,19 @@ export const CreateAttachmentInput = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.attachment = Attachment.decode(reader, reader.uint32());
+          message.url = reader.string();
+          break;
+        case 2:
+          message.fileSize = longToNumber(reader.int64() as Long);
+          break;
+        case 3:
+          message.name = reader.string();
+          break;
+        case 4:
+          message.challengeId = reader.string();
+          break;
+        case 5:
+          message.description = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -209,21 +237,32 @@ export const CreateAttachmentInput = {
   },
 
   fromJSON(object: any): CreateAttachmentInput {
-    return { attachment: isSet(object.attachment) ? Attachment.fromJSON(object.attachment) : undefined };
+    return {
+      url: isSet(object.url) ? String(object.url) : "",
+      fileSize: isSet(object.fileSize) ? Number(object.fileSize) : 0,
+      name: isSet(object.name) ? String(object.name) : "",
+      challengeId: isSet(object.challengeId) ? String(object.challengeId) : "",
+      description: isSet(object.description) ? String(object.description) : undefined,
+    };
   },
 
   toJSON(message: CreateAttachmentInput): unknown {
     const obj: any = {};
-    message.attachment !== undefined &&
-      (obj.attachment = message.attachment ? Attachment.toJSON(message.attachment) : undefined);
+    message.url !== undefined && (obj.url = message.url);
+    message.fileSize !== undefined && (obj.fileSize = Math.round(message.fileSize));
+    message.name !== undefined && (obj.name = message.name);
+    message.challengeId !== undefined && (obj.challengeId = message.challengeId);
+    message.description !== undefined && (obj.description = message.description);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<CreateAttachmentInput>, I>>(object: I): CreateAttachmentInput {
     const message = createBaseCreateAttachmentInput();
-    message.attachment = (object.attachment !== undefined && object.attachment !== null)
-      ? Attachment.fromPartial(object.attachment)
-      : undefined;
+    message.url = object.url ?? "";
+    message.fileSize = object.fileSize ?? 0;
+    message.name = object.name ?? "";
+    message.challengeId = object.challengeId ?? "";
+    message.description = object.description ?? undefined;
     return message;
   },
 };

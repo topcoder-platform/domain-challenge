@@ -19,7 +19,7 @@ import {
 
 import Domain from "../domain/ChallengeType";
 
-class ChallengeTimelineTemplatServerImpl implements ChallengeTypeServer {
+class ChallengeTypeServerImpl implements ChallengeTypeServer {
   [name: string]: import("@grpc/grpc-js").UntypedHandleCall;
 
   scan: handleUnaryCall<ScanRequest, ScanResult> = async (
@@ -97,6 +97,6 @@ class ChallengeTimelineTemplatServerImpl implements ChallengeTypeServer {
 }
 
 export {
-  ChallengeTimelineTemplatServerImpl as ChallengeTypeServer,
+  ChallengeTypeServerImpl as ChallengeTypeServer,
   ChallengeTypeService,
 };
