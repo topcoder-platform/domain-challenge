@@ -25,6 +25,10 @@ import {
   AttachmentServer,
   AttachmentService,
 } from "./service/AttachmentService";
+import {
+  PhaseServer,
+  PhaseService,
+} from "./service/PhaseService";
 
 const { ENV, GRPC_SERVER_HOST = "", GRPC_SERVER_PORT = 9092 } = process.env;
 
@@ -47,6 +51,7 @@ server.addService(
 server.addService(ChallengeTrackService, new ChallengeTrackServer());
 server.addService(ChallengeTypeService, new ChallengeTypeServer());
 server.addService(AttachmentService, new AttachmentServer());
+server.addService(PhaseService, new PhaseServer());
 
 server.bindAsync(
   `${GRPC_SERVER_HOST}:${GRPC_SERVER_PORT}`,

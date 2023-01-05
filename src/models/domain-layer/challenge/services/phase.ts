@@ -38,8 +38,8 @@ export const PhaseService = {
     responseStream: false,
     requestSerialize: (value: UpdatePhaseInput) => Buffer.from(UpdatePhaseInput.encode(value).finish()),
     requestDeserialize: (value: Buffer) => UpdatePhaseInput.decode(value),
-    responseSerialize: (value: Phase) => Buffer.from(Phase.encode(value).finish()),
-    responseDeserialize: (value: Buffer) => Phase.decode(value),
+    responseSerialize: (value: PhaseList) => Buffer.from(PhaseList.encode(value).finish()),
+    responseDeserialize: (value: Buffer) => PhaseList.decode(value),
   },
   delete: {
     path: "/topcoder.domain.service.phase.Phase/Delete",
@@ -56,6 +56,6 @@ export interface PhaseServer extends UntypedServiceImplementation {
   scan: handleUnaryCall<ScanRequest, ScanResult>;
   lookup: handleUnaryCall<LookupCriteria, Phase>;
   create: handleUnaryCall<CreatePhaseInput, Phase>;
-  update: handleUnaryCall<UpdatePhaseInput, Phase>;
+  update: handleUnaryCall<UpdatePhaseInput, PhaseList>;
   delete: handleUnaryCall<LookupCriteria, PhaseList>;
 }

@@ -45,8 +45,8 @@ export const TimelineTemplateService = {
     requestSerialize: (value: UpdateTimelineTemplateInput) =>
       Buffer.from(UpdateTimelineTemplateInput.encode(value).finish()),
     requestDeserialize: (value: Buffer) => UpdateTimelineTemplateInput.decode(value),
-    responseSerialize: (value: TimelineTemplate) => Buffer.from(TimelineTemplate.encode(value).finish()),
-    responseDeserialize: (value: Buffer) => TimelineTemplate.decode(value),
+    responseSerialize: (value: TimelineTemplateList) => Buffer.from(TimelineTemplateList.encode(value).finish()),
+    responseDeserialize: (value: Buffer) => TimelineTemplateList.decode(value),
   },
   delete: {
     path: "/topcoder.domain.service.timeline_template.TimelineTemplate/Delete",
@@ -63,6 +63,6 @@ export interface TimelineTemplateServer extends UntypedServiceImplementation {
   scan: handleUnaryCall<ScanRequest, ScanResult>;
   lookup: handleUnaryCall<LookupCriteria, TimelineTemplate>;
   create: handleUnaryCall<CreateTimelineTemplateInput, TimelineTemplate>;
-  update: handleUnaryCall<UpdateTimelineTemplateInput, TimelineTemplate>;
+  update: handleUnaryCall<UpdateTimelineTemplateInput, TimelineTemplateList>;
   delete: handleUnaryCall<LookupCriteria, TimelineTemplateList>;
 }
