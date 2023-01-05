@@ -29,6 +29,10 @@ import {
   PhaseServer,
   PhaseService,
 } from "./service/PhaseService";
+import {
+  TimelineTemplateServer,
+  TimelineTemplateService,
+} from "./service/TimelineTemplateService";
 
 const { ENV, GRPC_SERVER_HOST = "", GRPC_SERVER_PORT = 9092 } = process.env;
 
@@ -52,6 +56,7 @@ server.addService(ChallengeTrackService, new ChallengeTrackServer());
 server.addService(ChallengeTypeService, new ChallengeTypeServer());
 server.addService(AttachmentService, new AttachmentServer());
 server.addService(PhaseService, new PhaseServer());
+server.addService(TimelineTemplateService, new TimelineTemplateServer());
 
 server.bindAsync(
   `${GRPC_SERVER_HOST}:${GRPC_SERVER_PORT}`,
