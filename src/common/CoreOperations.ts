@@ -148,7 +148,7 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
 
     return {
       nextToken: response?.nextToken,
-      items: response?.items!,
+      items: response?.items! ? response.items.map(i => this.toEntity(i)) : response?.items!,
     };
   }
 
