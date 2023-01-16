@@ -25,14 +25,14 @@ import {
   AttachmentServer,
   AttachmentService,
 } from "./service/AttachmentService";
-import {
-  PhaseServer,
-  PhaseService,
-} from "./service/PhaseService";
+
 import {
   TimelineTemplateServer,
   TimelineTemplateService,
 } from "./service/TimelineTemplateService";
+
+import { PhaseServer, PhaseService } from "./service/PhaseService";
+import { ChallengeServer, ChallengeService } from "./service/ChallengeService";
 
 const { ENV, GRPC_SERVER_HOST = "", GRPC_SERVER_PORT = 9092 } = process.env;
 
@@ -52,6 +52,7 @@ server.addService(
   new ChallengeTimelineTemplateServer()
 );
 
+server.addService(ChallengeService, new ChallengeServer());
 server.addService(ChallengeTrackService, new ChallengeTrackServer());
 server.addService(ChallengeTypeService, new ChallengeTypeServer());
 server.addService(AttachmentService, new AttachmentServer());

@@ -25,6 +25,8 @@ const protoConfig = [
   "--ts_proto_opt=outputServices=grpc-js,env=node,useOptionals=messages,exportCommonSymbols=false,esModuleInterop=true",
   `--ts_proto_opt=oneof=unions`,
   `--ts_proto_opt=addGrpcMetadata=true`,
+  `--ts_proto_opt=stringEnums=true`,
+  `--ts_proto_opt=useDate=string`,
   `--ts_proto_opt=outputServerImpl=false`,
   `--ts_proto_out=${MODEL_DIR}`,
   `--proto_path ${PROTO_DIR} ${PROTO_DIR}/*.proto`,

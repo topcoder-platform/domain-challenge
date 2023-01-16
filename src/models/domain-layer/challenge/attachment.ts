@@ -119,6 +119,10 @@ export const Attachment = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<Attachment>, I>>(base?: I): Attachment {
+    return Attachment.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<Attachment>, I>>(object: I): Attachment {
     const message = createBaseAttachment();
     message.id = object.id ?? "";
@@ -173,6 +177,10 @@ export const AttachmentList = {
       obj.items = [];
     }
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AttachmentList>, I>>(base?: I): AttachmentList {
+    return AttachmentList.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<AttachmentList>, I>>(object: I): AttachmentList {
@@ -256,6 +264,10 @@ export const CreateAttachmentInput = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<CreateAttachmentInput>, I>>(base?: I): CreateAttachmentInput {
+    return CreateAttachmentInput.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<CreateAttachmentInput>, I>>(object: I): CreateAttachmentInput {
     const message = createBaseCreateAttachmentInput();
     message.url = object.url ?? "";
@@ -326,6 +338,10 @@ export const UpdateAttachmentInput = {
         ? UpdateAttachmentInput_UpdateInput.toJSON(message.updateInput)
         : undefined);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateAttachmentInput>, I>>(base?: I): UpdateAttachmentInput {
+    return UpdateAttachmentInput.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<UpdateAttachmentInput>, I>>(object: I): UpdateAttachmentInput {
@@ -410,6 +426,12 @@ export const UpdateAttachmentInput_UpdateInput = {
     message.challengeId !== undefined && (obj.challengeId = message.challengeId);
     message.description !== undefined && (obj.description = message.description);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateAttachmentInput_UpdateInput>, I>>(
+    base?: I,
+  ): UpdateAttachmentInput_UpdateInput {
+    return UpdateAttachmentInput_UpdateInput.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<UpdateAttachmentInput_UpdateInput>, I>>(

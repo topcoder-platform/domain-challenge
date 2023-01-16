@@ -118,6 +118,10 @@ export const ChallengeType = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<ChallengeType>, I>>(base?: I): ChallengeType {
+    return ChallengeType.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<ChallengeType>, I>>(object: I): ChallengeType {
     const message = createBaseChallengeType();
     message.id = object.id ?? "";
@@ -172,6 +176,10 @@ export const ChallengeTypeList = {
       obj.items = [];
     }
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ChallengeTypeList>, I>>(base?: I): ChallengeTypeList {
+    return ChallengeTypeList.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<ChallengeTypeList>, I>>(object: I): ChallengeTypeList {
@@ -255,6 +263,10 @@ export const CreateChallengeTypeInput = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<CreateChallengeTypeInput>, I>>(base?: I): CreateChallengeTypeInput {
+    return CreateChallengeTypeInput.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<CreateChallengeTypeInput>, I>>(object: I): CreateChallengeTypeInput {
     const message = createBaseCreateChallengeTypeInput();
     message.name = object.name ?? "";
@@ -324,6 +336,10 @@ export const UpdateChallengeTypeInput = {
       ? UpdateChallengeTypeInput_UpdateInput.toJSON(message.updateInput)
       : undefined);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateChallengeTypeInput>, I>>(base?: I): UpdateChallengeTypeInput {
+    return UpdateChallengeTypeInput.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<UpdateChallengeTypeInput>, I>>(object: I): UpdateChallengeTypeInput {
@@ -408,6 +424,12 @@ export const UpdateChallengeTypeInput_UpdateInput = {
     message.isTask !== undefined && (obj.isTask = message.isTask);
     message.abbreviation !== undefined && (obj.abbreviation = message.abbreviation);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateChallengeTypeInput_UpdateInput>, I>>(
+    base?: I,
+  ): UpdateChallengeTypeInput_UpdateInput {
+    return UpdateChallengeTypeInput_UpdateInput.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<UpdateChallengeTypeInput_UpdateInput>, I>>(

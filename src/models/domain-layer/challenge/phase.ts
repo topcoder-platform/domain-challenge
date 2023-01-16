@@ -108,6 +108,10 @@ export const Phase = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<Phase>, I>>(base?: I): Phase {
+    return Phase.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<Phase>, I>>(object: I): Phase {
     const message = createBasePhase();
     message.id = object.id ?? "";
@@ -161,6 +165,10 @@ export const PhaseList = {
       obj.items = [];
     }
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PhaseList>, I>>(base?: I): PhaseList {
+    return PhaseList.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<PhaseList>, I>>(object: I): PhaseList {
@@ -236,6 +244,10 @@ export const CreatePhaseInput = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<CreatePhaseInput>, I>>(base?: I): CreatePhaseInput {
+    return CreatePhaseInput.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<CreatePhaseInput>, I>>(object: I): CreatePhaseInput {
     const message = createBaseCreatePhaseInput();
     message.name = object.name ?? "";
@@ -301,6 +313,10 @@ export const UpdatePhaseInput = {
     message.updateInput !== undefined &&
       (obj.updateInput = message.updateInput ? UpdatePhaseInput_UpdateInput.toJSON(message.updateInput) : undefined);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdatePhaseInput>, I>>(base?: I): UpdatePhaseInput {
+    return UpdatePhaseInput.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<UpdatePhaseInput>, I>>(object: I): UpdatePhaseInput {
@@ -377,6 +393,10 @@ export const UpdatePhaseInput_UpdateInput = {
     message.isOpen !== undefined && (obj.isOpen = message.isOpen);
     message.duration !== undefined && (obj.duration = Math.round(message.duration));
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdatePhaseInput_UpdateInput>, I>>(base?: I): UpdatePhaseInput_UpdateInput {
+    return UpdatePhaseInput_UpdateInput.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<UpdatePhaseInput_UpdateInput>, I>>(object: I): UpdatePhaseInput_UpdateInput {

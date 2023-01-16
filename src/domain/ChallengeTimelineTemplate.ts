@@ -7,7 +7,10 @@ import { ChallengeTimelineTemplate } from "../models/domain-layer/challenge/chal
 import CoreOperations from "../common/CoreOperations";
 import IdGenerator from "../helpers/IdGenerator";
 
-class ChallengeTimelineTemplateDomain extends CoreOperations<ChallengeTimelineTemplate> {
+class ChallengeTimelineTemplateDomain extends CoreOperations<
+  ChallengeTimelineTemplate,
+  CreateChallengeTimelineTemplateInput
+> {
   protected toEntity(item: {
     [key: string]: Value;
   }): ChallengeTimelineTemplate {

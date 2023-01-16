@@ -107,6 +107,10 @@ export const ChallengeTrack = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<ChallengeTrack>, I>>(base?: I): ChallengeTrack {
+    return ChallengeTrack.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<ChallengeTrack>, I>>(object: I): ChallengeTrack {
     const message = createBaseChallengeTrack();
     message.id = object.id ?? "";
@@ -160,6 +164,10 @@ export const ChallengeTrackList = {
       obj.items = [];
     }
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ChallengeTrackList>, I>>(base?: I): ChallengeTrackList {
+    return ChallengeTrackList.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<ChallengeTrackList>, I>>(object: I): ChallengeTrackList {
@@ -235,6 +243,10 @@ export const CreateChallengeTrackInput = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<CreateChallengeTrackInput>, I>>(base?: I): CreateChallengeTrackInput {
+    return CreateChallengeTrackInput.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<CreateChallengeTrackInput>, I>>(object: I): CreateChallengeTrackInput {
     const message = createBaseCreateChallengeTrackInput();
     message.name = object.name ?? "";
@@ -303,6 +315,10 @@ export const UpdateChallengeTrackInput = {
       ? UpdateChallengeTrackInput_UpdateInput.toJSON(message.updateInput)
       : undefined);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateChallengeTrackInput>, I>>(base?: I): UpdateChallengeTrackInput {
+    return UpdateChallengeTrackInput.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<UpdateChallengeTrackInput>, I>>(object: I): UpdateChallengeTrackInput {
@@ -379,6 +395,12 @@ export const UpdateChallengeTrackInput_UpdateInput = {
     message.isActive !== undefined && (obj.isActive = message.isActive);
     message.abbreviation !== undefined && (obj.abbreviation = message.abbreviation);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateChallengeTrackInput_UpdateInput>, I>>(
+    base?: I,
+  ): UpdateChallengeTrackInput_UpdateInput {
+    return UpdateChallengeTrackInput_UpdateInput.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<UpdateChallengeTrackInput_UpdateInput>, I>>(

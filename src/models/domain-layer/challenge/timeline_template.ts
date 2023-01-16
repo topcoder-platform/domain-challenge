@@ -98,6 +98,10 @@ export const TimelineTemplatePhase = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<TimelineTemplatePhase>, I>>(base?: I): TimelineTemplatePhase {
+    return TimelineTemplatePhase.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<TimelineTemplatePhase>, I>>(object: I): TimelineTemplatePhase {
     const message = createBaseTimelineTemplatePhase();
     message.phaseId = object.phaseId ?? "";
@@ -185,6 +189,10 @@ export const TimelineTemplate = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<TimelineTemplate>, I>>(base?: I): TimelineTemplate {
+    return TimelineTemplate.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<TimelineTemplate>, I>>(object: I): TimelineTemplate {
     const message = createBaseTimelineTemplate();
     message.id = object.id ?? "";
@@ -238,6 +246,10 @@ export const TimelineTemplateList = {
       obj.items = [];
     }
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TimelineTemplateList>, I>>(base?: I): TimelineTemplateList {
+    return TimelineTemplateList.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<TimelineTemplateList>, I>>(object: I): TimelineTemplateList {
@@ -317,6 +329,10 @@ export const CreateTimelineTemplateInput = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<CreateTimelineTemplateInput>, I>>(base?: I): CreateTimelineTemplateInput {
+    return CreateTimelineTemplateInput.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<CreateTimelineTemplateInput>, I>>(object: I): CreateTimelineTemplateInput {
     const message = createBaseCreateTimelineTemplateInput();
     message.name = object.name ?? "";
@@ -385,6 +401,10 @@ export const UpdateTimelineTemplateInput = {
       ? UpdateTimelineTemplateInput_UpdateInput.toJSON(message.updateInput)
       : undefined);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateTimelineTemplateInput>, I>>(base?: I): UpdateTimelineTemplateInput {
+    return UpdateTimelineTemplateInput.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<UpdateTimelineTemplateInput>, I>>(object: I): UpdateTimelineTemplateInput {
@@ -465,6 +485,12 @@ export const UpdateTimelineTemplateInput_UpdateInput = {
       obj.phases = [];
     }
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateTimelineTemplateInput_UpdateInput>, I>>(
+    base?: I,
+  ): UpdateTimelineTemplateInput_UpdateInput {
+    return UpdateTimelineTemplateInput_UpdateInput.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<UpdateTimelineTemplateInput_UpdateInput>, I>>(

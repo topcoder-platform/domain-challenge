@@ -1,327 +1,7 @@
 /* eslint-disable */
+import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { Timestamp } from "../../google/protobuf/timestamp";
-
-export enum Track {
-  TRACK_UNSPECIFIED = 0,
-  TRACK_DEVELOP = 1,
-  TRACK_DESIGN = 2,
-  TRACK_DATA_SCIENCE = 3,
-  TRACK_QA = 4,
-  UNRECOGNIZED = -1,
-}
-
-export function trackFromJSON(object: any): Track {
-  switch (object) {
-    case 0:
-    case "TRACK_UNSPECIFIED":
-      return Track.TRACK_UNSPECIFIED;
-    case 1:
-    case "TRACK_DEVELOP":
-      return Track.TRACK_DEVELOP;
-    case 2:
-    case "TRACK_DESIGN":
-      return Track.TRACK_DESIGN;
-    case 3:
-    case "TRACK_DATA_SCIENCE":
-      return Track.TRACK_DATA_SCIENCE;
-    case 4:
-    case "TRACK_QA":
-      return Track.TRACK_QA;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return Track.UNRECOGNIZED;
-  }
-}
-
-export function trackToJSON(object: Track): string {
-  switch (object) {
-    case Track.TRACK_UNSPECIFIED:
-      return "TRACK_UNSPECIFIED";
-    case Track.TRACK_DEVELOP:
-      return "TRACK_DEVELOP";
-    case Track.TRACK_DESIGN:
-      return "TRACK_DESIGN";
-    case Track.TRACK_DATA_SCIENCE:
-      return "TRACK_DATA_SCIENCE";
-    case Track.TRACK_QA:
-      return "TRACK_QA";
-    case Track.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
-
-export enum SubTrack {
-  SUB_TRACK_UNSPECIFIED = 0,
-  SUB_TRACK_FIRST_2_FINISH = 1,
-  SUB_TRACK_CODE = 2,
-  SUB_TRACK_DESIGN_FIRST_2_FINISH = 3,
-  /** @deprecated */
-  SUB_TRACK_ASSEMBLY_COMPETITION = 4,
-  /** @deprecated */
-  SUB_TRACK_UI_PROTOTYPE_COMPETITION = 5,
-  /** @deprecated */
-  SUB_TRACK_ARCHITECTURE = 6,
-  SUB_TRACK_BUG_HUNT = 7,
-  SUB_TRACK_MARATHON_MATCH = 8,
-  /** @deprecated */
-  SUB_TRACK_SPECIFICATION = 9,
-  SUB_TRACK_WEB_DESIGNS = 10,
-  /** @deprecated */
-  SUB_TRACK_TEST_SCENARIOS = 11,
-  /** @deprecated */
-  SUB_TRACK_TEST_SUITES = 12,
-  UNRECOGNIZED = -1,
-}
-
-export function subTrackFromJSON(object: any): SubTrack {
-  switch (object) {
-    case 0:
-    case "SUB_TRACK_UNSPECIFIED":
-      return SubTrack.SUB_TRACK_UNSPECIFIED;
-    case 1:
-    case "SUB_TRACK_FIRST_2_FINISH":
-      return SubTrack.SUB_TRACK_FIRST_2_FINISH;
-    case 2:
-    case "SUB_TRACK_CODE":
-      return SubTrack.SUB_TRACK_CODE;
-    case 3:
-    case "SUB_TRACK_DESIGN_FIRST_2_FINISH":
-      return SubTrack.SUB_TRACK_DESIGN_FIRST_2_FINISH;
-    case 4:
-    case "SUB_TRACK_ASSEMBLY_COMPETITION":
-      return SubTrack.SUB_TRACK_ASSEMBLY_COMPETITION;
-    case 5:
-    case "SUB_TRACK_UI_PROTOTYPE_COMPETITION":
-      return SubTrack.SUB_TRACK_UI_PROTOTYPE_COMPETITION;
-    case 6:
-    case "SUB_TRACK_ARCHITECTURE":
-      return SubTrack.SUB_TRACK_ARCHITECTURE;
-    case 7:
-    case "SUB_TRACK_BUG_HUNT":
-      return SubTrack.SUB_TRACK_BUG_HUNT;
-    case 8:
-    case "SUB_TRACK_MARATHON_MATCH":
-      return SubTrack.SUB_TRACK_MARATHON_MATCH;
-    case 9:
-    case "SUB_TRACK_SPECIFICATION":
-      return SubTrack.SUB_TRACK_SPECIFICATION;
-    case 10:
-    case "SUB_TRACK_WEB_DESIGNS":
-      return SubTrack.SUB_TRACK_WEB_DESIGNS;
-    case 11:
-    case "SUB_TRACK_TEST_SCENARIOS":
-      return SubTrack.SUB_TRACK_TEST_SCENARIOS;
-    case 12:
-    case "SUB_TRACK_TEST_SUITES":
-      return SubTrack.SUB_TRACK_TEST_SUITES;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return SubTrack.UNRECOGNIZED;
-  }
-}
-
-export function subTrackToJSON(object: SubTrack): string {
-  switch (object) {
-    case SubTrack.SUB_TRACK_UNSPECIFIED:
-      return "SUB_TRACK_UNSPECIFIED";
-    case SubTrack.SUB_TRACK_FIRST_2_FINISH:
-      return "SUB_TRACK_FIRST_2_FINISH";
-    case SubTrack.SUB_TRACK_CODE:
-      return "SUB_TRACK_CODE";
-    case SubTrack.SUB_TRACK_DESIGN_FIRST_2_FINISH:
-      return "SUB_TRACK_DESIGN_FIRST_2_FINISH";
-    case SubTrack.SUB_TRACK_ASSEMBLY_COMPETITION:
-      return "SUB_TRACK_ASSEMBLY_COMPETITION";
-    case SubTrack.SUB_TRACK_UI_PROTOTYPE_COMPETITION:
-      return "SUB_TRACK_UI_PROTOTYPE_COMPETITION";
-    case SubTrack.SUB_TRACK_ARCHITECTURE:
-      return "SUB_TRACK_ARCHITECTURE";
-    case SubTrack.SUB_TRACK_BUG_HUNT:
-      return "SUB_TRACK_BUG_HUNT";
-    case SubTrack.SUB_TRACK_MARATHON_MATCH:
-      return "SUB_TRACK_MARATHON_MATCH";
-    case SubTrack.SUB_TRACK_SPECIFICATION:
-      return "SUB_TRACK_SPECIFICATION";
-    case SubTrack.SUB_TRACK_WEB_DESIGNS:
-      return "SUB_TRACK_WEB_DESIGNS";
-    case SubTrack.SUB_TRACK_TEST_SCENARIOS:
-      return "SUB_TRACK_TEST_SCENARIOS";
-    case SubTrack.SUB_TRACK_TEST_SUITES:
-      return "SUB_TRACK_TEST_SUITES";
-    case SubTrack.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
-
-export enum ReviewType {
-  REVIEW_TYPE_UNSPECIFIED = 0,
-  REVIEW_TYPE_COMMUNITY = 1,
-  REVIEW_TYPE_INTERNAL = 2,
-  UNRECOGNIZED = -1,
-}
-
-export function reviewTypeFromJSON(object: any): ReviewType {
-  switch (object) {
-    case 0:
-    case "REVIEW_TYPE_UNSPECIFIED":
-      return ReviewType.REVIEW_TYPE_UNSPECIFIED;
-    case 1:
-    case "REVIEW_TYPE_COMMUNITY":
-      return ReviewType.REVIEW_TYPE_COMMUNITY;
-    case 2:
-    case "REVIEW_TYPE_INTERNAL":
-      return ReviewType.REVIEW_TYPE_INTERNAL;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return ReviewType.UNRECOGNIZED;
-  }
-}
-
-export function reviewTypeToJSON(object: ReviewType): string {
-  switch (object) {
-    case ReviewType.REVIEW_TYPE_UNSPECIFIED:
-      return "REVIEW_TYPE_UNSPECIFIED";
-    case ReviewType.REVIEW_TYPE_COMMUNITY:
-      return "REVIEW_TYPE_COMMUNITY";
-    case ReviewType.REVIEW_TYPE_INTERNAL:
-      return "REVIEW_TYPE_INTERNAL";
-    case ReviewType.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
-
-export enum ConfidentialityType {
-  CONFIDENTIALITY_TYPE_UNSPECIFIED = 0,
-  CONFIDENTIALITY_TYPE_PUBLIC = 1,
-  CONFIDENTIALITY_TYPE_PRIVATE = 2,
-  UNRECOGNIZED = -1,
-}
-
-export function confidentialityTypeFromJSON(object: any): ConfidentialityType {
-  switch (object) {
-    case 0:
-    case "CONFIDENTIALITY_TYPE_UNSPECIFIED":
-      return ConfidentialityType.CONFIDENTIALITY_TYPE_UNSPECIFIED;
-    case 1:
-    case "CONFIDENTIALITY_TYPE_PUBLIC":
-      return ConfidentialityType.CONFIDENTIALITY_TYPE_PUBLIC;
-    case 2:
-    case "CONFIDENTIALITY_TYPE_PRIVATE":
-      return ConfidentialityType.CONFIDENTIALITY_TYPE_PRIVATE;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return ConfidentialityType.UNRECOGNIZED;
-  }
-}
-
-export function confidentialityTypeToJSON(object: ConfidentialityType): string {
-  switch (object) {
-    case ConfidentialityType.CONFIDENTIALITY_TYPE_UNSPECIFIED:
-      return "CONFIDENTIALITY_TYPE_UNSPECIFIED";
-    case ConfidentialityType.CONFIDENTIALITY_TYPE_PUBLIC:
-      return "CONFIDENTIALITY_TYPE_PUBLIC";
-    case ConfidentialityType.CONFIDENTIALITY_TYPE_PRIVATE:
-      return "CONFIDENTIALITY_TYPE_PRIVATE";
-    case ConfidentialityType.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
-
-export enum PhaseName {
-  PHASE_NAME_UNSPECIFIED = 0,
-  PHASE_NAME_REGISTRATION = 1,
-  PHASE_NAME_SUBMISSION = 2,
-  PHASE_NAME_SCREENING = 3,
-  PHASE_NAME_REVIEW = 4,
-  PHASE_NAME_APPEALS = 5,
-  PHASE_NAME_APPEALS_RESPONSE = 6,
-  PHASE_NAME_AGGREGATION = 7,
-  PHASE_NAME_FINAL_FIX = 8,
-  PHASE_NAME_POST_MORTEM = 9,
-  PHASE_NAME_ITERATIVE_REVIEW = 10,
-  UNRECOGNIZED = -1,
-}
-
-export function phaseNameFromJSON(object: any): PhaseName {
-  switch (object) {
-    case 0:
-    case "PHASE_NAME_UNSPECIFIED":
-      return PhaseName.PHASE_NAME_UNSPECIFIED;
-    case 1:
-    case "PHASE_NAME_REGISTRATION":
-      return PhaseName.PHASE_NAME_REGISTRATION;
-    case 2:
-    case "PHASE_NAME_SUBMISSION":
-      return PhaseName.PHASE_NAME_SUBMISSION;
-    case 3:
-    case "PHASE_NAME_SCREENING":
-      return PhaseName.PHASE_NAME_SCREENING;
-    case 4:
-    case "PHASE_NAME_REVIEW":
-      return PhaseName.PHASE_NAME_REVIEW;
-    case 5:
-    case "PHASE_NAME_APPEALS":
-      return PhaseName.PHASE_NAME_APPEALS;
-    case 6:
-    case "PHASE_NAME_APPEALS_RESPONSE":
-      return PhaseName.PHASE_NAME_APPEALS_RESPONSE;
-    case 7:
-    case "PHASE_NAME_AGGREGATION":
-      return PhaseName.PHASE_NAME_AGGREGATION;
-    case 8:
-    case "PHASE_NAME_FINAL_FIX":
-      return PhaseName.PHASE_NAME_FINAL_FIX;
-    case 9:
-    case "PHASE_NAME_POST_MORTEM":
-      return PhaseName.PHASE_NAME_POST_MORTEM;
-    case 10:
-    case "PHASE_NAME_ITERATIVE_REVIEW":
-      return PhaseName.PHASE_NAME_ITERATIVE_REVIEW;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return PhaseName.UNRECOGNIZED;
-  }
-}
-
-export function phaseNameToJSON(object: PhaseName): string {
-  switch (object) {
-    case PhaseName.PHASE_NAME_UNSPECIFIED:
-      return "PHASE_NAME_UNSPECIFIED";
-    case PhaseName.PHASE_NAME_REGISTRATION:
-      return "PHASE_NAME_REGISTRATION";
-    case PhaseName.PHASE_NAME_SUBMISSION:
-      return "PHASE_NAME_SUBMISSION";
-    case PhaseName.PHASE_NAME_SCREENING:
-      return "PHASE_NAME_SCREENING";
-    case PhaseName.PHASE_NAME_REVIEW:
-      return "PHASE_NAME_REVIEW";
-    case PhaseName.PHASE_NAME_APPEALS:
-      return "PHASE_NAME_APPEALS";
-    case PhaseName.PHASE_NAME_APPEALS_RESPONSE:
-      return "PHASE_NAME_APPEALS_RESPONSE";
-    case PhaseName.PHASE_NAME_AGGREGATION:
-      return "PHASE_NAME_AGGREGATION";
-    case PhaseName.PHASE_NAME_FINAL_FIX:
-      return "PHASE_NAME_FINAL_FIX";
-    case PhaseName.PHASE_NAME_POST_MORTEM:
-      return "PHASE_NAME_POST_MORTEM";
-    case PhaseName.PHASE_NAME_ITERATIVE_REVIEW:
-      return "PHASE_NAME_ITERATIVE_REVIEW";
-    case PhaseName.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
 
 export interface Challenge {
   id: string;
@@ -343,142 +23,30 @@ export interface Challenge {
   prizeSets: Challenge_PrizeSet[];
   tags: string[];
   projectId?: number | undefined;
-  startDate?: Date | undefined;
-  endDate?: Date | undefined;
-  status: Challenge_ChallengeStatus;
+  startDate?: number | undefined;
+  endDate?: number | undefined;
+  status: string;
   attachments: string[];
   groups: string[];
   winners: Challenge_Winner[];
   discussions: Challenge_Discussion[];
   createdBy: string;
   updatedBy?: string | undefined;
-  created?: Date;
-  updated?: Date | undefined;
-}
-
-export enum Challenge_ChallengeStatus {
-  CHALLENGE_STATUS_UNSPECIFIED = 0,
-  CHALLENGE_STATUS_NEW = 1,
-  CHALLENGE_STATUS_DRAFT = 2,
-  CHALLENGE_STATUS_ACTIVE = 3,
-  CHALLENGE_STATUS_COMPLETED = 4,
-  CHALLENGE_STATUS_CANCELLED = 5,
-  CHALLENGE_STATUS_DELETED = 6,
-  CHALLENGE_STATUS_APPROVED = 7,
-  CHALLENGE_STATUS_CANCELLED_FAILED_REVIEW = 8,
-  CHALLENGE_STATUS_CANCELLED_FAILED_SCREENING = 9,
-  CHALLENGE_STATUS_CANCELLED_ZERO_SUBMISSIONS = 10,
-  CHALLENGE_STATUS_CANCELLED_WINNER_UNRESPONSIVE = 11,
-  CHALLENGE_STATUS_CANCELLED_CLIENT_REQUEST = 12,
-  CHALLENGE_STATUS_CANCELLED_REQUIREMENTS_INFEASIBLE = 13,
-  CHALLENGE_STATUS_CANCELLED_ZERO_REGISTRATIONS = 14,
-  CHALLENGE_STATUS_CANCELLED_PAYMENT_FAILED = 15,
-  UNRECOGNIZED = -1,
-}
-
-export function challenge_ChallengeStatusFromJSON(object: any): Challenge_ChallengeStatus {
-  switch (object) {
-    case 0:
-    case "CHALLENGE_STATUS_UNSPECIFIED":
-      return Challenge_ChallengeStatus.CHALLENGE_STATUS_UNSPECIFIED;
-    case 1:
-    case "CHALLENGE_STATUS_NEW":
-      return Challenge_ChallengeStatus.CHALLENGE_STATUS_NEW;
-    case 2:
-    case "CHALLENGE_STATUS_DRAFT":
-      return Challenge_ChallengeStatus.CHALLENGE_STATUS_DRAFT;
-    case 3:
-    case "CHALLENGE_STATUS_ACTIVE":
-      return Challenge_ChallengeStatus.CHALLENGE_STATUS_ACTIVE;
-    case 4:
-    case "CHALLENGE_STATUS_COMPLETED":
-      return Challenge_ChallengeStatus.CHALLENGE_STATUS_COMPLETED;
-    case 5:
-    case "CHALLENGE_STATUS_CANCELLED":
-      return Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED;
-    case 6:
-    case "CHALLENGE_STATUS_DELETED":
-      return Challenge_ChallengeStatus.CHALLENGE_STATUS_DELETED;
-    case 7:
-    case "CHALLENGE_STATUS_APPROVED":
-      return Challenge_ChallengeStatus.CHALLENGE_STATUS_APPROVED;
-    case 8:
-    case "CHALLENGE_STATUS_CANCELLED_FAILED_REVIEW":
-      return Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_FAILED_REVIEW;
-    case 9:
-    case "CHALLENGE_STATUS_CANCELLED_FAILED_SCREENING":
-      return Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_FAILED_SCREENING;
-    case 10:
-    case "CHALLENGE_STATUS_CANCELLED_ZERO_SUBMISSIONS":
-      return Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_ZERO_SUBMISSIONS;
-    case 11:
-    case "CHALLENGE_STATUS_CANCELLED_WINNER_UNRESPONSIVE":
-      return Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_WINNER_UNRESPONSIVE;
-    case 12:
-    case "CHALLENGE_STATUS_CANCELLED_CLIENT_REQUEST":
-      return Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_CLIENT_REQUEST;
-    case 13:
-    case "CHALLENGE_STATUS_CANCELLED_REQUIREMENTS_INFEASIBLE":
-      return Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_REQUIREMENTS_INFEASIBLE;
-    case 14:
-    case "CHALLENGE_STATUS_CANCELLED_ZERO_REGISTRATIONS":
-      return Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_ZERO_REGISTRATIONS;
-    case 15:
-    case "CHALLENGE_STATUS_CANCELLED_PAYMENT_FAILED":
-      return Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_PAYMENT_FAILED;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return Challenge_ChallengeStatus.UNRECOGNIZED;
-  }
-}
-
-export function challenge_ChallengeStatusToJSON(object: Challenge_ChallengeStatus): string {
-  switch (object) {
-    case Challenge_ChallengeStatus.CHALLENGE_STATUS_UNSPECIFIED:
-      return "CHALLENGE_STATUS_UNSPECIFIED";
-    case Challenge_ChallengeStatus.CHALLENGE_STATUS_NEW:
-      return "CHALLENGE_STATUS_NEW";
-    case Challenge_ChallengeStatus.CHALLENGE_STATUS_DRAFT:
-      return "CHALLENGE_STATUS_DRAFT";
-    case Challenge_ChallengeStatus.CHALLENGE_STATUS_ACTIVE:
-      return "CHALLENGE_STATUS_ACTIVE";
-    case Challenge_ChallengeStatus.CHALLENGE_STATUS_COMPLETED:
-      return "CHALLENGE_STATUS_COMPLETED";
-    case Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED:
-      return "CHALLENGE_STATUS_CANCELLED";
-    case Challenge_ChallengeStatus.CHALLENGE_STATUS_DELETED:
-      return "CHALLENGE_STATUS_DELETED";
-    case Challenge_ChallengeStatus.CHALLENGE_STATUS_APPROVED:
-      return "CHALLENGE_STATUS_APPROVED";
-    case Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_FAILED_REVIEW:
-      return "CHALLENGE_STATUS_CANCELLED_FAILED_REVIEW";
-    case Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_FAILED_SCREENING:
-      return "CHALLENGE_STATUS_CANCELLED_FAILED_SCREENING";
-    case Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_ZERO_SUBMISSIONS:
-      return "CHALLENGE_STATUS_CANCELLED_ZERO_SUBMISSIONS";
-    case Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_WINNER_UNRESPONSIVE:
-      return "CHALLENGE_STATUS_CANCELLED_WINNER_UNRESPONSIVE";
-    case Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_CLIENT_REQUEST:
-      return "CHALLENGE_STATUS_CANCELLED_CLIENT_REQUEST";
-    case Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_REQUIREMENTS_INFEASIBLE:
-      return "CHALLENGE_STATUS_CANCELLED_REQUIREMENTS_INFEASIBLE";
-    case Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_ZERO_REGISTRATIONS:
-      return "CHALLENGE_STATUS_CANCELLED_ZERO_REGISTRATIONS";
-    case Challenge_ChallengeStatus.CHALLENGE_STATUS_CANCELLED_PAYMENT_FAILED:
-      return "CHALLENGE_STATUS_CANCELLED_PAYMENT_FAILED";
-    case Challenge_ChallengeStatus.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
+  created: number;
+  updated?: number | undefined;
+  overview?: Challenge_Overview;
 }
 
 export interface Challenge_Legacy {
-  track: Track;
-  subTrack: SubTrack;
-  forumId: number;
+  /** Develop, Design, Data Science, QA */
+  track?: string | undefined;
+  subTrack?: string | undefined;
+  forumId?: number | undefined;
   directProjectId: number;
-  reviewType: ReviewType;
+  /** Community, Internal */
+  reviewType: string;
+  /** Public, Private */
+  confidentialityType: string;
   reviewScorecardId?: number | undefined;
   screeningScorecardId?: number | undefined;
   pureV5Task?: boolean | undefined;
@@ -510,54 +78,22 @@ export interface Challenge_Metadata {
 export interface Challenge_Discussion {
   id?: string | undefined;
   name: string;
-  type: Challenge_Discussion_DiscussionType;
+  /** Challenge */
+  type: string;
   provider: string;
-  url: string;
-}
-
-export enum Challenge_Discussion_DiscussionType {
-  DISCUSSION_TYPE_UNSPECIFIED = 0,
-  DISCUSSION_TYPE_CHALLENGE = 1,
-  UNRECOGNIZED = -1,
-}
-
-export function challenge_Discussion_DiscussionTypeFromJSON(object: any): Challenge_Discussion_DiscussionType {
-  switch (object) {
-    case 0:
-    case "DISCUSSION_TYPE_UNSPECIFIED":
-      return Challenge_Discussion_DiscussionType.DISCUSSION_TYPE_UNSPECIFIED;
-    case 1:
-    case "DISCUSSION_TYPE_CHALLENGE":
-      return Challenge_Discussion_DiscussionType.DISCUSSION_TYPE_CHALLENGE;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return Challenge_Discussion_DiscussionType.UNRECOGNIZED;
-  }
-}
-
-export function challenge_Discussion_DiscussionTypeToJSON(object: Challenge_Discussion_DiscussionType): string {
-  switch (object) {
-    case Challenge_Discussion_DiscussionType.DISCUSSION_TYPE_UNSPECIFIED:
-      return "DISCUSSION_TYPE_UNSPECIFIED";
-    case Challenge_Discussion_DiscussionType.DISCUSSION_TYPE_CHALLENGE:
-      return "DISCUSSION_TYPE_CHALLENGE";
-    case Challenge_Discussion_DiscussionType.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
+  url?: string | undefined;
 }
 
 export interface Challenge_Phase {
   duration: number;
-  scheduledStartDate?: Date | undefined;
-  scheduledEndDate?: Date | undefined;
-  actualStartDate?: Date | undefined;
-  actualEndDate?: Date | undefined;
-  name: PhaseName;
+  scheduledStartDate?: string | undefined;
+  scheduledEndDate?: string | undefined;
+  actualStartDate?: string | undefined;
+  actualEndDate?: string | undefined;
+  name: string;
   phaseId: string;
   id: string;
-  open: boolean;
+  isOpen: boolean;
 }
 
 export interface Challenge_Winner {
@@ -572,54 +108,10 @@ export interface Challenge_Task {
 }
 
 export interface Challenge_PrizeSet {
-  type: Challenge_PrizeSet_PrizeType;
-  description: string;
+  /** Placement, Copilot, Reviewer */
+  type: string;
+  description?: string | undefined;
   prizes: Challenge_PrizeSet_Prize[];
-}
-
-export enum Challenge_PrizeSet_PrizeType {
-  PRIZE_TYPE_UNSPECIFIED = 0,
-  PRIZE_TYPE_PLACEMENT = 1,
-  PRIZE_TYPE_COPILOT = 2,
-  PRIZE_TYPE_REVIEWER_PRIZE = 3,
-  UNRECOGNIZED = -1,
-}
-
-export function challenge_PrizeSet_PrizeTypeFromJSON(object: any): Challenge_PrizeSet_PrizeType {
-  switch (object) {
-    case 0:
-    case "PRIZE_TYPE_UNSPECIFIED":
-      return Challenge_PrizeSet_PrizeType.PRIZE_TYPE_UNSPECIFIED;
-    case 1:
-    case "PRIZE_TYPE_PLACEMENT":
-      return Challenge_PrizeSet_PrizeType.PRIZE_TYPE_PLACEMENT;
-    case 2:
-    case "PRIZE_TYPE_COPILOT":
-      return Challenge_PrizeSet_PrizeType.PRIZE_TYPE_COPILOT;
-    case 3:
-    case "PRIZE_TYPE_REVIEWER_PRIZE":
-      return Challenge_PrizeSet_PrizeType.PRIZE_TYPE_REVIEWER_PRIZE;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return Challenge_PrizeSet_PrizeType.UNRECOGNIZED;
-  }
-}
-
-export function challenge_PrizeSet_PrizeTypeToJSON(object: Challenge_PrizeSet_PrizeType): string {
-  switch (object) {
-    case Challenge_PrizeSet_PrizeType.PRIZE_TYPE_UNSPECIFIED:
-      return "PRIZE_TYPE_UNSPECIFIED";
-    case Challenge_PrizeSet_PrizeType.PRIZE_TYPE_PLACEMENT:
-      return "PRIZE_TYPE_PLACEMENT";
-    case Challenge_PrizeSet_PrizeType.PRIZE_TYPE_COPILOT:
-      return "PRIZE_TYPE_COPILOT";
-    case Challenge_PrizeSet_PrizeType.PRIZE_TYPE_REVIEWER_PRIZE:
-      return "PRIZE_TYPE_REVIEWER_PRIZE";
-    case Challenge_PrizeSet_PrizeType.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
 }
 
 export interface Challenge_PrizeSet_Prize {
@@ -627,91 +119,38 @@ export interface Challenge_PrizeSet_Prize {
   type: string;
 }
 
+export interface Challenge_Overview {
+  totalPrizes: number;
+}
+
 export interface ChallengeList {
   items: Challenge[];
 }
 
 export interface CreateChallengeInput {
+  name: string;
   typeId: string;
-  /**
-   * Legacy Legacy = 3;
-   * legacy:
-   *   Joi.object().keys({
-   *     reviewType:
-   *       Joi.string()
-   *           .valid(_.values(constants.reviewTypes))
-   *           .insensitive()
-   *           .default(constants.reviewTypes.Internal),
-   *       confidentialityType:
-   *           Joi.string().default(config.DEFAULT_CONFIDENTIALITY_TYPE),
-   *       forumId: Joi.number().integer(), directProjectId:
-   *       Joi.number().integer(), screeningScorecardId: Joi.number().integer(),
-   *       reviewScorecardId: Joi.number().integer(), isTask: Joi.boolean(),
-   *       useSchedulingAPI: Joi.boolean(), pureV5Task: Joi.boolean(),
-   *       pureV5: Joi.boolean(), selfService: Joi.boolean(),
-   *       selfServiceCopilot: Joi.string()
-   *   }),
-   *   billing: Joi.object()
-   *       .keys({
-   *         billingAccountId:
-   *           Joi.string(), markup: Joi.number().min(0).max(100)
-   *       })
-   *       .unknown(true),
-   *   task: Joi.object().keys({
-   *     isTask:
-   *       Joi.boolean().default(false), isAssigned:
-   *       Joi.boolean().default(false), memberId: Joi.string().allow(null)
-   *   }),
-   *   name: Joi.string().required(), description: Joi.string(),
-   *   privateDescription: Joi.string(), descriptionFormat: Joi.string(),
-   *   metadata: Joi.array()
-   *       .items(Joi.object().keys({
-   *         name:
-   *           Joi.string().required(), value: Joi.required()
-   *       }))
-   *       .unique((a, b) = > a.name == = b.name),
-   *   timelineTemplateId: Joi.string(),  // Joi.optionalId(),
-   *   phases: Joi.array().items(Joi.object().keys({
-   *     phaseId:
-   *       Joi.id(), duration: Joi.number().integer().min(0)
-   *   })),
-   *   events: Joi.array().items(Joi.object().keys({
-   *     id:
-   *       Joi.number().required(), name: Joi.string(), key: Joi.string()
-   *   })),
-   *   discussions: Joi.array().items(Joi.object().keys({
-   *     id:
-   *       Joi.optionalId(), name: Joi.string().required(),
-   *       type:
-   *       Joi.string().required().valid(_.values(constants.DiscussionTypes)),
-   *       provider: Joi.string().required(), url: Joi.string(),
-   *       options: Joi.array().items(Joi.object())
-   *   })),
-   *   prizeSets: Joi.array().items(Joi.object().keys({
-   *     type:
-   *       Joi.string().valid(_.values(constants.prizeSetTypes)).required(),
-   *       description: Joi.string(),
-   *       prizes: Joi.array()
-   *           .items(Joi.object().keys({
-   *             description:
-   *               Joi.string(), type: Joi.string().required(),
-   *               value: Joi.number().min(0).required()
-   *           }))
-   *           .min(1)
-   *           .required()
-   *   })),
-   *   tags: Joi.array().items(Joi.string()),  // tag names
-   *   projectId: Joi.number().integer().positive(),
-   *   legacyId: Joi.number().integer().positive(), startDate: Joi.date(),
-   *   status: Joi.string().valid(_.values(constants.challengeStatuses)),
-   *   groups: Joi.array().items(Joi.optionalId()).unique(),
-   *       // gitRepoURLs: Joi.array().items(Joi.string().uri()),
-   *   terms: Joi.array().items(Joi.object().keys({
-   *     id:
-   *       Joi.id(), roleId: Joi.id()
-   *   }))
-   */
   trackId: string;
+  timelineTemplateId?: string | undefined;
+  legacy?: Challenge_Legacy;
+  billing?: Challenge_Billing;
+  description: string;
+  privateDescription?: string | undefined;
+  descriptionFormat?: string | undefined;
+  metadata: Challenge_Metadata[];
+  task?: Challenge_Task | undefined;
+  phases: Challenge_Phase[];
+  events: Challenge_Event[];
+  terms: Challenge_Term[];
+  prizeSets: Challenge_PrizeSet[];
+  tags: string[];
+  projectId?: number | undefined;
+  startDate?: number | undefined;
+  endDate?: number | undefined;
+  status: string;
+  attachments: string[];
+  groups: string[];
+  discussions: Challenge_Discussion[];
 }
 
 export interface UpdateChallengeInput {
@@ -741,15 +180,16 @@ function createBaseChallenge(): Challenge {
     projectId: undefined,
     startDate: undefined,
     endDate: undefined,
-    status: 0,
+    status: "",
     attachments: [],
     groups: [],
     winners: [],
     discussions: [],
     createdBy: "",
     updatedBy: undefined,
-    created: undefined,
+    created: 0,
     updated: undefined,
+    overview: undefined,
   };
 }
 
@@ -813,13 +253,13 @@ export const Challenge = {
       writer.uint32(152).int32(message.projectId);
     }
     if (message.startDate !== undefined) {
-      Timestamp.encode(toTimestamp(message.startDate), writer.uint32(162).fork()).ldelim();
+      writer.uint32(160).int64(message.startDate);
     }
     if (message.endDate !== undefined) {
-      Timestamp.encode(toTimestamp(message.endDate), writer.uint32(170).fork()).ldelim();
+      writer.uint32(168).int64(message.endDate);
     }
-    if (message.status !== 0) {
-      writer.uint32(176).int32(message.status);
+    if (message.status !== "") {
+      writer.uint32(178).string(message.status);
     }
     for (const v of message.attachments) {
       writer.uint32(186).string(v!);
@@ -839,11 +279,14 @@ export const Challenge = {
     if (message.updatedBy !== undefined) {
       writer.uint32(226).string(message.updatedBy);
     }
-    if (message.created !== undefined) {
-      Timestamp.encode(toTimestamp(message.created), writer.uint32(234).fork()).ldelim();
+    if (message.created !== 0) {
+      writer.uint32(232).int64(message.created);
     }
     if (message.updated !== undefined) {
-      Timestamp.encode(toTimestamp(message.updated), writer.uint32(242).fork()).ldelim();
+      writer.uint32(240).int64(message.updated);
+    }
+    if (message.overview !== undefined) {
+      Challenge_Overview.encode(message.overview, writer.uint32(250).fork()).ldelim();
     }
     return writer;
   },
@@ -913,13 +356,13 @@ export const Challenge = {
           message.projectId = reader.int32();
           break;
         case 20:
-          message.startDate = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.startDate = longToNumber(reader.int64() as Long);
           break;
         case 21:
-          message.endDate = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.endDate = longToNumber(reader.int64() as Long);
           break;
         case 22:
-          message.status = reader.int32() as any;
+          message.status = reader.string();
           break;
         case 23:
           message.attachments.push(reader.string());
@@ -940,10 +383,13 @@ export const Challenge = {
           message.updatedBy = reader.string();
           break;
         case 29:
-          message.created = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.created = longToNumber(reader.int64() as Long);
           break;
         case 30:
-          message.updated = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.updated = longToNumber(reader.int64() as Long);
+          break;
+        case 31:
+          message.overview = Challenge_Overview.decode(reader, reader.uint32());
           break;
         default:
           reader.skipType(tag & 7);
@@ -976,9 +422,9 @@ export const Challenge = {
         : [],
       tags: Array.isArray(object?.tags) ? object.tags.map((e: any) => String(e)) : [],
       projectId: isSet(object.projectId) ? Number(object.projectId) : undefined,
-      startDate: isSet(object.startDate) ? fromJsonTimestamp(object.startDate) : undefined,
-      endDate: isSet(object.endDate) ? fromJsonTimestamp(object.endDate) : undefined,
-      status: isSet(object.status) ? challenge_ChallengeStatusFromJSON(object.status) : 0,
+      startDate: isSet(object.startDate) ? Number(object.startDate) : undefined,
+      endDate: isSet(object.endDate) ? Number(object.endDate) : undefined,
+      status: isSet(object.status) ? String(object.status) : "",
       attachments: Array.isArray(object?.attachments) ? object.attachments.map((e: any) => String(e)) : [],
       groups: Array.isArray(object?.groups) ? object.groups.map((e: any) => String(e)) : [],
       winners: Array.isArray(object?.winners) ? object.winners.map((e: any) => Challenge_Winner.fromJSON(e)) : [],
@@ -987,8 +433,9 @@ export const Challenge = {
         : [],
       createdBy: isSet(object.createdBy) ? String(object.createdBy) : "",
       updatedBy: isSet(object.updatedBy) ? String(object.updatedBy) : undefined,
-      created: isSet(object.created) ? fromJsonTimestamp(object.created) : undefined,
-      updated: isSet(object.updated) ? fromJsonTimestamp(object.updated) : undefined,
+      created: isSet(object.created) ? Number(object.created) : 0,
+      updated: isSet(object.updated) ? Number(object.updated) : undefined,
+      overview: isSet(object.overview) ? Challenge_Overview.fromJSON(object.overview) : undefined,
     };
   },
 
@@ -1038,9 +485,9 @@ export const Challenge = {
       obj.tags = [];
     }
     message.projectId !== undefined && (obj.projectId = Math.round(message.projectId));
-    message.startDate !== undefined && (obj.startDate = message.startDate.toISOString());
-    message.endDate !== undefined && (obj.endDate = message.endDate.toISOString());
-    message.status !== undefined && (obj.status = challenge_ChallengeStatusToJSON(message.status));
+    message.startDate !== undefined && (obj.startDate = Math.round(message.startDate));
+    message.endDate !== undefined && (obj.endDate = Math.round(message.endDate));
+    message.status !== undefined && (obj.status = message.status);
     if (message.attachments) {
       obj.attachments = message.attachments.map((e) => e);
     } else {
@@ -1063,9 +510,15 @@ export const Challenge = {
     }
     message.createdBy !== undefined && (obj.createdBy = message.createdBy);
     message.updatedBy !== undefined && (obj.updatedBy = message.updatedBy);
-    message.created !== undefined && (obj.created = message.created.toISOString());
-    message.updated !== undefined && (obj.updated = message.updated.toISOString());
+    message.created !== undefined && (obj.created = Math.round(message.created));
+    message.updated !== undefined && (obj.updated = Math.round(message.updated));
+    message.overview !== undefined &&
+      (obj.overview = message.overview ? Challenge_Overview.toJSON(message.overview) : undefined);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Challenge>, I>>(base?: I): Challenge {
+    return Challenge.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<Challenge>, I>>(object: I): Challenge {
@@ -1097,26 +550,30 @@ export const Challenge = {
     message.projectId = object.projectId ?? undefined;
     message.startDate = object.startDate ?? undefined;
     message.endDate = object.endDate ?? undefined;
-    message.status = object.status ?? 0;
+    message.status = object.status ?? "";
     message.attachments = object.attachments?.map((e) => e) || [];
     message.groups = object.groups?.map((e) => e) || [];
     message.winners = object.winners?.map((e) => Challenge_Winner.fromPartial(e)) || [];
     message.discussions = object.discussions?.map((e) => Challenge_Discussion.fromPartial(e)) || [];
     message.createdBy = object.createdBy ?? "";
     message.updatedBy = object.updatedBy ?? undefined;
-    message.created = object.created ?? undefined;
+    message.created = object.created ?? 0;
     message.updated = object.updated ?? undefined;
+    message.overview = (object.overview !== undefined && object.overview !== null)
+      ? Challenge_Overview.fromPartial(object.overview)
+      : undefined;
     return message;
   },
 };
 
 function createBaseChallenge_Legacy(): Challenge_Legacy {
   return {
-    track: 0,
-    subTrack: 0,
-    forumId: 0,
+    track: undefined,
+    subTrack: undefined,
+    forumId: undefined,
     directProjectId: 0,
-    reviewType: 0,
+    reviewType: "",
+    confidentialityType: "",
     reviewScorecardId: undefined,
     screeningScorecardId: undefined,
     pureV5Task: undefined,
@@ -1127,35 +584,38 @@ function createBaseChallenge_Legacy(): Challenge_Legacy {
 
 export const Challenge_Legacy = {
   encode(message: Challenge_Legacy, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.track !== 0) {
-      writer.uint32(8).int32(message.track);
+    if (message.track !== undefined) {
+      writer.uint32(10).string(message.track);
     }
-    if (message.subTrack !== 0) {
-      writer.uint32(16).int32(message.subTrack);
+    if (message.subTrack !== undefined) {
+      writer.uint32(18).string(message.subTrack);
     }
-    if (message.forumId !== 0) {
+    if (message.forumId !== undefined) {
       writer.uint32(24).int32(message.forumId);
     }
     if (message.directProjectId !== 0) {
       writer.uint32(32).int32(message.directProjectId);
     }
-    if (message.reviewType !== 0) {
-      writer.uint32(40).int32(message.reviewType);
+    if (message.reviewType !== "") {
+      writer.uint32(42).string(message.reviewType);
+    }
+    if (message.confidentialityType !== "") {
+      writer.uint32(50).string(message.confidentialityType);
     }
     if (message.reviewScorecardId !== undefined) {
-      writer.uint32(48).int32(message.reviewScorecardId);
+      writer.uint32(56).int32(message.reviewScorecardId);
     }
     if (message.screeningScorecardId !== undefined) {
-      writer.uint32(56).int32(message.screeningScorecardId);
+      writer.uint32(64).int32(message.screeningScorecardId);
     }
     if (message.pureV5Task !== undefined) {
-      writer.uint32(64).bool(message.pureV5Task);
+      writer.uint32(72).bool(message.pureV5Task);
     }
     if (message.selfService !== undefined) {
-      writer.uint32(72).bool(message.selfService);
+      writer.uint32(80).bool(message.selfService);
     }
     if (message.selfServiceCopilot !== undefined) {
-      writer.uint32(82).string(message.selfServiceCopilot);
+      writer.uint32(90).string(message.selfServiceCopilot);
     }
     return writer;
   },
@@ -1168,10 +628,10 @@ export const Challenge_Legacy = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.track = reader.int32() as any;
+          message.track = reader.string();
           break;
         case 2:
-          message.subTrack = reader.int32() as any;
+          message.subTrack = reader.string();
           break;
         case 3:
           message.forumId = reader.int32();
@@ -1180,21 +640,24 @@ export const Challenge_Legacy = {
           message.directProjectId = reader.int32();
           break;
         case 5:
-          message.reviewType = reader.int32() as any;
+          message.reviewType = reader.string();
           break;
         case 6:
-          message.reviewScorecardId = reader.int32();
+          message.confidentialityType = reader.string();
           break;
         case 7:
-          message.screeningScorecardId = reader.int32();
+          message.reviewScorecardId = reader.int32();
           break;
         case 8:
-          message.pureV5Task = reader.bool();
+          message.screeningScorecardId = reader.int32();
           break;
         case 9:
-          message.selfService = reader.bool();
+          message.pureV5Task = reader.bool();
           break;
         case 10:
+          message.selfService = reader.bool();
+          break;
+        case 11:
           message.selfServiceCopilot = reader.string();
           break;
         default:
@@ -1207,11 +670,12 @@ export const Challenge_Legacy = {
 
   fromJSON(object: any): Challenge_Legacy {
     return {
-      track: isSet(object.track) ? trackFromJSON(object.track) : 0,
-      subTrack: isSet(object.subTrack) ? subTrackFromJSON(object.subTrack) : 0,
-      forumId: isSet(object.forumId) ? Number(object.forumId) : 0,
+      track: isSet(object.track) ? String(object.track) : undefined,
+      subTrack: isSet(object.subTrack) ? String(object.subTrack) : undefined,
+      forumId: isSet(object.forumId) ? Number(object.forumId) : undefined,
       directProjectId: isSet(object.directProjectId) ? Number(object.directProjectId) : 0,
-      reviewType: isSet(object.reviewType) ? reviewTypeFromJSON(object.reviewType) : 0,
+      reviewType: isSet(object.reviewType) ? String(object.reviewType) : "",
+      confidentialityType: isSet(object.confidentialityType) ? String(object.confidentialityType) : "",
       reviewScorecardId: isSet(object.reviewScorecardId) ? Number(object.reviewScorecardId) : undefined,
       screeningScorecardId: isSet(object.screeningScorecardId) ? Number(object.screeningScorecardId) : undefined,
       pureV5Task: isSet(object.pureV5Task) ? Boolean(object.pureV5Task) : undefined,
@@ -1222,11 +686,12 @@ export const Challenge_Legacy = {
 
   toJSON(message: Challenge_Legacy): unknown {
     const obj: any = {};
-    message.track !== undefined && (obj.track = trackToJSON(message.track));
-    message.subTrack !== undefined && (obj.subTrack = subTrackToJSON(message.subTrack));
+    message.track !== undefined && (obj.track = message.track);
+    message.subTrack !== undefined && (obj.subTrack = message.subTrack);
     message.forumId !== undefined && (obj.forumId = Math.round(message.forumId));
     message.directProjectId !== undefined && (obj.directProjectId = Math.round(message.directProjectId));
-    message.reviewType !== undefined && (obj.reviewType = reviewTypeToJSON(message.reviewType));
+    message.reviewType !== undefined && (obj.reviewType = message.reviewType);
+    message.confidentialityType !== undefined && (obj.confidentialityType = message.confidentialityType);
     message.reviewScorecardId !== undefined && (obj.reviewScorecardId = Math.round(message.reviewScorecardId));
     message.screeningScorecardId !== undefined && (obj.screeningScorecardId = Math.round(message.screeningScorecardId));
     message.pureV5Task !== undefined && (obj.pureV5Task = message.pureV5Task);
@@ -1235,13 +700,18 @@ export const Challenge_Legacy = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<Challenge_Legacy>, I>>(base?: I): Challenge_Legacy {
+    return Challenge_Legacy.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<Challenge_Legacy>, I>>(object: I): Challenge_Legacy {
     const message = createBaseChallenge_Legacy();
-    message.track = object.track ?? 0;
-    message.subTrack = object.subTrack ?? 0;
-    message.forumId = object.forumId ?? 0;
+    message.track = object.track ?? undefined;
+    message.subTrack = object.subTrack ?? undefined;
+    message.forumId = object.forumId ?? undefined;
     message.directProjectId = object.directProjectId ?? 0;
-    message.reviewType = object.reviewType ?? 0;
+    message.reviewType = object.reviewType ?? "";
+    message.confidentialityType = object.confidentialityType ?? "";
     message.reviewScorecardId = object.reviewScorecardId ?? undefined;
     message.screeningScorecardId = object.screeningScorecardId ?? undefined;
     message.pureV5Task = object.pureV5Task ?? undefined;
@@ -1299,6 +769,10 @@ export const Challenge_Billing = {
     message.billingAccountId !== undefined && (obj.billingAccountId = Math.round(message.billingAccountId));
     message.markup !== undefined && (obj.markup = message.markup);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Challenge_Billing>, I>>(base?: I): Challenge_Billing {
+    return Challenge_Billing.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<Challenge_Billing>, I>>(object: I): Challenge_Billing {
@@ -1367,6 +841,10 @@ export const Challenge_Event = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<Challenge_Event>, I>>(base?: I): Challenge_Event {
+    return Challenge_Event.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<Challenge_Event>, I>>(object: I): Challenge_Event {
     const message = createBaseChallenge_Event();
     message.id = object.id ?? 0;
@@ -1421,6 +899,10 @@ export const Challenge_Term = {
     message.id !== undefined && (obj.id = message.id);
     message.roleId !== undefined && (obj.roleId = message.roleId);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Challenge_Term>, I>>(base?: I): Challenge_Term {
+    return Challenge_Term.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<Challenge_Term>, I>>(object: I): Challenge_Term {
@@ -1481,6 +963,10 @@ export const Challenge_Metadata = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<Challenge_Metadata>, I>>(base?: I): Challenge_Metadata {
+    return Challenge_Metadata.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<Challenge_Metadata>, I>>(object: I): Challenge_Metadata {
     const message = createBaseChallenge_Metadata();
     message.name = object.name ?? "";
@@ -1490,7 +976,7 @@ export const Challenge_Metadata = {
 };
 
 function createBaseChallenge_Discussion(): Challenge_Discussion {
-  return { id: undefined, name: "", type: 0, provider: "", url: "" };
+  return { id: undefined, name: "", type: "", provider: "", url: undefined };
 }
 
 export const Challenge_Discussion = {
@@ -1501,13 +987,13 @@ export const Challenge_Discussion = {
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
     }
-    if (message.type !== 0) {
-      writer.uint32(24).int32(message.type);
+    if (message.type !== "") {
+      writer.uint32(26).string(message.type);
     }
     if (message.provider !== "") {
       writer.uint32(34).string(message.provider);
     }
-    if (message.url !== "") {
+    if (message.url !== undefined) {
       writer.uint32(42).string(message.url);
     }
     return writer;
@@ -1527,7 +1013,7 @@ export const Challenge_Discussion = {
           message.name = reader.string();
           break;
         case 3:
-          message.type = reader.int32() as any;
+          message.type = reader.string();
           break;
         case 4:
           message.provider = reader.string();
@@ -1547,9 +1033,9 @@ export const Challenge_Discussion = {
     return {
       id: isSet(object.id) ? String(object.id) : undefined,
       name: isSet(object.name) ? String(object.name) : "",
-      type: isSet(object.type) ? challenge_Discussion_DiscussionTypeFromJSON(object.type) : 0,
+      type: isSet(object.type) ? String(object.type) : "",
       provider: isSet(object.provider) ? String(object.provider) : "",
-      url: isSet(object.url) ? String(object.url) : "",
+      url: isSet(object.url) ? String(object.url) : undefined,
     };
   },
 
@@ -1557,19 +1043,23 @@ export const Challenge_Discussion = {
     const obj: any = {};
     message.id !== undefined && (obj.id = message.id);
     message.name !== undefined && (obj.name = message.name);
-    message.type !== undefined && (obj.type = challenge_Discussion_DiscussionTypeToJSON(message.type));
+    message.type !== undefined && (obj.type = message.type);
     message.provider !== undefined && (obj.provider = message.provider);
     message.url !== undefined && (obj.url = message.url);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Challenge_Discussion>, I>>(base?: I): Challenge_Discussion {
+    return Challenge_Discussion.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<Challenge_Discussion>, I>>(object: I): Challenge_Discussion {
     const message = createBaseChallenge_Discussion();
     message.id = object.id ?? undefined;
     message.name = object.name ?? "";
-    message.type = object.type ?? 0;
+    message.type = object.type ?? "";
     message.provider = object.provider ?? "";
-    message.url = object.url ?? "";
+    message.url = object.url ?? undefined;
     return message;
   },
 };
@@ -1581,10 +1071,10 @@ function createBaseChallenge_Phase(): Challenge_Phase {
     scheduledEndDate: undefined,
     actualStartDate: undefined,
     actualEndDate: undefined,
-    name: 0,
+    name: "",
     phaseId: "",
     id: "",
-    open: false,
+    isOpen: false,
   };
 }
 
@@ -1605,8 +1095,8 @@ export const Challenge_Phase = {
     if (message.actualEndDate !== undefined) {
       Timestamp.encode(toTimestamp(message.actualEndDate), writer.uint32(42).fork()).ldelim();
     }
-    if (message.name !== 0) {
-      writer.uint32(48).int32(message.name);
+    if (message.name !== "") {
+      writer.uint32(50).string(message.name);
     }
     if (message.phaseId !== "") {
       writer.uint32(58).string(message.phaseId);
@@ -1614,8 +1104,8 @@ export const Challenge_Phase = {
     if (message.id !== "") {
       writer.uint32(66).string(message.id);
     }
-    if (message.open === true) {
-      writer.uint32(72).bool(message.open);
+    if (message.isOpen === true) {
+      writer.uint32(72).bool(message.isOpen);
     }
     return writer;
   },
@@ -1643,7 +1133,7 @@ export const Challenge_Phase = {
           message.actualEndDate = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           break;
         case 6:
-          message.name = reader.int32() as any;
+          message.name = reader.string();
           break;
         case 7:
           message.phaseId = reader.string();
@@ -1652,7 +1142,7 @@ export const Challenge_Phase = {
           message.id = reader.string();
           break;
         case 9:
-          message.open = reader.bool();
+          message.isOpen = reader.bool();
           break;
         default:
           reader.skipType(tag & 7);
@@ -1665,29 +1155,33 @@ export const Challenge_Phase = {
   fromJSON(object: any): Challenge_Phase {
     return {
       duration: isSet(object.duration) ? Number(object.duration) : 0,
-      scheduledStartDate: isSet(object.scheduledStartDate) ? fromJsonTimestamp(object.scheduledStartDate) : undefined,
-      scheduledEndDate: isSet(object.scheduledEndDate) ? fromJsonTimestamp(object.scheduledEndDate) : undefined,
-      actualStartDate: isSet(object.actualStartDate) ? fromJsonTimestamp(object.actualStartDate) : undefined,
-      actualEndDate: isSet(object.actualEndDate) ? fromJsonTimestamp(object.actualEndDate) : undefined,
-      name: isSet(object.name) ? phaseNameFromJSON(object.name) : 0,
+      scheduledStartDate: isSet(object.scheduledStartDate) ? String(object.scheduledStartDate) : undefined,
+      scheduledEndDate: isSet(object.scheduledEndDate) ? String(object.scheduledEndDate) : undefined,
+      actualStartDate: isSet(object.actualStartDate) ? String(object.actualStartDate) : undefined,
+      actualEndDate: isSet(object.actualEndDate) ? String(object.actualEndDate) : undefined,
+      name: isSet(object.name) ? String(object.name) : "",
       phaseId: isSet(object.phaseId) ? String(object.phaseId) : "",
       id: isSet(object.id) ? String(object.id) : "",
-      open: isSet(object.open) ? Boolean(object.open) : false,
+      isOpen: isSet(object.isOpen) ? Boolean(object.isOpen) : false,
     };
   },
 
   toJSON(message: Challenge_Phase): unknown {
     const obj: any = {};
     message.duration !== undefined && (obj.duration = Math.round(message.duration));
-    message.scheduledStartDate !== undefined && (obj.scheduledStartDate = message.scheduledStartDate.toISOString());
-    message.scheduledEndDate !== undefined && (obj.scheduledEndDate = message.scheduledEndDate.toISOString());
-    message.actualStartDate !== undefined && (obj.actualStartDate = message.actualStartDate.toISOString());
-    message.actualEndDate !== undefined && (obj.actualEndDate = message.actualEndDate.toISOString());
-    message.name !== undefined && (obj.name = phaseNameToJSON(message.name));
+    message.scheduledStartDate !== undefined && (obj.scheduledStartDate = message.scheduledStartDate);
+    message.scheduledEndDate !== undefined && (obj.scheduledEndDate = message.scheduledEndDate);
+    message.actualStartDate !== undefined && (obj.actualStartDate = message.actualStartDate);
+    message.actualEndDate !== undefined && (obj.actualEndDate = message.actualEndDate);
+    message.name !== undefined && (obj.name = message.name);
     message.phaseId !== undefined && (obj.phaseId = message.phaseId);
     message.id !== undefined && (obj.id = message.id);
-    message.open !== undefined && (obj.open = message.open);
+    message.isOpen !== undefined && (obj.isOpen = message.isOpen);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Challenge_Phase>, I>>(base?: I): Challenge_Phase {
+    return Challenge_Phase.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<Challenge_Phase>, I>>(object: I): Challenge_Phase {
@@ -1697,10 +1191,10 @@ export const Challenge_Phase = {
     message.scheduledEndDate = object.scheduledEndDate ?? undefined;
     message.actualStartDate = object.actualStartDate ?? undefined;
     message.actualEndDate = object.actualEndDate ?? undefined;
-    message.name = object.name ?? 0;
+    message.name = object.name ?? "";
     message.phaseId = object.phaseId ?? "";
     message.id = object.id ?? "";
-    message.open = object.open ?? false;
+    message.isOpen = object.isOpen ?? false;
     return message;
   },
 };
@@ -1753,6 +1247,10 @@ export const Challenge_Winner = {
     message.handle !== undefined && (obj.handle = message.handle);
     message.placement !== undefined && (obj.placement = Math.round(message.placement));
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Challenge_Winner>, I>>(base?: I): Challenge_Winner {
+    return Challenge_Winner.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<Challenge_Winner>, I>>(object: I): Challenge_Winner {
@@ -1821,6 +1319,10 @@ export const Challenge_Task = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<Challenge_Task>, I>>(base?: I): Challenge_Task {
+    return Challenge_Task.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<Challenge_Task>, I>>(object: I): Challenge_Task {
     const message = createBaseChallenge_Task();
     message.isTask = object.isTask ?? false;
@@ -1831,15 +1333,15 @@ export const Challenge_Task = {
 };
 
 function createBaseChallenge_PrizeSet(): Challenge_PrizeSet {
-  return { type: 0, description: "", prizes: [] };
+  return { type: "", description: undefined, prizes: [] };
 }
 
 export const Challenge_PrizeSet = {
   encode(message: Challenge_PrizeSet, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.type !== 0) {
-      writer.uint32(8).int32(message.type);
+    if (message.type !== "") {
+      writer.uint32(10).string(message.type);
     }
-    if (message.description !== "") {
+    if (message.description !== undefined) {
       writer.uint32(18).string(message.description);
     }
     for (const v of message.prizes) {
@@ -1856,7 +1358,7 @@ export const Challenge_PrizeSet = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.type = reader.int32() as any;
+          message.type = reader.string();
           break;
         case 2:
           message.description = reader.string();
@@ -1874,15 +1376,15 @@ export const Challenge_PrizeSet = {
 
   fromJSON(object: any): Challenge_PrizeSet {
     return {
-      type: isSet(object.type) ? challenge_PrizeSet_PrizeTypeFromJSON(object.type) : 0,
-      description: isSet(object.description) ? String(object.description) : "",
+      type: isSet(object.type) ? String(object.type) : "",
+      description: isSet(object.description) ? String(object.description) : undefined,
       prizes: Array.isArray(object?.prizes) ? object.prizes.map((e: any) => Challenge_PrizeSet_Prize.fromJSON(e)) : [],
     };
   },
 
   toJSON(message: Challenge_PrizeSet): unknown {
     const obj: any = {};
-    message.type !== undefined && (obj.type = challenge_PrizeSet_PrizeTypeToJSON(message.type));
+    message.type !== undefined && (obj.type = message.type);
     message.description !== undefined && (obj.description = message.description);
     if (message.prizes) {
       obj.prizes = message.prizes.map((e) => e ? Challenge_PrizeSet_Prize.toJSON(e) : undefined);
@@ -1892,10 +1394,14 @@ export const Challenge_PrizeSet = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<Challenge_PrizeSet>, I>>(base?: I): Challenge_PrizeSet {
+    return Challenge_PrizeSet.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<Challenge_PrizeSet>, I>>(object: I): Challenge_PrizeSet {
     const message = createBaseChallenge_PrizeSet();
-    message.type = object.type ?? 0;
-    message.description = object.description ?? "";
+    message.type = object.type ?? "";
+    message.description = object.description ?? undefined;
     message.prizes = object.prizes?.map((e) => Challenge_PrizeSet_Prize.fromPartial(e)) || [];
     return message;
   },
@@ -1951,10 +1457,65 @@ export const Challenge_PrizeSet_Prize = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<Challenge_PrizeSet_Prize>, I>>(base?: I): Challenge_PrizeSet_Prize {
+    return Challenge_PrizeSet_Prize.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<Challenge_PrizeSet_Prize>, I>>(object: I): Challenge_PrizeSet_Prize {
     const message = createBaseChallenge_PrizeSet_Prize();
     message.value = object.value ?? 0;
     message.type = object.type ?? "";
+    return message;
+  },
+};
+
+function createBaseChallenge_Overview(): Challenge_Overview {
+  return { totalPrizes: 0 };
+}
+
+export const Challenge_Overview = {
+  encode(message: Challenge_Overview, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.totalPrizes !== 0) {
+      writer.uint32(8).int32(message.totalPrizes);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Challenge_Overview {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseChallenge_Overview();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.totalPrizes = reader.int32();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Challenge_Overview {
+    return { totalPrizes: isSet(object.totalPrizes) ? Number(object.totalPrizes) : 0 };
+  },
+
+  toJSON(message: Challenge_Overview): unknown {
+    const obj: any = {};
+    message.totalPrizes !== undefined && (obj.totalPrizes = Math.round(message.totalPrizes));
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Challenge_Overview>, I>>(base?: I): Challenge_Overview {
+    return Challenge_Overview.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Challenge_Overview>, I>>(object: I): Challenge_Overview {
+    const message = createBaseChallenge_Overview();
+    message.totalPrizes = object.totalPrizes ?? 0;
     return message;
   },
 };
@@ -2003,6 +1564,10 @@ export const ChallengeList = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<ChallengeList>, I>>(base?: I): ChallengeList {
+    return ChallengeList.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<ChallengeList>, I>>(object: I): ChallengeList {
     const message = createBaseChallengeList();
     message.items = object.items?.map((e) => Challenge.fromPartial(e)) || [];
@@ -2011,16 +1576,103 @@ export const ChallengeList = {
 };
 
 function createBaseCreateChallengeInput(): CreateChallengeInput {
-  return { typeId: "", trackId: "" };
+  return {
+    name: "",
+    typeId: "",
+    trackId: "",
+    timelineTemplateId: undefined,
+    legacy: undefined,
+    billing: undefined,
+    description: "",
+    privateDescription: undefined,
+    descriptionFormat: undefined,
+    metadata: [],
+    task: undefined,
+    phases: [],
+    events: [],
+    terms: [],
+    prizeSets: [],
+    tags: [],
+    projectId: undefined,
+    startDate: undefined,
+    endDate: undefined,
+    status: "",
+    attachments: [],
+    groups: [],
+    discussions: [],
+  };
 }
 
 export const CreateChallengeInput = {
   encode(message: CreateChallengeInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
     if (message.typeId !== "") {
-      writer.uint32(10).string(message.typeId);
+      writer.uint32(18).string(message.typeId);
     }
     if (message.trackId !== "") {
-      writer.uint32(18).string(message.trackId);
+      writer.uint32(26).string(message.trackId);
+    }
+    if (message.timelineTemplateId !== undefined) {
+      writer.uint32(34).string(message.timelineTemplateId);
+    }
+    if (message.legacy !== undefined) {
+      Challenge_Legacy.encode(message.legacy, writer.uint32(42).fork()).ldelim();
+    }
+    if (message.billing !== undefined) {
+      Challenge_Billing.encode(message.billing, writer.uint32(50).fork()).ldelim();
+    }
+    if (message.description !== "") {
+      writer.uint32(58).string(message.description);
+    }
+    if (message.privateDescription !== undefined) {
+      writer.uint32(66).string(message.privateDescription);
+    }
+    if (message.descriptionFormat !== undefined) {
+      writer.uint32(74).string(message.descriptionFormat);
+    }
+    for (const v of message.metadata) {
+      Challenge_Metadata.encode(v!, writer.uint32(82).fork()).ldelim();
+    }
+    if (message.task !== undefined) {
+      Challenge_Task.encode(message.task, writer.uint32(90).fork()).ldelim();
+    }
+    for (const v of message.phases) {
+      Challenge_Phase.encode(v!, writer.uint32(98).fork()).ldelim();
+    }
+    for (const v of message.events) {
+      Challenge_Event.encode(v!, writer.uint32(106).fork()).ldelim();
+    }
+    for (const v of message.terms) {
+      Challenge_Term.encode(v!, writer.uint32(114).fork()).ldelim();
+    }
+    for (const v of message.prizeSets) {
+      Challenge_PrizeSet.encode(v!, writer.uint32(122).fork()).ldelim();
+    }
+    for (const v of message.tags) {
+      writer.uint32(130).string(v!);
+    }
+    if (message.projectId !== undefined) {
+      writer.uint32(136).int32(message.projectId);
+    }
+    if (message.startDate !== undefined) {
+      writer.uint32(144).int64(message.startDate);
+    }
+    if (message.endDate !== undefined) {
+      writer.uint32(152).int64(message.endDate);
+    }
+    if (message.status !== "") {
+      writer.uint32(162).string(message.status);
+    }
+    for (const v of message.attachments) {
+      writer.uint32(170).string(v!);
+    }
+    for (const v of message.groups) {
+      writer.uint32(178).string(v!);
+    }
+    for (const v of message.discussions) {
+      Challenge_Discussion.encode(v!, writer.uint32(186).fork()).ldelim();
     }
     return writer;
   },
@@ -2033,10 +1685,73 @@ export const CreateChallengeInput = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.typeId = reader.string();
+          message.name = reader.string();
           break;
         case 2:
+          message.typeId = reader.string();
+          break;
+        case 3:
           message.trackId = reader.string();
+          break;
+        case 4:
+          message.timelineTemplateId = reader.string();
+          break;
+        case 5:
+          message.legacy = Challenge_Legacy.decode(reader, reader.uint32());
+          break;
+        case 6:
+          message.billing = Challenge_Billing.decode(reader, reader.uint32());
+          break;
+        case 7:
+          message.description = reader.string();
+          break;
+        case 8:
+          message.privateDescription = reader.string();
+          break;
+        case 9:
+          message.descriptionFormat = reader.string();
+          break;
+        case 10:
+          message.metadata.push(Challenge_Metadata.decode(reader, reader.uint32()));
+          break;
+        case 11:
+          message.task = Challenge_Task.decode(reader, reader.uint32());
+          break;
+        case 12:
+          message.phases.push(Challenge_Phase.decode(reader, reader.uint32()));
+          break;
+        case 13:
+          message.events.push(Challenge_Event.decode(reader, reader.uint32()));
+          break;
+        case 14:
+          message.terms.push(Challenge_Term.decode(reader, reader.uint32()));
+          break;
+        case 15:
+          message.prizeSets.push(Challenge_PrizeSet.decode(reader, reader.uint32()));
+          break;
+        case 16:
+          message.tags.push(reader.string());
+          break;
+        case 17:
+          message.projectId = reader.int32();
+          break;
+        case 18:
+          message.startDate = longToNumber(reader.int64() as Long);
+          break;
+        case 19:
+          message.endDate = longToNumber(reader.int64() as Long);
+          break;
+        case 20:
+          message.status = reader.string();
+          break;
+        case 21:
+          message.attachments.push(reader.string());
+          break;
+        case 22:
+          message.groups.push(reader.string());
+          break;
+        case 23:
+          message.discussions.push(Challenge_Discussion.decode(reader, reader.uint32()));
           break;
         default:
           reader.skipType(tag & 7);
@@ -2048,22 +1763,136 @@ export const CreateChallengeInput = {
 
   fromJSON(object: any): CreateChallengeInput {
     return {
+      name: isSet(object.name) ? String(object.name) : "",
       typeId: isSet(object.typeId) ? String(object.typeId) : "",
       trackId: isSet(object.trackId) ? String(object.trackId) : "",
+      timelineTemplateId: isSet(object.timelineTemplateId) ? String(object.timelineTemplateId) : undefined,
+      legacy: isSet(object.legacy) ? Challenge_Legacy.fromJSON(object.legacy) : undefined,
+      billing: isSet(object.billing) ? Challenge_Billing.fromJSON(object.billing) : undefined,
+      description: isSet(object.description) ? String(object.description) : "",
+      privateDescription: isSet(object.privateDescription) ? String(object.privateDescription) : undefined,
+      descriptionFormat: isSet(object.descriptionFormat) ? String(object.descriptionFormat) : undefined,
+      metadata: Array.isArray(object?.metadata) ? object.metadata.map((e: any) => Challenge_Metadata.fromJSON(e)) : [],
+      task: isSet(object.task) ? Challenge_Task.fromJSON(object.task) : undefined,
+      phases: Array.isArray(object?.phases) ? object.phases.map((e: any) => Challenge_Phase.fromJSON(e)) : [],
+      events: Array.isArray(object?.events) ? object.events.map((e: any) => Challenge_Event.fromJSON(e)) : [],
+      terms: Array.isArray(object?.terms) ? object.terms.map((e: any) => Challenge_Term.fromJSON(e)) : [],
+      prizeSets: Array.isArray(object?.prizeSets)
+        ? object.prizeSets.map((e: any) => Challenge_PrizeSet.fromJSON(e))
+        : [],
+      tags: Array.isArray(object?.tags) ? object.tags.map((e: any) => String(e)) : [],
+      projectId: isSet(object.projectId) ? Number(object.projectId) : undefined,
+      startDate: isSet(object.startDate) ? Number(object.startDate) : undefined,
+      endDate: isSet(object.endDate) ? Number(object.endDate) : undefined,
+      status: isSet(object.status) ? String(object.status) : "",
+      attachments: Array.isArray(object?.attachments) ? object.attachments.map((e: any) => String(e)) : [],
+      groups: Array.isArray(object?.groups) ? object.groups.map((e: any) => String(e)) : [],
+      discussions: Array.isArray(object?.discussions)
+        ? object.discussions.map((e: any) => Challenge_Discussion.fromJSON(e))
+        : [],
     };
   },
 
   toJSON(message: CreateChallengeInput): unknown {
     const obj: any = {};
+    message.name !== undefined && (obj.name = message.name);
     message.typeId !== undefined && (obj.typeId = message.typeId);
     message.trackId !== undefined && (obj.trackId = message.trackId);
+    message.timelineTemplateId !== undefined && (obj.timelineTemplateId = message.timelineTemplateId);
+    message.legacy !== undefined && (obj.legacy = message.legacy ? Challenge_Legacy.toJSON(message.legacy) : undefined);
+    message.billing !== undefined &&
+      (obj.billing = message.billing ? Challenge_Billing.toJSON(message.billing) : undefined);
+    message.description !== undefined && (obj.description = message.description);
+    message.privateDescription !== undefined && (obj.privateDescription = message.privateDescription);
+    message.descriptionFormat !== undefined && (obj.descriptionFormat = message.descriptionFormat);
+    if (message.metadata) {
+      obj.metadata = message.metadata.map((e) => e ? Challenge_Metadata.toJSON(e) : undefined);
+    } else {
+      obj.metadata = [];
+    }
+    message.task !== undefined && (obj.task = message.task ? Challenge_Task.toJSON(message.task) : undefined);
+    if (message.phases) {
+      obj.phases = message.phases.map((e) => e ? Challenge_Phase.toJSON(e) : undefined);
+    } else {
+      obj.phases = [];
+    }
+    if (message.events) {
+      obj.events = message.events.map((e) => e ? Challenge_Event.toJSON(e) : undefined);
+    } else {
+      obj.events = [];
+    }
+    if (message.terms) {
+      obj.terms = message.terms.map((e) => e ? Challenge_Term.toJSON(e) : undefined);
+    } else {
+      obj.terms = [];
+    }
+    if (message.prizeSets) {
+      obj.prizeSets = message.prizeSets.map((e) => e ? Challenge_PrizeSet.toJSON(e) : undefined);
+    } else {
+      obj.prizeSets = [];
+    }
+    if (message.tags) {
+      obj.tags = message.tags.map((e) => e);
+    } else {
+      obj.tags = [];
+    }
+    message.projectId !== undefined && (obj.projectId = Math.round(message.projectId));
+    message.startDate !== undefined && (obj.startDate = Math.round(message.startDate));
+    message.endDate !== undefined && (obj.endDate = Math.round(message.endDate));
+    message.status !== undefined && (obj.status = message.status);
+    if (message.attachments) {
+      obj.attachments = message.attachments.map((e) => e);
+    } else {
+      obj.attachments = [];
+    }
+    if (message.groups) {
+      obj.groups = message.groups.map((e) => e);
+    } else {
+      obj.groups = [];
+    }
+    if (message.discussions) {
+      obj.discussions = message.discussions.map((e) => e ? Challenge_Discussion.toJSON(e) : undefined);
+    } else {
+      obj.discussions = [];
+    }
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateChallengeInput>, I>>(base?: I): CreateChallengeInput {
+    return CreateChallengeInput.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<CreateChallengeInput>, I>>(object: I): CreateChallengeInput {
     const message = createBaseCreateChallengeInput();
+    message.name = object.name ?? "";
     message.typeId = object.typeId ?? "";
     message.trackId = object.trackId ?? "";
+    message.timelineTemplateId = object.timelineTemplateId ?? undefined;
+    message.legacy = (object.legacy !== undefined && object.legacy !== null)
+      ? Challenge_Legacy.fromPartial(object.legacy)
+      : undefined;
+    message.billing = (object.billing !== undefined && object.billing !== null)
+      ? Challenge_Billing.fromPartial(object.billing)
+      : undefined;
+    message.description = object.description ?? "";
+    message.privateDescription = object.privateDescription ?? undefined;
+    message.descriptionFormat = object.descriptionFormat ?? undefined;
+    message.metadata = object.metadata?.map((e) => Challenge_Metadata.fromPartial(e)) || [];
+    message.task = (object.task !== undefined && object.task !== null)
+      ? Challenge_Task.fromPartial(object.task)
+      : undefined;
+    message.phases = object.phases?.map((e) => Challenge_Phase.fromPartial(e)) || [];
+    message.events = object.events?.map((e) => Challenge_Event.fromPartial(e)) || [];
+    message.terms = object.terms?.map((e) => Challenge_Term.fromPartial(e)) || [];
+    message.prizeSets = object.prizeSets?.map((e) => Challenge_PrizeSet.fromPartial(e)) || [];
+    message.tags = object.tags?.map((e) => e) || [];
+    message.projectId = object.projectId ?? undefined;
+    message.startDate = object.startDate ?? undefined;
+    message.endDate = object.endDate ?? undefined;
+    message.status = object.status ?? "";
+    message.attachments = object.attachments?.map((e) => e) || [];
+    message.groups = object.groups?.map((e) => e) || [];
+    message.discussions = object.discussions?.map((e) => Challenge_Discussion.fromPartial(e)) || [];
     return message;
   },
 };
@@ -2109,6 +1938,10 @@ export const UpdateChallengeInput = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<UpdateChallengeInput>, I>>(base?: I): UpdateChallengeInput {
+    return UpdateChallengeInput.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<UpdateChallengeInput>, I>>(object: I): UpdateChallengeInput {
     const message = createBaseUpdateChallengeInput();
     message.challenge = (object.challenge !== undefined && object.challenge !== null)
@@ -2117,6 +1950,25 @@ export const UpdateChallengeInput = {
     return message;
   },
 };
+
+declare var self: any | undefined;
+declare var window: any | undefined;
+declare var global: any | undefined;
+var tsProtoGlobalThis: any = (() => {
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  if (typeof self !== "undefined") {
+    return self;
+  }
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
+  throw "Unable to locate global object";
+})();
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
@@ -2130,26 +1982,29 @@ type KeysOfUnion<T> = T extends T ? keyof T : never;
 type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
-function toTimestamp(date: Date): Timestamp {
+function toTimestamp(dateStr: string): Timestamp {
+  const date = new Date(dateStr);
   const seconds = date.getTime() / 1_000;
   const nanos = (date.getTime() % 1_000) * 1_000_000;
   return { seconds, nanos };
 }
 
-function fromTimestamp(t: Timestamp): Date {
+function fromTimestamp(t: Timestamp): string {
   let millis = t.seconds * 1_000;
   millis += t.nanos / 1_000_000;
-  return new Date(millis);
+  return new Date(millis).toISOString();
 }
 
-function fromJsonTimestamp(o: any): Date {
-  if (o instanceof Date) {
-    return o;
-  } else if (typeof o === "string") {
-    return new Date(o);
-  } else {
-    return fromTimestamp(Timestamp.fromJSON(o));
+function longToNumber(long: Long): number {
+  if (long.gt(Number.MAX_SAFE_INTEGER)) {
+    throw new tsProtoGlobalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
   }
+  return long.toNumber();
+}
+
+if (_m0.util.Long !== Long) {
+  _m0.util.Long = Long as any;
+  _m0.configure();
 }
 
 function isSet(value: any): boolean {

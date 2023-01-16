@@ -8,14 +8,15 @@ import IdGenerator from "../helpers/IdGenerator";
 
 import { AttachmentSchema } from "../schema/AttachmentSchema";
 
-class AttachmentDomain extends CoreOperations<Attachment> {
+class AttachmentDomain extends CoreOperations<
+  Attachment,
+  CreateAttachmentInput
+> {
   protected toEntity(item: { [key: string]: Value }): Attachment {
     return Attachment.fromJSON(item);
   }
 
-  public create(
-    createInput: CreateAttachmentInput
-  ): Promise<Attachment> {
+  public create(createInput: CreateAttachmentInput): Promise<Attachment> {
     return super.create({
       id: IdGenerator.generateUUID(),
       ...createInput,

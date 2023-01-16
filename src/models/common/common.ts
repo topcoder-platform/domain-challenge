@@ -205,7 +205,7 @@ export interface LookupCriteria {
 }
 
 export interface GoogleProtobufTypesPlaceholder {
-  timestamp?: Date;
+  timestamp?: string;
 }
 
 function createBaseScanCriteria(): ScanCriteria {
@@ -265,6 +265,10 @@ export const ScanCriteria = {
       (obj.operator = message.operator !== undefined ? operatorToJSON(message.operator) : undefined);
     message.value !== undefined && (obj.value = message.value);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ScanCriteria>, I>>(base?: I): ScanCriteria {
+    return ScanCriteria.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<ScanCriteria>, I>>(object: I): ScanCriteria {
@@ -332,6 +336,10 @@ export const ScanRequest = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<ScanRequest>, I>>(base?: I): ScanRequest {
+    return ScanRequest.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<ScanRequest>, I>>(object: I): ScanRequest {
     const message = createBaseScanRequest();
     message.nextToken = object.nextToken ?? undefined;
@@ -394,6 +402,10 @@ export const ScanResult = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<ScanResult>, I>>(base?: I): ScanResult {
+    return ScanResult.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<ScanResult>, I>>(object: I): ScanResult {
     const message = createBaseScanResult();
     message.nextToken = object.nextToken ?? undefined;
@@ -449,6 +461,10 @@ export const LookupCriteria = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<LookupCriteria>, I>>(base?: I): LookupCriteria {
+    return LookupCriteria.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<LookupCriteria>, I>>(object: I): LookupCriteria {
     const message = createBaseLookupCriteria();
     message.key = object.key ?? "";
@@ -488,13 +504,17 @@ export const GoogleProtobufTypesPlaceholder = {
   },
 
   fromJSON(object: any): GoogleProtobufTypesPlaceholder {
-    return { timestamp: isSet(object.timestamp) ? fromJsonTimestamp(object.timestamp) : undefined };
+    return { timestamp: isSet(object.timestamp) ? String(object.timestamp) : undefined };
   },
 
   toJSON(message: GoogleProtobufTypesPlaceholder): unknown {
     const obj: any = {};
-    message.timestamp !== undefined && (obj.timestamp = message.timestamp.toISOString());
+    message.timestamp !== undefined && (obj.timestamp = message.timestamp);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GoogleProtobufTypesPlaceholder>, I>>(base?: I): GoogleProtobufTypesPlaceholder {
+    return GoogleProtobufTypesPlaceholder.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<GoogleProtobufTypesPlaceholder>, I>>(
@@ -518,26 +538,17 @@ type KeysOfUnion<T> = T extends T ? keyof T : never;
 type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
-function toTimestamp(date: Date): Timestamp {
+function toTimestamp(dateStr: string): Timestamp {
+  const date = new Date(dateStr);
   const seconds = date.getTime() / 1_000;
   const nanos = (date.getTime() % 1_000) * 1_000_000;
   return { seconds, nanos };
 }
 
-function fromTimestamp(t: Timestamp): Date {
+function fromTimestamp(t: Timestamp): string {
   let millis = t.seconds * 1_000;
   millis += t.nanos / 1_000_000;
-  return new Date(millis);
-}
-
-function fromJsonTimestamp(o: any): Date {
-  if (o instanceof Date) {
-    return o;
-  } else if (typeof o === "string") {
-    return new Date(o);
-  } else {
-    return fromTimestamp(Timestamp.fromJSON(o));
-  }
+  return new Date(millis).toISOString();
 }
 
 function isSet(value: any): boolean {

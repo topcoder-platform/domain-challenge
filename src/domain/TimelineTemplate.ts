@@ -8,10 +8,13 @@ import IdGenerator from "../helpers/IdGenerator";
 
 import { TimelineTemplateSchema } from "../schema/TimelineTemplateSchema";
 
-class TimelineTemplateDomain extends CoreOperations<TimelineTemplate> {
+class TimelineTemplateDomain extends CoreOperations<
+  TimelineTemplate,
+  CreateTimelineTemplateInput
+> {
   protected toEntity(item: { [key: string]: Value }): TimelineTemplate {
     try {
-      item.phases = JSON.parse(item.phases.toString())
+      item.phases = JSON.parse(item.phases.toString());
     } catch (e) {
       // do nothing
     }

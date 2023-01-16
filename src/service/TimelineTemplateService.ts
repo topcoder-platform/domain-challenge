@@ -1,4 +1,9 @@
-import { handleUnaryCall, sendUnaryData, ServerUnaryCall, StatusObject } from "@grpc/grpc-js";
+import {
+  handleUnaryCall,
+  sendUnaryData,
+  ServerUnaryCall,
+  StatusObject,
+} from "@grpc/grpc-js";
 import {
   ScanRequest,
   ScanResult,
@@ -52,16 +57,17 @@ class TimelineTemplateServerImpl implements TimelineTemplateServer {
     callback(null, TimelineTemplate);
   };
 
-  create: handleUnaryCall<CreateTimelineTemplateInput, TimelineTemplate> = async (
-    call: ServerUnaryCall<CreateTimelineTemplateInput, TimelineTemplate>,
-    callback: sendUnaryData<TimelineTemplate>
-  ): Promise<void> => {
-    const { request: createRequestInput } = call;
+  create: handleUnaryCall<CreateTimelineTemplateInput, TimelineTemplate> =
+    async (
+      call: ServerUnaryCall<CreateTimelineTemplateInput, TimelineTemplate>,
+      callback: sendUnaryData<TimelineTemplate>
+    ): Promise<void> => {
+      const { request: createRequestInput } = call;
 
-    const TimelineTemplate = await Domain.create(createRequestInput);
+      const TimelineTemplate = await Domain.create(createRequestInput);
 
-    callback(null, TimelineTemplate);
-  };
+      callback(null, TimelineTemplate);
+    };
 
   update: handleUnaryCall<UpdateTimelineTemplateInput, TimelineTemplateList> =
     async (
@@ -71,13 +77,10 @@ class TimelineTemplateServerImpl implements TimelineTemplateServer {
       const {
         request: { updateInput, filterCriteria },
       } = call;
-  
+
       Domain.update(filterCriteria, updateInput)
         .then((timelineTemplateList) => {
-          callback(
-            null,
-            TimelineTemplateList.fromJSON(timelineTemplateList)
-          );
+          callback(null, TimelineTemplateList.fromJSON(timelineTemplateList));
         })
         .catch((error: StatusObject) => {
           callback(error, null);

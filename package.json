@@ -5,29 +5,32 @@
   "main": "index.js",
   "scripts": {
     "build:proto:client:nosql": "node bin/nosql-client",
-    "build:proto:client": "yarn build:proto:client:nosql",
+    "build:proto:client": "node bin/nosql-client",
     "build:proto:server": "node bin/server",
+    "build:proto": "node bin/nosql-client && node bin/server",
     "build:app": "rimraf dist && tsc -b",
     "build": "yarn build:proto:client && yarn build:proto:server && yarn build:app",
     "start": "ts-node-dev --respawn --transpile-only src/server.ts"
   },
-  "keywords": [],
+  "keywords": [
+    "Topcoder Domain",
+    "Challenge"
+  ],
   "author": "Rakib Ansary <rakibansary@topcoder.com>",
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.183.0",
     "@aws-sdk/util-dynamodb": "^3.183.0",
     "@grpc/grpc-js": "^1.7.1",
-    "dayjs": "^1.11.5",
     "dotenv": "^16.0.3",
     "grpc-server-reflection": "^0.1.5",
-    "lodash": "^4.17.21",
     "source-map-support": "^0.5.21",
-    "topcoder-interface": "github:topcoder-platform/plat-interface-definition#feat/update-interfaces",
-    "uuidv4": "^6.2.13"
+    "topcoder-interface": "github:topcoder-platform/plat-interface-definition#v0.0.9",
+    "uuidv4": "^6.2.13",
+    "xss": "^1.0.14"
   },
   "volta": {
-    "node": "18.12.0",
+    "node": "18.13.0",
     "typescript": "4.9.4",
     "yarn": "1.22.19"
   },

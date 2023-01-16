@@ -8,14 +8,15 @@ import IdGenerator from "../helpers/IdGenerator";
 
 import { ChallengeTypeSchema } from "../schema/ChallengeTypeSchema";
 
-class ChallengeTypeDomain extends CoreOperations<ChallengeType> {
+class ChallengeTypeDomain extends CoreOperations<
+  ChallengeType,
+  CreateChallengeTypeInput
+> {
   protected toEntity(item: { [key: string]: Value }): ChallengeType {
     return ChallengeType.fromJSON(item);
   }
 
-  public create(
-    createInput: CreateChallengeTypeInput
-  ): Promise<ChallengeType> {
+  public create(createInput: CreateChallengeTypeInput): Promise<ChallengeType> {
     return super.create({
       id: IdGenerator.generateUUID(),
       ...createInput,
