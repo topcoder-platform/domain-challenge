@@ -1,6 +1,7 @@
 /* eslint-disable */
 import Long from "long";
 import _m0 from "protobufjs/minimal";
+import { ScanCriteria } from "../../common/common";
 
 export interface TimelineTemplatePhase {
   phaseId: string;
@@ -28,7 +29,11 @@ export interface CreateTimelineTemplateInput {
 }
 
 export interface UpdateTimelineTemplateInput {
-  id: string;
+  filterCriteria: ScanCriteria[];
+  updateInput?: UpdateTimelineTemplateInput_UpdateInput;
+}
+
+export interface UpdateTimelineTemplateInput_UpdateInput {
   name: string;
   description?: string | undefined;
   isActive: boolean;
@@ -91,6 +96,10 @@ export const TimelineTemplatePhase = {
     message.defaultDuration !== undefined && (obj.defaultDuration = Math.round(message.defaultDuration));
     message.predecessor !== undefined && (obj.predecessor = message.predecessor);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TimelineTemplatePhase>, I>>(base?: I): TimelineTemplatePhase {
+    return TimelineTemplatePhase.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<TimelineTemplatePhase>, I>>(object: I): TimelineTemplatePhase {
@@ -180,6 +189,10 @@ export const TimelineTemplate = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<TimelineTemplate>, I>>(base?: I): TimelineTemplate {
+    return TimelineTemplate.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<TimelineTemplate>, I>>(object: I): TimelineTemplate {
     const message = createBaseTimelineTemplate();
     message.id = object.id ?? "";
@@ -233,6 +246,10 @@ export const TimelineTemplateList = {
       obj.items = [];
     }
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TimelineTemplateList>, I>>(base?: I): TimelineTemplateList {
+    return TimelineTemplateList.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<TimelineTemplateList>, I>>(object: I): TimelineTemplateList {
@@ -312,6 +329,10 @@ export const CreateTimelineTemplateInput = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<CreateTimelineTemplateInput>, I>>(base?: I): CreateTimelineTemplateInput {
+    return CreateTimelineTemplateInput.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<CreateTimelineTemplateInput>, I>>(object: I): CreateTimelineTemplateInput {
     const message = createBaseCreateTimelineTemplateInput();
     message.name = object.name ?? "";
@@ -323,14 +344,85 @@ export const CreateTimelineTemplateInput = {
 };
 
 function createBaseUpdateTimelineTemplateInput(): UpdateTimelineTemplateInput {
-  return { id: "", name: "", description: undefined, isActive: false, phases: [] };
+  return { filterCriteria: [], updateInput: undefined };
 }
 
 export const UpdateTimelineTemplateInput = {
   encode(message: UpdateTimelineTemplateInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== "") {
-      writer.uint32(10).string(message.id);
+    for (const v of message.filterCriteria) {
+      ScanCriteria.encode(v!, writer.uint32(10).fork()).ldelim();
     }
+    if (message.updateInput !== undefined) {
+      UpdateTimelineTemplateInput_UpdateInput.encode(message.updateInput, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateTimelineTemplateInput {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateTimelineTemplateInput();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.filterCriteria.push(ScanCriteria.decode(reader, reader.uint32()));
+          break;
+        case 2:
+          message.updateInput = UpdateTimelineTemplateInput_UpdateInput.decode(reader, reader.uint32());
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateTimelineTemplateInput {
+    return {
+      filterCriteria: Array.isArray(object?.filterCriteria)
+        ? object.filterCriteria.map((e: any) => ScanCriteria.fromJSON(e))
+        : [],
+      updateInput: isSet(object.updateInput)
+        ? UpdateTimelineTemplateInput_UpdateInput.fromJSON(object.updateInput)
+        : undefined,
+    };
+  },
+
+  toJSON(message: UpdateTimelineTemplateInput): unknown {
+    const obj: any = {};
+    if (message.filterCriteria) {
+      obj.filterCriteria = message.filterCriteria.map((e) => e ? ScanCriteria.toJSON(e) : undefined);
+    } else {
+      obj.filterCriteria = [];
+    }
+    message.updateInput !== undefined && (obj.updateInput = message.updateInput
+      ? UpdateTimelineTemplateInput_UpdateInput.toJSON(message.updateInput)
+      : undefined);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateTimelineTemplateInput>, I>>(base?: I): UpdateTimelineTemplateInput {
+    return UpdateTimelineTemplateInput.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<UpdateTimelineTemplateInput>, I>>(object: I): UpdateTimelineTemplateInput {
+    const message = createBaseUpdateTimelineTemplateInput();
+    message.filterCriteria = object.filterCriteria?.map((e) => ScanCriteria.fromPartial(e)) || [];
+    message.updateInput = (object.updateInput !== undefined && object.updateInput !== null)
+      ? UpdateTimelineTemplateInput_UpdateInput.fromPartial(object.updateInput)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseUpdateTimelineTemplateInput_UpdateInput(): UpdateTimelineTemplateInput_UpdateInput {
+  return { name: "", description: undefined, isActive: false, phases: [] };
+}
+
+export const UpdateTimelineTemplateInput_UpdateInput = {
+  encode(message: UpdateTimelineTemplateInput_UpdateInput, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
     }
@@ -346,16 +438,13 @@ export const UpdateTimelineTemplateInput = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateTimelineTemplateInput {
+  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateTimelineTemplateInput_UpdateInput {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseUpdateTimelineTemplateInput();
+    const message = createBaseUpdateTimelineTemplateInput_UpdateInput();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
-          message.id = reader.string();
-          break;
         case 2:
           message.name = reader.string();
           break;
@@ -376,9 +465,8 @@ export const UpdateTimelineTemplateInput = {
     return message;
   },
 
-  fromJSON(object: any): UpdateTimelineTemplateInput {
+  fromJSON(object: any): UpdateTimelineTemplateInput_UpdateInput {
     return {
-      id: isSet(object.id) ? String(object.id) : "",
       name: isSet(object.name) ? String(object.name) : "",
       description: isSet(object.description) ? String(object.description) : undefined,
       isActive: isSet(object.isActive) ? Boolean(object.isActive) : false,
@@ -386,9 +474,8 @@ export const UpdateTimelineTemplateInput = {
     };
   },
 
-  toJSON(message: UpdateTimelineTemplateInput): unknown {
+  toJSON(message: UpdateTimelineTemplateInput_UpdateInput): unknown {
     const obj: any = {};
-    message.id !== undefined && (obj.id = message.id);
     message.name !== undefined && (obj.name = message.name);
     message.description !== undefined && (obj.description = message.description);
     message.isActive !== undefined && (obj.isActive = message.isActive);
@@ -400,9 +487,16 @@ export const UpdateTimelineTemplateInput = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<UpdateTimelineTemplateInput>, I>>(object: I): UpdateTimelineTemplateInput {
-    const message = createBaseUpdateTimelineTemplateInput();
-    message.id = object.id ?? "";
+  create<I extends Exact<DeepPartial<UpdateTimelineTemplateInput_UpdateInput>, I>>(
+    base?: I,
+  ): UpdateTimelineTemplateInput_UpdateInput {
+    return UpdateTimelineTemplateInput_UpdateInput.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<UpdateTimelineTemplateInput_UpdateInput>, I>>(
+    object: I,
+  ): UpdateTimelineTemplateInput_UpdateInput {
+    const message = createBaseUpdateTimelineTemplateInput_UpdateInput();
     message.name = object.name ?? "";
     message.description = object.description ?? undefined;
     message.isActive = object.isActive ?? false;

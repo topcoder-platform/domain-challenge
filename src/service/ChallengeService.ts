@@ -16,7 +16,6 @@ import {
   ChallengeService,
 } from "../models/domain-layer/challenge/services/challenge";
 
-import ChallengeDomain from "../domain/Challenge";
 import {
   CreateChallengeInput,
   Challenge,
@@ -24,6 +23,7 @@ import {
   UpdateChallengeInput,
 } from "../models/domain-layer/challenge/challenge";
 
+import Domain from "../domain/Challenge";
 class ChallengeServerImpl implements ChallengeServer {
   [name: string]: UntypedHandleCall;
 
@@ -31,7 +31,10 @@ class ChallengeServerImpl implements ChallengeServer {
     call: ServerUnaryCall<CreateChallengeInput, Challenge>,
     callback: sendUnaryData<Challenge>
   ): Promise<void> => {
-    // const { request: createChallengeInput } = call;
+    const { request: createChallengeInput } = call;
+    Domain.create(createChallengeInput)
+      .then((challenge) => callback(null, challenge))
+      .catch((error) => callback(error, null));
   };
 
   lookup: handleUnaryCall<LookupCriteria, Challenge> = async (
@@ -47,7 +50,7 @@ class ChallengeServerImpl implements ChallengeServer {
       request: { scanCriteria, nextToken: inputNextToken },
     } = call;
 
-    const { items, nextToken } = await ChallengeDomain.scan(
+    const { items, nextToken } = await Domain.scan(
       scanCriteria,
       inputNextToken
     );

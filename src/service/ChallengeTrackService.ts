@@ -1,4 +1,4 @@
-import { handleUnaryCall, sendUnaryData, ServerUnaryCall } from "@grpc/grpc-js";
+import { handleUnaryCall, sendUnaryData, ServerUnaryCall, StatusObject } from "@grpc/grpc-js";
 import {
   ScanRequest,
   ScanResult,
@@ -19,7 +19,7 @@ import {
 
 import Domain from "../domain/ChallengeTrack";
 
-class ChallengeTimelineTemplatServerImpl implements ChallengeTrackServer {
+class ChallengeTrackServerImpl implements ChallengeTrackServer {
   [name: string]: import("@grpc/grpc-js").UntypedHandleCall;
 
   scan: handleUnaryCall<ScanRequest, ScanResult> = async (
@@ -68,8 +68,20 @@ class ChallengeTimelineTemplatServerImpl implements ChallengeTrackServer {
       call: ServerUnaryCall<UpdateChallengeTrackInput, ChallengeTrackList>,
       callback: sendUnaryData<ChallengeTrackList>
     ): Promise<void> => {
-      // TODO: Handle update
-      callback(new Error("Not implemented"), null);
+      const {
+        request: { updateInput, filterCriteria },
+      } = call;
+  
+      Domain.update(filterCriteria, updateInput)
+        .then((challengeTrackList) => {
+          callback(
+            null,
+            ChallengeTrackList.fromJSON(challengeTrackList)
+          );
+        })
+        .catch((error: StatusObject) => {
+          callback(error, null);
+        });
     };
 
   delete: handleUnaryCall<LookupCriteria, ChallengeTrackList> = async (
@@ -85,6 +97,6 @@ class ChallengeTimelineTemplatServerImpl implements ChallengeTrackServer {
 }
 
 export {
-  ChallengeTimelineTemplatServerImpl as ChallengeTrackServer,
+  ChallengeTrackServerImpl as ChallengeTrackServer,
   ChallengeTrackService,
 };

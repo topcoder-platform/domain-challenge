@@ -26,6 +26,7 @@ const protoConfig = [
   `--ts_proto_opt=oneof=unions`,
   `--ts_proto_opt=addGrpcMetadata=true`,
   `--ts_proto_opt=outputClientImpl=false`,
+  `--ts_proto_opt=useDate=string`,
   `--include_imports`,
   `--descriptor_set_out ${PROTO_REFLECTIONS}`,
   `--proto_path ${PROTO_DIR} ${PROTO_DIR}/common/*.proto`,

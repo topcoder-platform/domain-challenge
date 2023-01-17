@@ -15,7 +15,6 @@ import {
   CreateChallengeTimelineTemplateInput,
   UpdateChallengeTimelineTemplateInput,
   ChallengeTimelineTemplateList,
-  UpdateChallengeTimelineTemplateInput_UpdateInput,
 } from "../models/domain-layer/challenge/challenge_timeline_template";
 
 import {

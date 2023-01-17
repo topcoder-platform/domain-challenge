@@ -9,8 +9,8 @@ import _m0 from "protobufjs/minimal";
  */
 export enum NullValue {
   /** NULL_VALUE - Null value. */
-  NULL_VALUE = 0,
-  UNRECOGNIZED = -1,
+  NULL_VALUE = "NULL_VALUE",
+  UNRECOGNIZED = "UNRECOGNIZED",
 }
 
 export function nullValueFromJSON(object: any): NullValue {
@@ -32,6 +32,16 @@ export function nullValueToJSON(object: NullValue): string {
     case NullValue.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
+  }
+}
+
+export function nullValueToNumber(object: NullValue): number {
+  switch (object) {
+    case NullValue.NULL_VALUE:
+      return 0;
+    case NullValue.UNRECOGNIZED:
+    default:
+      return -1;
   }
 }
 
@@ -140,6 +150,10 @@ export const Struct = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<Struct>, I>>(base?: I): Struct {
+    return Struct.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<Struct>, I>>(object: I): Struct {
     const message = createBaseStruct();
     message.fields = Object.entries(object.fields ?? {}).reduce<{ [key: string]: any }>((acc, [key, value]) => {
@@ -217,6 +231,10 @@ export const Struct_FieldsEntry = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<Struct_FieldsEntry>, I>>(base?: I): Struct_FieldsEntry {
+    return Struct_FieldsEntry.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<Struct_FieldsEntry>, I>>(object: I): Struct_FieldsEntry {
     const message = createBaseStruct_FieldsEntry();
     message.key = object.key ?? "";
@@ -232,7 +250,7 @@ function createBaseValue(): Value {
 export const Value = {
   encode(message: Value, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.kind?.$case === "nullValue") {
-      writer.uint32(8).int32(message.kind.nullValue);
+      writer.uint32(8).int32(nullValueToNumber(message.kind.nullValue));
     }
     if (message.kind?.$case === "numberValue") {
       writer.uint32(17).double(message.kind.numberValue);
@@ -260,7 +278,7 @@ export const Value = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.kind = { $case: "nullValue", nullValue: reader.int32() as any };
+          message.kind = { $case: "nullValue", nullValue: nullValueFromJSON(reader.int32()) };
           break;
         case 2:
           message.kind = { $case: "numberValue", numberValue: reader.double() };
@@ -313,6 +331,10 @@ export const Value = {
     message.kind?.$case === "structValue" && (obj.structValue = message.kind?.structValue);
     message.kind?.$case === "listValue" && (obj.listValue = message.kind?.listValue);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Value>, I>>(base?: I): Value {
+    return Value.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<Value>, I>>(object: I): Value {
@@ -433,6 +455,10 @@ export const ListValue = {
       obj.values = [];
     }
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ListValue>, I>>(base?: I): ListValue {
+    return ListValue.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<ListValue>, I>>(object: I): ListValue {

@@ -107,6 +107,10 @@ export const ChallengeTimelineTemplate = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<ChallengeTimelineTemplate>, I>>(base?: I): ChallengeTimelineTemplate {
+    return ChallengeTimelineTemplate.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<ChallengeTimelineTemplate>, I>>(object: I): ChallengeTimelineTemplate {
     const message = createBaseChallengeTimelineTemplate();
     message.id = object.id ?? "";
@@ -162,6 +166,10 @@ export const ChallengeTimelineTemplateList = {
       obj.items = [];
     }
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ChallengeTimelineTemplateList>, I>>(base?: I): ChallengeTimelineTemplateList {
+    return ChallengeTimelineTemplateList.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<ChallengeTimelineTemplateList>, I>>(
@@ -239,6 +247,12 @@ export const CreateChallengeTimelineTemplateInput = {
     return obj;
   },
 
+  create<I extends Exact<DeepPartial<CreateChallengeTimelineTemplateInput>, I>>(
+    base?: I,
+  ): CreateChallengeTimelineTemplateInput {
+    return CreateChallengeTimelineTemplateInput.fromPartial(base ?? {});
+  },
+
   fromPartial<I extends Exact<DeepPartial<CreateChallengeTimelineTemplateInput>, I>>(
     object: I,
   ): CreateChallengeTimelineTemplateInput {
@@ -309,6 +323,12 @@ export const UpdateChallengeTimelineTemplateInput = {
       ? UpdateChallengeTimelineTemplateInput_UpdateInput.toJSON(message.updateInput)
       : undefined);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateChallengeTimelineTemplateInput>, I>>(
+    base?: I,
+  ): UpdateChallengeTimelineTemplateInput {
+    return UpdateChallengeTimelineTemplateInput.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<UpdateChallengeTimelineTemplateInput>, I>>(
@@ -390,6 +410,12 @@ export const UpdateChallengeTimelineTemplateInput_UpdateInput = {
     message.timelineTemplateId !== undefined && (obj.timelineTemplateId = message.timelineTemplateId);
     message.isDefault !== undefined && (obj.isDefault = message.isDefault);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateChallengeTimelineTemplateInput_UpdateInput>, I>>(
+    base?: I,
+  ): UpdateChallengeTimelineTemplateInput_UpdateInput {
+    return UpdateChallengeTimelineTemplateInput_UpdateInput.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<UpdateChallengeTimelineTemplateInput_UpdateInput>, I>>(

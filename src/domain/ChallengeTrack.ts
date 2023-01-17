@@ -8,7 +8,10 @@ import IdGenerator from "../helpers/IdGenerator";
 
 import { ChallengeTrackSchema } from "../schema/ChallengeTrackSchema";
 
-class ChallengeTrackDomain extends CoreOperations<ChallengeTrack> {
+class ChallengeTrackDomain extends CoreOperations<
+  ChallengeTrack,
+  CreateChallengeTrackInput
+> {
   protected toEntity(item: { [key: string]: Value }): ChallengeTrack {
     return ChallengeTrack.fromJSON(item);
   }

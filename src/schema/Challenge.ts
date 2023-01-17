@@ -11,6 +11,10 @@ export const ChallengeSchema = {
       name: "phases",
       type: DataType.DATA_TYPE_STRING,
     },
+    {
+      name: "phases",
+      type: DataType.DATA_TYPE_STRING_SET,
+    },
   ],
   indices: {},
 };

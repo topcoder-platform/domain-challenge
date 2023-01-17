@@ -45,7 +45,10 @@ export type DynamoTableIndex = {
   };
 };
 
-abstract class CoreOperations<T extends { [key: string]: any }> {
+abstract class CoreOperations<
+  T extends { [key: string]: any },
+  I extends { [key: string]: any }
+> {
   public constructor(
     private entityName: string,
     private entityAttributes: Attribute[],
@@ -148,11 +151,11 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
 
     return {
       nextToken: response?.nextToken,
-      items: response?.items!,
+      items: response?.items.map((item) => this.toEntity(item)) ?? [],
     };
   }
 
-  public async create(entity: T): Promise<T> {
+  protected async create(entity: I & T): Promise<T> {
     const queryRequest: QueryRequest = {
       kind: {
         $case: "query",
@@ -174,7 +177,7 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
       throw new Error(queryResponse.kind?.error?.message);
     }
 
-    return entity;
+    return this.toEntity(entity);
   }
 
   public async update(
@@ -423,6 +426,11 @@ abstract class CoreOperations<T extends { [key: string]: any }> {
     }
 
     throw new Error(`Unsupported data type: ${dataType}`);
+  }
+
+  // TODO: Use defined schema to do the conversion
+  protected toInsertAttributes(model: T): any {
+    return model;
   }
 
   protected abstract toEntity(response: { [key: string]: PartiQLValue }): T;
