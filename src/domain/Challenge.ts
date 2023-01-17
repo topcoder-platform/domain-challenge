@@ -9,19 +9,22 @@ import CoreOperations from "../common/CoreOperations";
 import xss from "xss";
 import IdGenerator from "../helpers/IdGenerator";
 
+import v4Api from "../api/v4Api";
+import m2m from "../helpers/MachineToMachineToken";
+
 class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   protected toEntity(item: { [key: string]: Value }): Challenge {
     return Challenge.fromJSON(item);
   }
 
-  public create(input: CreateChallengeInput): Promise<Challenge> {
+  public async create(input: CreateChallengeInput): Promise<Challenge> {
     input.name = xss(input.name);
     input.description = xss(input.description);
 
     if (Array.isArray(input.discussions)) {
       for (const discussion of input.discussions) {
-        (discussion.id = IdGenerator.generateUUID()),
-          (discussion.name = xss(discussion.name.substring(0, 100)));
+        discussion.id = IdGenerator.generateUUID();
+        discussion.name = xss(discussion.name.substring(0, 100));
       }
     }
 
@@ -36,10 +39,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         }
       }
     }
-
     const now = new Date().getTime();
+    const token = await m2m.getM2MToken();
 
-    const challenge = {
+    const { legacyId, track, subTrack, forumId } =
+      await v4Api.createLegacyChallenge(input, token);
+
+    const challenge: Challenge = {
       id: IdGenerator.generateUUID(),
       created: now,
       createdBy: "tcwebservice", // TODO: extract from JWT
@@ -50,9 +56,17 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         totalPrizes: placementPrizes,
       },
       ...input,
+      legacyId,
+      legacy: {
+        ...input.legacy,
+        track,
+        subTrack,
+        forumId,
+        directProjectId: input.legacy!.directProjectId,
+        reviewType: input.legacy!.reviewType,
+        confidentialityType: input.legacy!.confidentialityType,
+      },
     };
-
-    console.log("CHALLENGE", challenge);
 
     return super.create(challenge);
   }
