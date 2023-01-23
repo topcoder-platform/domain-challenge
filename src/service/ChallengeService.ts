@@ -40,7 +40,13 @@ class ChallengeServerImpl implements ChallengeServer {
   lookup: handleUnaryCall<LookupCriteria, Challenge> = async (
     call: ServerUnaryCall<LookupCriteria, Challenge>,
     callback: sendUnaryData<Challenge>
-  ): Promise<void> => {};
+  ): Promise<void> => {
+    const { request: lookupCriteria } = call;
+
+    const challenge = await Domain.lookup(lookupCriteria);
+
+    callback(null, challenge);
+  };
 
   scan: handleUnaryCall<ScanRequest, ScanResult> = async (
     call: ServerUnaryCall<ScanRequest, ScanResult>,

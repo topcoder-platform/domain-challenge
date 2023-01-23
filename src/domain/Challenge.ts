@@ -14,6 +14,13 @@ import m2m from "../helpers/MachineToMachineToken";
 
 class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   protected toEntity(item: { [key: string]: Value }): Challenge {
+    for (const key of ['phases', 'terms', 'tags', 'metadata', 'events', 'prizeSets']) {
+      try {
+        item[key] = JSON.parse(item[key].toString());
+      } catch (e) {
+        // do nothing
+      }
+    }
     return Challenge.fromJSON(item);
   }
 
