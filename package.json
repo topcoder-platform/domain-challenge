@@ -28,6 +28,7 @@
     "lodash": "^4.17.21",
     "source-map-support": "^0.5.21",
     "topcoder-interface": "github:topcoder-platform/plat-interface-definition#v0.0.9",
+    "@topcoder-framework/domain-acl": "^0.4.21-ci.0",
     "tc-core-library-js": "appirio-tech/tc-core-library-js.git#v2.6.4",
     "uuidv4": "^6.2.13",
     "xss": "^1.0.14"

@@ -770,6 +770,14 @@
     "@grpc/proto-loader" "^0.7.0"
     "@types/node" ">=12.12.47"
 
+"@grpc/grpc-js@^1.8.0":
+  version "1.8.4"
+  resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.8.4.tgz#316674e8905e2dd310d8aa60331e05b32584e6ad"
+  integrity sha512-oaETBotls7FTBpySg5dhyUCyXSxSeCMmkBBXHXG1iw57MiNoB6D7VRhkrXYbwyHM3Q3Afjp4KlsBX0Zb+ELZXw==
+  dependencies:
+    "@grpc/proto-loader" "^0.7.0"
+    "@types/node" ">=12.12.47"
+
 "@grpc/proto-loader@^0.7.0":
   version "0.7.4"
   resolved "https://registry.npmjs.org/@grpc/proto-loader/-/proto-loader-0.7.4.tgz"
@@ -856,6 +864,26 @@
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
   integrity sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==
+
+"@topcoder-framework/domain-acl@^0.4.21-ci.0":
+  version "0.4.21-ci.0"
+  resolved "http://localhost:4873/@topcoder-framework%2fdomain-acl/-/domain-acl-0.4.21-ci.0.tgz#819e0cbfc66231929b2c74ff07280f5b71533b5c"
+  integrity sha512-gqyDJSTPi12Gr51oNj1WhQLatzY3xowOUvrMBECEOypWhH3FG3aNaMyZkr/eonOjRG11AqigRnt5sXuxKYdHKw==
+  dependencies:
+    "@grpc/grpc-js" "^1.8.0"
+    "@topcoder-framework/lib-common" "0.4.21-ci.0"
+    topcoder-interface "github:topcoder-platform/plat-interface-definition#v0.0.10"
+    tslib "^2.4.1"
+
+"@topcoder-framework/lib-common@0.4.21-ci.0":
+  version "0.4.21-ci.0"
+  resolved "http://localhost:4873/@topcoder-framework%2flib-common/-/lib-common-0.4.21-ci.0.tgz#4a402815f4fccc380ce79c5980efc712649daf82"
+  integrity sha512-BreCcLPL1sqlJiyESjIPVLGznPQBv294hEQBXfxb3a+Vr4JmD7gHkJyo8UM6fvKkHEXnaznXKIfSXJ8v0D0cew==
+  dependencies:
+    "@grpc/grpc-js" "^1.8.0"
+    rimraf "^3.0.2"
+    topcoder-interface "github:topcoder-platform/plat-interface-definition#v0.0.10"
+    tslib "^2.4.1"
 
 "@tsconfig/node10@^1.0.7":
   version "1.0.9"
@@ -2036,6 +2064,13 @@ rimraf@^2.6.1:
   dependencies:
     glob "^7.1.3"
 
+rimraf@^3.0.2:
+  version "3.0.2"
+  resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-3.0.2.tgz#f1a5402ba6220ad52cc1282bac1ae3aa49fd061a"
+  integrity sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==
+  dependencies:
+    glob "^7.1.3"
+
 rimraf@~2.4.0:
   version "2.4.5"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.4.5.tgz#ee710ce5d93a8fdb856fb5ea8ff0e2d75934b2da"
@@ -2157,6 +2192,10 @@ to-regex-range@^5.0.1:
   dependencies:
     is-number "^7.0.0"
 
+"topcoder-interface@github:topcoder-platform/plat-interface-definition#v0.0.10":
+  version "1.0.0"
+  resolved "https://codeload.github.com/topcoder-platform/plat-interface-definition/tar.gz/83db3ad5ac053393f8d9aa975dfe067fd8942add"
+
 "topcoder-interface@github:topcoder-platform/plat-interface-definition#v0.0.9":
   version "1.0.0"
   resolved "https://codeload.github.com/topcoder-platform/plat-interface-definition/tar.gz/ae96fdce7b4bbf811504edf12d6da23abd8dfe52"
@@ -2252,7 +2291,7 @@ tslib@^1.11.1:
   resolved "https://registry.npmjs.org/tslib/-/tslib-1.14.1.tgz"
   integrity sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==
 
-tslib@^2.3.1:
+tslib@^2.3.1, tslib@^2.4.1:
   version "2.4.1"
   resolved "https://registry.npmjs.org/tslib/-/tslib-2.4.1.tgz"
   integrity sha512-tGyy4dAjRIEwI7BzsB0lynWgOpfqjUdq91XXAlIWD2OwKBH7oCl/GZG/HT4BOHrTlPMOASlMQ7veyTqpmRcrNA==
