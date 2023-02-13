@@ -1,8 +1,14 @@
 const {
+  V5_TERMS_API_URL,
   V5_RESOURCES_API_URL,
   COPILOT_ROLE_ID,
   COPILOT_PAYMENT_TYPE,
   V5_GROUPS_API_URL,
+  V5_TERMS_NDA_ID,
+  LEGACY_TERMS_NDA_ID,
+  LEGACY_TERMS_STANDARD_ID,
+  LEGACY_SUBMITTER_ROLE_ID,
+  V5_TERMS_STANDARD_ID
 } = process.env;
 import { Value } from "../dal/models/nosql/parti_ql";
 import { ChallengeSchema } from "../schema/Challenge";
@@ -28,6 +34,7 @@ import {
   ReviewDomain as LegacyReviewDomain,
   PhaseDomain as LegacyPhaseDomain,
   GroupContestEligibilityDomain as LegacyGroupContestEligibilityDomain,
+  TermDomain as LegacyTermDomain,
 } from "@topcoder-framework/domain-acl";
 import constants from "../util/constants";
 import _ from "lodash";
@@ -75,7 +82,11 @@ const legacyGroupContestEligibilityDomain =
     process.env.GRPC_ACL_SERVER_HOST,
     process.env.GRPC_ACL_SERVER_PORT
   );
-
+const legacyTermDomain =
+  new LegacyTermDomain(
+    process.env.GRPC_ACL_SERVER_HOST,
+    process.env.GRPC_ACL_SERVER_PORT
+  );
 interface GetGroupsResult {
   groupsToBeAdded: any[];
   groupsToBeDeleted: any[];
@@ -455,25 +466,25 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     }
   }
 
-  async associateChallengeTerms(v5Terms, legacyChallengeId) {
+  async associateChallengeTerms(v5Terms:any[], legacyChallengeId:number) {
     // console.log(`v5Terms Terms Array: ${JSON.stringify(v5Terms)}`)
-    const legacyTermsArray = await termsService.getTermsForChallenge(
-      legacyChallengeId
-    );
+    const {terms:legacyTermsArray} = await legacyTermDomain.GetProjectRoleTermsOfUseXrefs({
+      projectId: legacyChallengeId
+    });
     // console.log(`Legacy Terms Array: ${JSON.stringify(legacyTermsArray)}`)
-    const nda = _.find(v5Terms, (e) => e.id === config.V5_TERMS_NDA_ID);
+    const nda = _.find(v5Terms, (e) => e.id === V5_TERMS_NDA_ID);
     const legacyNDA = _.find(
       legacyTermsArray,
-      (e) => _.toNumber(e.id) === _.toNumber(config.LEGACY_TERMS_NDA_ID)
+      (e) => _.toNumber(e.id) === _.toNumber(LEGACY_TERMS_NDA_ID)
     );
 
     const standardTerms = _.find(
       v5Terms,
-      (e) => e.id === config.V5_TERMS_STANDARD_ID
+      (e) => e.id === V5_TERMS_STANDARD_ID
     );
     const legacyStandardTerms = _.find(
       legacyTermsArray,
-      (e) => _.toNumber(e.id) === _.toNumber(config.LEGACY_TERMS_STANDARD_ID)
+      (e) => _.toNumber(e.id) === _.toNumber(LEGACY_TERMS_STANDARD_ID)
     );
 
     // console.log(`NDA: ${config.V5_TERMS_NDA_ID} - ${JSON.stringify(nda)}`)
@@ -481,19 +492,18 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     // console.log(`Legacy NDA: ${JSON.stringify(legacyNDA)}`)
     // console.log(`Legacy Standard Terms: ${JSON.stringify(legacyStandardTerms)}`)
 
-    const m2mToken = await helper.getM2MToken();
+    const m2mToken = await m2m.getM2MToken();
     if (standardTerms && standardTerms.id && !legacyStandardTerms) {
       console.log(
         "Associate Challenge Terms - v5 Standard Terms exist, not in legacy. Adding to Legacy."
       );
-      const v5StandardTerm = await getV5Terms(standardTerms.id, m2mToken);
-      await termsService.addTermsToChallenge(
-        legacyChallengeId,
-        v5StandardTerm.legacyId,
-        config.LEGACY_SUBMITTER_ROLE_ID,
-        createdBy,
-        updatedBy
-      );
+      const v5StandardTerm = await v5Api.getRequest(`${V5_TERMS_API_URL}/${standardTerms.id}`, m2mToken);
+      await legacyTermDomain.createProjectRoleTermsOfUseXref({
+        projectId: legacyChallengeId,
+        resourceRoleId: LEGACY_SUBMITTER_ROLE_ID,
+        termsOfUseId: v5StandardTerm.legacyId,
+
+      })
     } else if (
       !standardTerms &&
       legacyStandardTerms &&
@@ -502,36 +512,33 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       console.log(
         "Associate Challenge Terms - Legacy NDA exist, not in V5. Removing from Legacy."
       );
-      await termsService.removeTermsFromChallenge(
-        legacyChallengeId,
-        legacyStandardTerms.id,
-        config.LEGACY_SUBMITTER_ROLE_ID
-      );
+      await legacyTermDomain.deleteProjectRoleTermsOfUseXref({
+        projectId: legacyChallengeId,
+        resourceRoleId: LEGACY_SUBMITTER_ROLE_ID,
+        termsOfUseId: legacyStandardTerms.id,
+      })
     }
 
     if (nda && nda.id && !legacyNDA) {
       console.log(
         "Associate Challenge Terms - v5 NDA exist, not in legacy. Adding to Legacy."
       );
-      const v5NDATerm = await getV5Terms(nda.id, m2mToken);
-      await termsService.addTermsToChallenge(
-        legacyChallengeId,
-        v5NDATerm.legacyId,
-        config.LEGACY_SUBMITTER_ROLE_ID,
-        createdBy,
-        updatedBy,
-        true
-      );
+      const v5NDATerm = await v5Api.getRequest(`${V5_TERMS_API_URL}/${nda.id}`, m2mToken);
+      await legacyTermDomain.createProjectRoleTermsOfUseXref({
+        projectId: legacyChallengeId,
+        resourceRoleId: LEGACY_SUBMITTER_ROLE_ID,
+        termsOfUseId: v5NDATerm.legacyId,
+
+      })
     } else if (!nda && legacyNDA && legacyNDA.id) {
       console.log(
         "Associate Challenge Terms - Legacy NDA exist, not in V5. Removing from Legacy."
       );
-      await termsService.removeTermsFromChallenge(
-        legacyChallengeId,
-        legacyNDA.id,
-        config.LEGACY_SUBMITTER_ROLE_ID,
-        true
-      );
+      await legacyTermDomain.deleteProjectRoleTermsOfUseXref({
+        projectId: legacyChallengeId,
+        resourceRoleId: LEGACY_SUBMITTER_ROLE_ID,
+        termsOfUseId: legacyNDA.id,
+      })
     }
 
     // console.log('Associate Challenge Terms - Nothing to Do')
