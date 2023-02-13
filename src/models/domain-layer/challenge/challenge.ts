@@ -99,6 +99,7 @@ export interface Challenge_Phase {
 export interface Challenge_Winner {
   handle: string;
   placement: number;
+  userId: number;
 }
 
 export interface Challenge_Task {
@@ -1200,7 +1201,7 @@ export const Challenge_Phase = {
 };
 
 function createBaseChallenge_Winner(): Challenge_Winner {
-  return { handle: "", placement: 0 };
+  return { handle: "", placement: 0, userId: 0 };
 }
 
 export const Challenge_Winner = {
@@ -1210,6 +1211,9 @@ export const Challenge_Winner = {
     }
     if (message.placement !== 0) {
       writer.uint32(16).int32(message.placement);
+    }
+    if (message.userId !== 0) {
+      writer.uint32(24).int32(message.userId);
     }
     return writer;
   },
@@ -1227,6 +1231,9 @@ export const Challenge_Winner = {
         case 2:
           message.placement = reader.int32();
           break;
+        case 3:
+          message.userId = reader.int32();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -1239,6 +1246,7 @@ export const Challenge_Winner = {
     return {
       handle: isSet(object.handle) ? String(object.handle) : "",
       placement: isSet(object.placement) ? Number(object.placement) : 0,
+      userId: isSet(object.userId) ? Number(object.userId) : 0,
     };
   },
 
@@ -1246,6 +1254,7 @@ export const Challenge_Winner = {
     const obj: any = {};
     message.handle !== undefined && (obj.handle = message.handle);
     message.placement !== undefined && (obj.placement = Math.round(message.placement));
+    message.userId !== undefined && (obj.userId = Math.round(message.userId));
     return obj;
   },
 
@@ -1257,6 +1266,7 @@ export const Challenge_Winner = {
     const message = createBaseChallenge_Winner();
     message.handle = object.handle ?? "";
     message.placement = object.placement ?? 0;
+    message.userId = object.userId ?? 0;
     return message;
   },
 };

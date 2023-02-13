@@ -780,32 +780,34 @@ function createBaseValue(): Value {
 
 export const Value = {
   encode(message: Value, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.kind?.$case === "boolean") {
-      writer.uint32(8).bool(message.kind.boolean);
-    }
-    if (message.kind?.$case === "binary") {
-      writer.uint32(18).bytes(message.kind.binary);
-    }
-    if (message.kind?.$case === "listValue") {
-      ListValue.encode(ListValue.wrap(message.kind.listValue), writer.uint32(26).fork()).ldelim();
-    }
-    if (message.kind?.$case === "mapValue") {
-      Struct.encode(Struct.wrap(message.kind.mapValue), writer.uint32(34).fork()).ldelim();
-    }
-    if (message.kind?.$case === "nullValue") {
-      writer.uint32(40).int32(nullValueToNumber(message.kind.nullValue));
-    }
-    if (message.kind?.$case === "numberValue") {
-      writer.uint32(49).double(message.kind.numberValue);
-    }
-    if (message.kind?.$case === "numberSetValue") {
-      NumberSet.encode(message.kind.numberSetValue, writer.uint32(58).fork()).ldelim();
-    }
-    if (message.kind?.$case === "stringValue") {
-      writer.uint32(66).string(message.kind.stringValue);
-    }
-    if (message.kind?.$case === "stringSetValue") {
-      StringSet.encode(message.kind.stringSetValue, writer.uint32(74).fork()).ldelim();
+    switch (message.kind?.$case) {
+      case "boolean":
+        writer.uint32(8).bool(message.kind.boolean);
+        break;
+      case "binary":
+        writer.uint32(18).bytes(message.kind.binary);
+        break;
+      case "listValue":
+        ListValue.encode(ListValue.wrap(message.kind.listValue), writer.uint32(26).fork()).ldelim();
+        break;
+      case "mapValue":
+        Struct.encode(Struct.wrap(message.kind.mapValue), writer.uint32(34).fork()).ldelim();
+        break;
+      case "nullValue":
+        writer.uint32(40).int32(nullValueToNumber(message.kind.nullValue));
+        break;
+      case "numberValue":
+        writer.uint32(49).double(message.kind.numberValue);
+        break;
+      case "numberSetValue":
+        NumberSet.encode(message.kind.numberSetValue, writer.uint32(58).fork()).ldelim();
+        break;
+      case "stringValue":
+        writer.uint32(66).string(message.kind.stringValue);
+        break;
+      case "stringSetValue":
+        StringSet.encode(message.kind.stringSetValue, writer.uint32(74).fork()).ldelim();
+        break;
     }
     return writer;
   },
@@ -1550,14 +1552,16 @@ function createBaseWriteQuery(): WriteQuery {
 
 export const WriteQuery = {
   encode(message: WriteQuery, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.kind?.$case === "insert") {
-      InsertQuery.encode(message.kind.insert, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.kind?.$case === "update") {
-      UpdateQuery.encode(message.kind.update, writer.uint32(18).fork()).ldelim();
-    }
-    if (message.kind?.$case === "delete") {
-      DeleteQuery.encode(message.kind.delete, writer.uint32(26).fork()).ldelim();
+    switch (message.kind?.$case) {
+      case "insert":
+        InsertQuery.encode(message.kind.insert, writer.uint32(10).fork()).ldelim();
+        break;
+      case "update":
+        UpdateQuery.encode(message.kind.update, writer.uint32(18).fork()).ldelim();
+        break;
+      case "delete":
+        DeleteQuery.encode(message.kind.delete, writer.uint32(26).fork()).ldelim();
+        break;
     }
     return writer;
   },
@@ -1689,11 +1693,13 @@ function createBaseBulkQuery(): BulkQuery {
 
 export const BulkQuery = {
   encode(message: BulkQuery, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.kind?.$case === "read") {
-      ReadQuery.encode(message.kind.read, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.kind?.$case === "bulkWriteQueries") {
-      WriteQuery.encode(message.kind.bulkWriteQueries, writer.uint32(18).fork()).ldelim();
+    switch (message.kind?.$case) {
+      case "read":
+        ReadQuery.encode(message.kind.read, writer.uint32(10).fork()).ldelim();
+        break;
+      case "bulkWriteQueries":
+        WriteQuery.encode(message.kind.bulkWriteQueries, writer.uint32(18).fork()).ldelim();
+        break;
     }
     return writer;
   },
@@ -1768,17 +1774,19 @@ function createBaseQuery(): Query {
 
 export const Query = {
   encode(message: Query, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.kind?.$case === "select") {
-      SelectQuery.encode(message.kind.select, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.kind?.$case === "insert") {
-      InsertQuery.encode(message.kind.insert, writer.uint32(18).fork()).ldelim();
-    }
-    if (message.kind?.$case === "update") {
-      UpdateQuery.encode(message.kind.update, writer.uint32(26).fork()).ldelim();
-    }
-    if (message.kind?.$case === "delete") {
-      DeleteQuery.encode(message.kind.delete, writer.uint32(34).fork()).ldelim();
+    switch (message.kind?.$case) {
+      case "select":
+        SelectQuery.encode(message.kind.select, writer.uint32(10).fork()).ldelim();
+        break;
+      case "insert":
+        InsertQuery.encode(message.kind.insert, writer.uint32(18).fork()).ldelim();
+        break;
+      case "update":
+        UpdateQuery.encode(message.kind.update, writer.uint32(26).fork()).ldelim();
+        break;
+      case "delete":
+        DeleteQuery.encode(message.kind.delete, writer.uint32(34).fork()).ldelim();
+        break;
     }
     return writer;
   },
@@ -1931,11 +1939,13 @@ function createBaseQueryRequest(): QueryRequest {
 
 export const QueryRequest = {
   encode(message: QueryRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.kind?.$case === "query") {
-      Query.encode(message.kind.query, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.kind?.$case === "queries") {
-      BulkQuery.encode(message.kind.queries, writer.uint32(18).fork()).ldelim();
+    switch (message.kind?.$case) {
+      case "query":
+        Query.encode(message.kind.query, writer.uint32(10).fork()).ldelim();
+        break;
+      case "queries":
+        BulkQuery.encode(message.kind.queries, writer.uint32(18).fork()).ldelim();
+        break;
     }
     return writer;
   },
@@ -2053,11 +2063,13 @@ function createBaseQueryResponse(): QueryResponse {
 
 export const QueryResponse = {
   encode(message: QueryResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.kind?.$case === "response") {
-      Response.encode(message.kind.response, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.kind?.$case === "error") {
-      ResponseError.encode(message.kind.error, writer.uint32(18).fork()).ldelim();
+    switch (message.kind?.$case) {
+      case "response":
+        Response.encode(message.kind.response, writer.uint32(10).fork()).ldelim();
+        break;
+      case "error":
+        ResponseError.encode(message.kind.error, writer.uint32(18).fork()).ldelim();
+        break;
     }
     return writer;
   },
