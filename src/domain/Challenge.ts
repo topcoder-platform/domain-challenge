@@ -157,7 +157,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   async syncChallengePhases(
     legacyId: number,
     v5Phases: any[],
-    createdBy,
     isSelfService: boolean,
     numOfReviewers: number,
     isBeingActivated: boolean
@@ -995,8 +994,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         await this.syncChallengePhases(
           legacyId,
           input.challenge.phases,
-          createdByUserId,
-          _.get(input, "legacy.selfService"),
+          _.get(input, "legacy.selfService", false),
           numOfReviewers,
           isBeingActivated
         );
