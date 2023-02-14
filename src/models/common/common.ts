@@ -216,6 +216,10 @@ export interface UpdateResult {
   message?: string | undefined;
 }
 
+export interface CheckExistsResult {
+  exists: boolean;
+}
+
 export interface LookupCriteria {
   key: string;
   value?: any;
@@ -560,6 +564,57 @@ export const UpdateResult = {
     const message = createBaseUpdateResult();
     message.updatedCount = object.updatedCount ?? 0;
     message.message = object.message ?? undefined;
+    return message;
+  },
+};
+
+function createBaseCheckExistsResult(): CheckExistsResult {
+  return { exists: false };
+}
+
+export const CheckExistsResult = {
+  encode(message: CheckExistsResult, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.exists === true) {
+      writer.uint32(8).bool(message.exists);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CheckExistsResult {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCheckExistsResult();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.exists = reader.bool();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CheckExistsResult {
+    return { exists: isSet(object.exists) ? Boolean(object.exists) : false };
+  },
+
+  toJSON(message: CheckExistsResult): unknown {
+    const obj: any = {};
+    message.exists !== undefined && (obj.exists = message.exists);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CheckExistsResult>, I>>(base?: I): CheckExistsResult {
+    return CheckExistsResult.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<CheckExistsResult>, I>>(object: I): CheckExistsResult {
+    const message = createBaseCheckExistsResult();
+    message.exists = object.exists ?? false;
     return message;
   },
 };

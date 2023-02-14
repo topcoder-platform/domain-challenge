@@ -847,13 +847,13 @@
   integrity sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==
 
 "@topcoder-framework/client-relational@^0.4.22-ci.0":
-  version "0.4.24-ci.0"
-  resolved "http://localhost:4873/@topcoder-framework%2fclient-relational/-/client-relational-0.4.24-ci.0.tgz#f7bf0689bf0cb8e9700ce378f7d7032926736e9c"
-  integrity sha512-7CQMo8p1qG/dxGcqKy/7E35PSkHKJT5BJ/iFDIpIbvgNyvRs+tb+JpwTKmcw5/chKjgdhcKa/5ldka8TvSOXQQ==
+  version "0.4.1-ci.0"
+  resolved "http://localhost:4873/@topcoder-framework%2fclient-relational/-/client-relational-0.4.1-ci.0.tgz#8d24d9e92b34eaddffc7291d723e02e3420b0518"
+  integrity sha512-p9m3QoQKj0w8PMkD8h2rNdhLAJjfeSFu3/lC2dgDhT2ncmthIofQZgIExeXfgoXE7RyFiKeb5pkhur3SAwxIFQ==
   dependencies:
     "@grpc/grpc-js" "^1.8.0"
-    "@topcoder-framework/lib-common" "0.4.23-ci.0"
-    topcoder-interface "github:topcoder-platform/plat-interface-definition#feat/challenge-acl-proto"
+    "@topcoder-framework/lib-common" "0.4.1-ci.0"
+    topcoder-interface "github:topcoder-platform/plat-interface-definition#v0.0.14"
     tslib "^2.4.1"
 
 "@topcoder-framework/domain-acl@^0.4.24-ci.0":
@@ -867,7 +867,17 @@
     topcoder-interface "github:topcoder-platform/plat-interface-definition#feat/challenge-acl-proto"
     tslib "^2.4.1"
 
-"@topcoder-framework/lib-common@0.4.23-ci.0", "@topcoder-framework/lib-common@0.4.24-ci.0":
+"@topcoder-framework/lib-common@0.4.1-ci.0":
+  version "0.4.1-ci.0"
+  resolved "http://localhost:4873/@topcoder-framework%2flib-common/-/lib-common-0.4.1-ci.0.tgz#b9f41e8514fcfef31cd12fbdcf78d4a6fbf5223a"
+  integrity sha512-W/Zf6lizs/SOT4g8bXUSqavEB/qJMAYQILe7msOFs/eBmFfD5gHawtwXRxaTuxPUgY2LeybHAnjOS39XtDgjWA==
+  dependencies:
+    "@grpc/grpc-js" "^1.8.0"
+    rimraf "^3.0.2"
+    topcoder-interface "github:topcoder-platform/plat-interface-definition#v0.0.14"
+    tslib "^2.4.1"
+
+"@topcoder-framework/lib-common@0.4.24-ci.0":
   version "0.4.24-ci.0"
   resolved "http://localhost:4873/@topcoder-framework%2flib-common/-/lib-common-0.4.24-ci.0.tgz#a60030fe42875a7da0b7143ea25b73036340fb24"
   integrity sha512-sZQtgN8Hn9M1BltwtwCkczEV0YI5hl6inYyPvfzh/axQ0XB0fp/RL+Rb2xqW+UKogizZNf7eCBzsnIldHSmrng==
@@ -1831,7 +1841,7 @@ mnemonist@0.38.3:
   dependencies:
     obliterator "^1.6.1"
 
-moment@^2.19.3:
+moment@^2.19.3, moment@^2.29.4:
   version "2.29.4"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.29.4.tgz#3dbe052889fe7c1b2ed966fcb3a77328964ef108"
   integrity sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==
@@ -2188,6 +2198,10 @@ to-regex-range@^5.0.1:
 "topcoder-interface@github:topcoder-platform/plat-interface-definition#feat/challenge-acl-proto":
   version "1.0.0"
   resolved "https://codeload.github.com/topcoder-platform/plat-interface-definition/tar.gz/29e0136e68602ba3371106e0be8352d2c61a1516"
+
+"topcoder-interface@github:topcoder-platform/plat-interface-definition#v0.0.14":
+  version "1.0.0"
+  resolved "https://codeload.github.com/topcoder-platform/plat-interface-definition/tar.gz/e654e805f0073b0a7de25e08f2aec0aa005bbb15"
 
 tough-cookie@~2.5.0:
   version "2.5.0"
