@@ -3,5 +3,9 @@ reflections/*
 dist/
 .env
 .DS_Store
+<<<<<<< HEAD
 .npmrc
 yarn-error.log
+=======
+.npmrc
+>>>>>>> feature/challenge-domain

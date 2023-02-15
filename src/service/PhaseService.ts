@@ -27,7 +27,7 @@ class PhaseServerImpl implements PhaseServer {
     callback: sendUnaryData<ScanResult>
   ): Promise<void> => {
     const {
-      request: { scanCriteria, nextToken: inputNextToken },
+      request: { criteria: scanCriteria, nextToken: inputNextToken },
     } = call;
 
     const { items, nextToken } = await Domain.scan(
