@@ -88,7 +88,7 @@ abstract class CoreOperations<
         },
       },
     };
-
+    
     const queryResponse: QueryResponse = await noSqlClient.query(queryRequest);
 
     switch (queryResponse.kind?.$case) {

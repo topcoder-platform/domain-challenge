@@ -27,11 +27,11 @@ class ChallengeTypeServerImpl implements ChallengeTypeServer {
     callback: sendUnaryData<ScanResult>
   ): Promise<void> => {
     const {
-      request: { scanCriteria, nextToken: inputNextToken },
+      request: { criteria, nextToken: inputNextToken },
     } = call;
 
     const { items, nextToken } = await Domain.scan(
-      scanCriteria,
+      criteria,
       inputNextToken
     );
 

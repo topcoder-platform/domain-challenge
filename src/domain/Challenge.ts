@@ -55,6 +55,7 @@ if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
     "Missing required configurations GRPC_ACL_SERVER_HOST and GRPC_ACL_SERVER_PORT"
   );
 }
+
 const legacyPrizeDomain = new LegacyPrizeDomain(
   process.env.GRPC_ACL_SERVER_HOST,
   process.env.GRPC_ACL_SERVER_PORT
@@ -176,7 +177,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     isSelfService: boolean,
     numOfReviewers: number,
     isBeingActivated: boolean
-  ) {
+  ) {    
     const { phaseTypes } = await legacyPhaseDomain.getPhaseTypes({});
     const { projectPhases: phasesFromIFx } =
       await legacyPhaseDomain.getProjectPhases({ projectId: legacyId });
@@ -424,7 +425,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       ]
     });
 
-    const [checkpointPrizesFromIfx] = checkpointPrizes;
+    const checkpointPrizesFromIfx = checkpointPrizes ? checkpointPrizes[0] : null;
     const v5Prizes = _.map(
       _.get(
         _.find(v5PrizeSets, (p) => p.type === PrizeSetTypes.ChallengePrizes),
@@ -833,10 +834,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     });
     for (const metadataKey of _.keys(constants.supportedMetadata)) {
       try {
-        metaValue = constants.supportedMetadata[metadataKey].method(
+        metaValue = _.toString(constants.supportedMetadata[metadataKey].method(
           input.challenge,
           constants.supportedMetadata[metadataKey].defaultValue
-        );
+        ));
         if (metaValue !== null && metaValue !== "") {
           if (
             !_.find(
@@ -850,7 +851,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
               value: metaValue,
               createUser: createdByUserId,
             });
-          } else {
+          } else {            
             await legacyProjectInfoDomain.update({
               projectId: legacyId,
               projectInfoTypeId: _.toInteger(metadataKey),
@@ -863,6 +864,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         console.log(
           `Failed to set ${constants.supportedMetadata[metadataKey].description} to ${metaValue} for challenge ${legacyId}`
         );
+        console.log(e);
       }
     }
 

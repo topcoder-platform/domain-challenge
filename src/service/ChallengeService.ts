@@ -53,11 +53,11 @@ class ChallengeServerImpl implements ChallengeServer {
     callback: sendUnaryData<ScanResult>
   ): Promise<void> => {
     const {
-      request: { scanCriteria, nextToken: inputNextToken },
+      request: { criteria, nextToken: inputNextToken },
     } = call;
 
     const { items, nextToken } = await Domain.scan(
-      scanCriteria,
+      criteria,
       inputNextToken
     );
 
@@ -67,7 +67,12 @@ class ChallengeServerImpl implements ChallengeServer {
   update: handleUnaryCall<UpdateChallengeInput, ChallengeList> = async (
     call: ServerUnaryCall<UpdateChallengeInput, ChallengeList>,
     callback: sendUnaryData<ChallengeList>
-  ): Promise<void> => {};
+  ): Promise<void> => {
+    if (!call.request.challenge) return callback(new Error('Invalid payload'))
+    await Domain.update([], { challenge: Challenge.fromPartial(call.request.challenge) })
+
+    callback(null);
+  };
 
   delete: handleUnaryCall<LookupCriteria, ChallengeList> = async (
     call: ServerUnaryCall<LookupCriteria, ChallengeList>,
