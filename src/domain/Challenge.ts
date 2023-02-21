@@ -10,45 +10,42 @@ const {
   LEGACY_SUBMITTER_ROLE_ID,
   V5_TERMS_STANDARD_ID,
 } = process.env;
-import { Value } from "../dal/models/nosql/parti_ql";
-import { ChallengeSchema } from "../schema/Challenge";
 import moment from "moment";
+import xss from "xss";
+import CoreOperations from "../common/CoreOperations";
+import { Value } from "../dal/models/nosql/parti_ql";
+import IdGenerator from "../helpers/IdGenerator";
 import {
   Challenge,
   ChallengeList,
   CreateChallengeInput,
   UpdateChallengeInput,
 } from "../models/domain-layer/challenge/challenge";
+import { ChallengeSchema } from "../schema/Challenge";
 
-import CoreOperations from "../common/CoreOperations";
-import xss from "xss";
-import IdGenerator from "../helpers/IdGenerator";
-
-import v4Api from "../api/v4Api";
-import m2m from "../helpers/MachineToMachineToken";
-import { CreateResult, Operator, ScanCriteria } from "../models/common/common";
 import {
   ChallengeDomain as LegacyChallengeDomain,
-  ProjectInfoDomain as LegacyProjectInfoDomain,
+  GroupContestEligibilityDomain as LegacyGroupContestEligibilityDomain,
   PaymentDomain as LegacyPaymentDomain,
+  PhaseDomain as LegacyPhaseDomain,
+  PrizeDomain as LegacyPrizeDomain,
+  ProjectInfoDomain as LegacyProjectInfoDomain,
   ResourceDomain as LegacyResourceDomain,
   ReviewDomain as LegacyReviewDomain,
-  PhaseDomain as LegacyPhaseDomain,
-  GroupContestEligibilityDomain as LegacyGroupContestEligibilityDomain,
   TermDomain as LegacyTermDomain,
-  PrizeDomain as LegacyPrizeDomain,
 } from "@topcoder-framework/domain-acl";
-import constants from "../util/constants";
 import _ from "lodash";
+import * as v5Api from "../api/v5Api";
 import {
   PaymentTypeIds,
-  PrizeSetTypes,
-  PrizeTypeIds,
   ProjectInfoIds,
   ProjectPaymentTypeIds,
   ResourceRoleTypes,
 } from "../common/Constants";
-import * as v5Api from "../api/v5Api";
+import m2m from "../helpers/MachineToMachineToken";
+import { ScanCriteria } from "../models/common/common";
+import constants from "../util/constants";
+import legacyMapper from "../util/LegacyMapper";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
   throw new Error(
@@ -138,11 +135,28 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         }
       }
     }
-    const now = new Date().getTime();
-    const token = await m2m.getM2MToken();
 
-    const { legacyId, track, subTrack, forumId } =
-      await v4Api.createLegacyChallenge(input, token);
+    const now = new Date().getTime();
+
+    // Begin Anti-Corruption Layer
+
+    const { track, subTrack, isTask, technologies } =
+      legacyMapper.mapTrackAndType(input.trackId, input.typeId, input.tags);
+
+    console.log("technologies:", technologies, "is not used in v4(??)");
+
+    input.legacy = {
+      ...input.legacy,
+      track,
+      subTrack,
+      pureV5Task: isTask,
+      forumId: 0,
+      directProjectId: input.legacy!.directProjectId,
+      reviewType: input.legacy!.reviewType,
+      confidentialityType: input.legacy!.confidentialityType,
+    };
+
+    // End Anti-Corruption Layer
 
     const challenge: Challenge = {
       id: IdGenerator.generateUUID(),
@@ -155,16 +169,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         totalPrizes: placementPrizes,
       },
       ...input,
-      legacyId,
-      legacy: {
-        ...input.legacy,
-        track,
-        subTrack,
-        forumId,
-        directProjectId: input.legacy!.directProjectId,
-        reviewType: input.legacy!.reviewType,
-        confidentialityType: input.legacy!.confidentialityType,
-      },
     };
 
     return super.create(challenge);

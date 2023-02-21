@@ -7,6 +7,12 @@ const V5_TRACK_IDS = {
   QA: "36e6a8d0-7e1e-4608-a673-64279d99c115",
 };
 
+const V5_TYPE_IDS = {
+  CHALLENGE: "927abff4-7af9-4145-8ba1-577c16e64e2e",
+  TASK: "ecd58c69-238f-43a4-a4bb-d172719b9f31",
+  FIRST_2_FINISH: "dc876fa4-ef2d-4eee-b701-b555fcc6544c",
+};
+
 export const V5_TRACK_NAMES_TO_IDS: { [key: string]: string } = {
   DESIGN: V5_TRACK_IDS.DESIGN,
   DEVELOPMENT: V5_TRACK_IDS.DEVELOPMENT,
@@ -19,12 +25,6 @@ const V5_TRACK_IDS_TO_NAMES = {
   [V5_TRACK_IDS.DESIGN]: "Design",
   [V5_TRACK_IDS.DEVELOPMENT]: "Development",
   [V5_TRACK_IDS.QA]: "Quality Assurance",
-};
-
-const V5_TYPE_IDS = {
-  CHALLENGE: "927abff4-7af9-4145-8ba1-577c16e64e2e",
-  TASK: "ecd58c69-238f-43a4-a4bb-d172719b9f31",
-  FIRST_2_FINISH: "dc876fa4-ef2d-4eee-b701-b555fcc6544c",
 };
 
 export const V5_TYPE_NAMES_TO_IDS: { [key: string]: string } = {

@@ -7,7 +7,7 @@ const EVENT_ORIGINATOR = "legacy-challenge-processor";
 
 const EVENT_MIME_TYPE = "application/json";
 
-const legacyChallengeStatusesMap = {
+export const legacyChallengeStatusesMap = {
   Active: 1,
   Draft: 2,
   New: 2,

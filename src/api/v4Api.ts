@@ -17,13 +17,14 @@ import { V5_TO_V4 } from "../common/ConversionMap";
 
 // TODO: Create RPC calls in anticorruption-layer
 class V4Api {
-  private getLegacyTrackInformation(
+  public getLegacyTrackInformation(
     trackId: string,
     typeId: string,
     tags: string[]
   ) {
     return V5_TO_V4[trackId][typeId](tags);
   }
+
   /**
    * Construct DTO from challenge:create payload.
    * @param {Object} payload the challenge:create payload
