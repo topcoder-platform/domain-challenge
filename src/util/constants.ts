@@ -158,7 +158,6 @@ const supportedMetadata: any = {
 }
 
 export default {
-  prizeSetTypes,
   EVENT_ORIGINATOR,
   EVENT_MIME_TYPE,
   legacyChallengeStatusesMap,
