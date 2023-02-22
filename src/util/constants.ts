@@ -157,6 +157,20 @@ const supportedMetadata: any = {
   }
 }
 
+const STUDIO_CATEGORY_TYPES = [
+  16, // Banners/Icons
+  17, // Web designs
+  18, // wireframes
+  20, // logo design
+  21, // print/presentation
+  30, // widget or mobile screen design
+  31, // front-end flash
+  32, // application front-end design
+  34, // studio other
+  22, // idea generation
+  40 // design f2f
+]
+
 export default {
   EVENT_ORIGINATOR,
   EVENT_MIME_TYPE,
@@ -165,5 +179,6 @@ export default {
   PhaseStatusTypes,
   prizeTypesIds,
   supportedMetadata,
-  scorecardQuestionMapping
+  scorecardQuestionMapping,
+  STUDIO_CATEGORY_TYPES
 }

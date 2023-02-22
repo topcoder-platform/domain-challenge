@@ -10,7 +10,7 @@ const {
   LEGACY_SUBMITTER_ROLE_ID,
   V5_TERMS_STANDARD_ID,
 } = process.env;
-import { Value } from "../dal/models/nosql/parti_ql";
+import { DataType, Value } from "../dal/models/nosql/parti_ql";
 import { ChallengeSchema } from "../schema/Challenge";
 import moment from "moment";
 import {
@@ -26,7 +26,7 @@ import IdGenerator from "../helpers/IdGenerator";
 
 import v4Api from "../api/v4Api";
 import m2m from "../helpers/MachineToMachineToken";
-import { CreateResult, Operator, ScanCriteria } from "../models/common/common";
+import { CreateResult, LookupCriteria, Operator, ScanCriteria } from "../models/common/common";
 import {
   ChallengeDomain as LegacyChallengeDomain,
   ProjectInfoDomain as LegacyProjectInfoDomain,
@@ -216,10 +216,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
                 phase.duration
               } to duration ${v5Equivalent.duration * 1000} milli`
             );
-            let newStatus = _.toInteger(phase.phase_status_id);
+            let newStatus = _.toInteger(phase.phaseStatusId);
             if (
               v5Equivalent.isOpen &&
-              _.toInteger(phase.phase_status_id) ===
+              _.toInteger(phase.phaseStatusId) ===
                 constants.PhaseStatusTypes.Closed
             ) {
               newStatus = constants.PhaseStatusTypes.Scheduled;
@@ -242,17 +242,29 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
                 `Challenge phase ${v5Equivalent.name} status is being set to: ${newStatus} on challenge activation.`
               );
             }
+            console.log({
+              projectPhaseId: phase.projectPhaseId,
+              phaseStatusId: newStatus,
+              fixedStartTime: moment(phase.fixedStartTime).format("yyyy-MM-DD HH:mm:ss")
+                ? moment(v5Equivalent.scheduledStartDate).format("yyyy-MM-DD HH:mm:ss")
+                : undefined,
+              scheduledStartTime: moment(v5Equivalent.scheduledStartDate).format("yyyy-MM-DD HH:mm:ss"),
+              scheduledEndTime: moment(v5Equivalent.scheduledEndDate).format("yyyy-MM-DD HH:mm:ss"),
+              duration: v5Equivalent.duration * 1000,
+              ...(isBeingActivated && newStatus == constants.PhaseStatusTypes.Open ? {actualStartTime:  moment().format("yyyy-MM-DD HH:mm:ss"),} : {})
+            });
+            
 
             await legacyPhaseDomain.updateProjectPhase({
               projectPhaseId: phase.projectPhaseId,
               phaseStatusId: newStatus,
-              fixedStartTime: phase.fixedStartTime
-                ? v5Equivalent.scheduledStartDate
-                : null,
-              scheduledStartTime: v5Equivalent.scheduledStartDate,
-              scheduledEndTime: v5Equivalent.scheduledEndDate,
+              fixedStartTime: moment(phase.fixedStartTime).format("yyyy-MM-DD HH:mm:ss")
+                ? moment(v5Equivalent.scheduledStartDate).format("yyyy-MM-DD HH:mm:ss")
+                : undefined,
+              scheduledStartTime: moment(v5Equivalent.scheduledStartDate).format("yyyy-MM-DD HH:mm:ss"),
+              scheduledEndTime: moment(v5Equivalent.scheduledEndDate).format("yyyy-MM-DD HH:mm:ss"),
               duration: v5Equivalent.duration * 1000,
-              ...(isBeingActivated && newStatus == constants.PhaseStatusTypes.Open ? {actualStartTime:  moment().format("MM.dd.yyyy hh:mm a"),} : {})
+              ...(isBeingActivated && newStatus == constants.PhaseStatusTypes.Open ? {actualStartTime:  moment().format("yyyy-MM-DD HH:mm:ss"),} : {})
             });
           } else {
             console.log(`number of ${phaseName} does not match`);
@@ -396,7 +408,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   }
 
   private async updateMemberPayments(legacyId: number, v5PrizeSets: any) {
-    const { projectPrizes: prizesFromIfx } = await legacyPrizeDomain.get({
+    const { prizes: prizesFromIfx } = await legacyPrizeDomain.get({
       criteria: [
         {
             key: "projectId",
@@ -410,7 +422,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         }
       ]
     });
-    const { checkpointPrizes } = await legacyPrizeDomain.get({
+    const { prizes: checkpointPrizes } = await legacyPrizeDomain.get({
       criteria: [
         {
             key: "projectId",
@@ -449,14 +461,18 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         const ifxPrize = _.find(prizesFromIfx, (p) => p.place === i + 1);
         if (ifxPrize) {
           if (_.toInteger(ifxPrize.prizeAmount) !== v5Prizes[i]) {
-            await legacyPaymentDomain.update({
-              prizeId: ifxPrize.prizeId,
-              projectId: legacyId,
-              prizeAmount: v5Prizes[i],
+            await legacyPrizeDomain.update({
+              updateCriteria: {
+                prizeId: ifxPrize.prizeId,
+                projectId: legacyId
+              },
+              updateInput: {
+                prizeAmount: v5Prizes[i],
+              }
             });
           }
         } else {
-          await legacyPaymentDomain.create({
+          await legacyPrizeDomain.create({
             projectId: legacyId,
             place: i + 1,
             prizeAmount: v5Prizes[i],
@@ -471,7 +487,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           (p) => p.place > v5Prizes.length
         );
         for (const prizeToDelete of prizesToDelete) {
-          await legacyPaymentDomain.delete({
+          await legacyPrizeDomain.delete({
             prizeId: prizeToDelete.prizeId,
             projectId: legacyId,
           });
@@ -479,7 +495,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       }
     }
     // compare checkpoint prizes
-    if (v5CheckPointPrizes && v5CheckPointPrizes.length > 0) {
+    if (checkpointPrizesFromIfx && v5CheckPointPrizes && v5CheckPointPrizes.length > 0) {
       // we assume that all checkpoint prizes will be the same
       if (
         v5CheckPointPrizes.length !==
@@ -487,15 +503,19 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         v5CheckPointPrizes[0] !==
           _.toInteger(checkpointPrizesFromIfx.prizeAmount)
       ) {
-        await legacyPaymentDomain.updateProjectPrize({
-          prizeId: checkpointPrizesFromIfx.prizeId,
-          projectId: legacyId,
-          prizeAmount: v5CheckPointPrizes[0],
-          numberOfSubmissions: v5CheckPointPrizes.length,
-        });
+        await legacyPrizeDomain.update({
+          updateCriteria: {
+            prizeId: checkpointPrizesFromIfx.prizeId,
+            projectId: legacyId,
+          },
+          updateInput: {
+            prizeAmount: v5CheckPointPrizes[0],
+            numberOfSubmissions: v5CheckPointPrizes.length,
+          }
+        })
       }
     } else if (checkpointPrizesFromIfx) {
-      await legacyPaymentDomain.deleteProjectPrize({
+      await legacyPrizeDomain.delete({
         prizeId: checkpointPrizesFromIfx.prizeId,
         projectId: legacyId,
       });
@@ -640,7 +660,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     };
   }
 
-  async associateChallengeGroups(v5groups: any[], legacyId: number) {
+  async associateChallengeGroups(v5groups: any[], legacyId: number, isStudio: number) {
     const { groupsToBeAdded, groupsToBeDeleted } = await this.getGroups(
       v5groups,
       legacyId
@@ -656,6 +676,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         await legacyGroupContestEligibilityDomain.createContestEligibility({
           contestEligibilityId: group,
           contestId: legacyId,
+          isStudio
         });
       const ceId = createdContestEligibility.kind
         ? _.get(
@@ -871,7 +892,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     // updateMemberPayments
     await this.updateMemberPayments(legacyId, input.challenge.prizeSets);
     // associateChallengeGroups
-    await this.associateChallengeGroups(input.challenge.groups, legacyId);
+    await this.associateChallengeGroups(input.challenge.groups, legacyId, _.includes(constants.STUDIO_CATEGORY_TYPES, legacyChallenge.projectCategoryId) ? 1 : 0);
     // associateChallengeTerms
     await this.associateChallengeTerms(input.challenge.terms, legacyId);
     // setCopilotPayment
@@ -1062,7 +1083,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         });
       }
     }
-    return super.update(scanCriteria, input);
+
+    return super.update(scanCriteria, _.omit(input.challenge, ['id']));
   }
 }
 

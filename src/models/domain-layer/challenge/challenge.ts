@@ -43,9 +43,9 @@ export interface Challenge_Legacy {
   subTrack?: string | undefined;
   forumId?: number | undefined;
   directProjectId: number;
-  /** Community, Internal */
+  /** COMMUNITY, INTERNAL */
   reviewType: string;
-  /** Public, Private */
+  /** public, private */
   confidentialityType: string;
   reviewScorecardId?: number | undefined;
   screeningScorecardId?: number | undefined;

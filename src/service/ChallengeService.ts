@@ -7,8 +7,10 @@ import {
 
 import {
   LookupCriteria,
+  Operator,
   ScanRequest,
   ScanResult,
+  UpdateResult,
 } from "../models/common/common";
 
 import {
@@ -64,14 +66,20 @@ class ChallengeServerImpl implements ChallengeServer {
     callback(null, { items, nextToken });
   };
 
-  update: handleUnaryCall<UpdateChallengeInput, ChallengeList> = async (
-    call: ServerUnaryCall<UpdateChallengeInput, ChallengeList>,
-    callback: sendUnaryData<ChallengeList>
+  update: handleUnaryCall<UpdateChallengeInput, UpdateResult> = async (
+    call: ServerUnaryCall<UpdateChallengeInput, UpdateResult>,
+    callback: sendUnaryData<UpdateResult>
   ): Promise<void> => {
     if (!call.request.challenge) return callback(new Error('Invalid payload'))
-    await Domain.update([], { challenge: Challenge.fromPartial(call.request.challenge) })
+    await Domain.update([
+      {
+        key: "id",
+        operator: Operator.OPERATOR_EQUAL,
+        value: call.request.challenge.id
+      }
+    ], { challenge: Challenge.fromPartial(call.request.challenge) })
 
-    callback(null);
+    callback(null, { updatedCount: 1});
   };
 
   delete: handleUnaryCall<LookupCriteria, ChallengeList> = async (
