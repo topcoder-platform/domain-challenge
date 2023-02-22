@@ -70,14 +70,9 @@ class ChallengeServerImpl implements ChallengeServer {
     call: ServerUnaryCall<UpdateChallengeInput, UpdateResult>,
     callback: sendUnaryData<UpdateResult>
   ): Promise<void> => {
-    if (!call.request.challenge) return callback(new Error('Invalid payload'))
-    await Domain.update([
-      {
-        key: "id",
-        operator: Operator.OPERATOR_EQUAL,
-        value: call.request.challenge.id
-      }
-    ], { challenge: Challenge.fromPartial(call.request.challenge) })
+    const { updateInput, filterCriteria } = call.request
+    if (!updateInput) return callback(null, { updatedCount: 0 })
+    await Domain.update(filterCriteria, updateInput)
 
     callback(null, { updatedCount: 1});
   };

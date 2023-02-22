@@ -10,14 +10,14 @@ const {
   LEGACY_SUBMITTER_ROLE_ID,
   V5_TERMS_STANDARD_ID,
 } = process.env;
-import { DataType, Value } from "../dal/models/nosql/parti_ql";
+import { Value } from "../dal/models/nosql/parti_ql";
 import { ChallengeSchema } from "../schema/Challenge";
 import moment from "moment";
 import {
   Challenge,
   ChallengeList,
   CreateChallengeInput,
-  UpdateChallengeInput,
+  UpdateChallengeInput_UpdateInput,
 } from "../models/domain-layer/challenge/challenge";
 
 import CoreOperations from "../common/CoreOperations";
@@ -26,7 +26,7 @@ import IdGenerator from "../helpers/IdGenerator";
 
 import v4Api from "../api/v4Api";
 import m2m from "../helpers/MachineToMachineToken";
-import { CreateResult, LookupCriteria, Operator, ScanCriteria } from "../models/common/common";
+import { CreateResult, Operator, ScanCriteria } from "../models/common/common";
 import {
   ChallengeDomain as LegacyChallengeDomain,
   ProjectInfoDomain as LegacyProjectInfoDomain,
@@ -834,16 +834,16 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
   public async update(
     scanCriteria: ScanCriteria[],
-    input: UpdateChallengeInput
+    input: UpdateChallengeInput_UpdateInput
   ): Promise<ChallengeList> {
     // TODO: Use legacyChallengeDomain to backfill data in informix
     const createdByUserId = 22838965; // TODO: Extract from interceptors
     const updatedByUserId = 22838965; // TODO: Extract from interceptors
 
     // Make sure legacyId is there before we do anything
-    if (!input.challenge?.legacyId)
-      throw new Error(`Cannot update ${input.challenge?.id}. Missing legacyId`);
-    const legacyId = input.challenge.legacyId;
+    if (!input?.legacyId)
+      throw new Error(`Cannot update ${input?.id}. Missing legacyId`);
+    const legacyId = input.legacyId;
     const legacyChallenge = await legacyChallengeDomain.getLegacyChallenge({
       legacyChallengeId: legacyId
     });
@@ -856,7 +856,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     for (const metadataKey of _.keys(constants.supportedMetadata)) {
       try {
         metaValue = _.toString(constants.supportedMetadata[metadataKey].method(
-          input.challenge,
+          input,
           constants.supportedMetadata[metadataKey].defaultValue
         ));
         if (metaValue !== null && metaValue !== "") {
@@ -890,14 +890,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     }
 
     // updateMemberPayments
-    await this.updateMemberPayments(legacyId, input.challenge.prizeSets);
+    await this.updateMemberPayments(legacyId, input.prizeSets);
     // associateChallengeGroups
-    await this.associateChallengeGroups(input.challenge.groups, legacyId, _.includes(constants.STUDIO_CATEGORY_TYPES, legacyChallenge.projectCategoryId) ? 1 : 0);
+    await this.associateChallengeGroups(input.groups, legacyId, _.includes(constants.STUDIO_CATEGORY_TYPES, legacyChallenge.projectCategoryId) ? 1 : 0);
     // associateChallengeTerms
-    await this.associateChallengeTerms(input.challenge.terms, legacyId);
+    await this.associateChallengeTerms(input.terms, legacyId);
     // setCopilotPayment
     await this.setCopilotPayment(
-      input.challenge.id,
+      input.id,
       legacyId,
       _.get(input, "prizeSets")
     );
@@ -905,33 +905,33 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     // If iterative review is open
     if (
       _.find(
-        _.get(input.challenge, "phases"),
+        _.get(input, "phases"),
         (p) => p.isOpen && p.name === "Iterative Review"
       )
     ) {
       // Try to read reviews and insert them into informix DB
       if (
-        input.challenge.metadata &&
-        input.challenge.legacy?.reviewScorecardId
+        input.metadata &&
+        input.legacy?.reviewScorecardId
       ) {
         let orReviewFeedback: any = _.find(
-          input.challenge.metadata,
+          input.metadata,
           (meta) => meta.name === "or_review_feedback"
         );
         let orReviewScore: any = _.find(
-          input.challenge.metadata,
+          input.metadata,
           (meta) => meta.name === "or_review_score"
         );
         if (!_.isUndefined(orReviewFeedback) && !_.isUndefined(orReviewScore)) {
           orReviewFeedback = JSON.parse(_.toString(orReviewFeedback));
           const reviewResponses: any[] = [];
           _.each(orReviewFeedback, (value, key) => {
-            if (input.challenge?.legacy?.reviewScorecardId) {
+            if (input?.legacy?.reviewScorecardId) {
               const questionId = _.get(
                 _.find(
                   _.get(
                     constants.scorecardQuestionMapping,
-                    input.challenge.legacy.reviewScorecardId
+                    input.legacy.reviewScorecardId
                   ),
                   (item) =>
                     _.toString(item.questionId) === _.toString(key) ||
@@ -947,19 +947,19 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           });
           orReviewScore = _.toNumber(orReviewFeedback);
           const { resources } = await legacyResourceDomain.getResources({
-            projectId: input.challenge.legacyId,
+            projectId: input.legacyId,
             resourceRoleId: ResourceRoleTypes.IterativeReviewer,
           });
           if (resources.length === 0)
             throw new Error("Cannot find iterative reviewer");
           const iterativeReviewer = resources[0];
           const submission = await legacyReviewDomain.getSubmission({
-            projectId: input.challenge.legacyId,
+            projectId: input.legacyId,
             resourceId: iterativeReviewer.resourceId,
           });
           if (!submission) throw new Error("Cannot find submission");
           const { projectPhases } = await legacyPhaseDomain.getProjectPhases({
-            projectId: input.challenge.legacyId,
+            projectId: input.legacyId,
             phaseTypeId: 18,
           });
           if (projectPhases.length === 0)
@@ -969,7 +969,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             resourceId: iterativeReviewer.resourceId,
             submissionId: submission.submissionId,
             projectPhaseId: projectPhase.projectPhaseId,
-            scorecardId: input.challenge.legacy.reviewScorecardId,
+            scorecardId: input.legacy.reviewScorecardId,
             committed: 1,
             score: orReviewScore,
             initialScore: orReviewScore,
@@ -993,9 +993,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     let isBeingActivated = false;
 
-    if (input.challenge.status && legacyChallenge) {
+    if (input.status && legacyChallenge) {
       if (
-        input.challenge.status === constants.challengeStatuses.Active &&
+        input.status === constants.challengeStatuses.Active &&
         legacyChallenge.projectStatusId !==
           constants.legacyChallengeStatusesMap.Active
       ) {
@@ -1023,20 +1023,20 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         }
       }
       if (
-        input.challenge.status === constants.challengeStatuses.Completed &&
+        input.status === constants.challengeStatuses.Completed &&
         legacyChallenge.projectStatusId !==
           constants.legacyChallengeStatusesMap.Completed
       ) {
-        if (input.challenge.task?.isTask) {
+        if (input.task?.isTask) {
           console.log("Challenge is a TASK");
           if (
-            !input.challenge.winners ||
-            input.challenge.winners.length === 0
+            !input.winners ||
+            input.winners.length === 0
           ) {
             throw new Error("Cannot close challenge without winners");
           }
           const winnerId = _.find(
-            input.challenge.winners,
+            input.winners,
             (winner) => winner.placement === 1
           )?.userId;
           console.log(
@@ -1055,21 +1055,21 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         }
       }
 
-      if (!_.get(input.challenge, "task.isTask")) {
+      if (!_.get(input, "task.isTask")) {
         const numOfReviewers = 2;
         await this.syncChallengePhases(
           legacyId,
-          input.challenge.phases,
+          input.phases,
           _.get(input, "legacy.selfService", false),
           numOfReviewers,
           isBeingActivated
         );
-        await this.addPhaseConstraints(legacyId, input.challenge.phases);
+        await this.addPhaseConstraints(legacyId, input.phases);
       } else {
         console.log("Will skip syncing phases as the challenge is a task...");
       }
       if (
-        input.challenge.status ===
+        input.status ===
           constants.challengeStatuses.CancelledClientRequest &&
         legacyChallenge.projectStatusId !==
           constants.legacyChallengeStatusesMap.CancelledClientRequest
@@ -1084,7 +1084,21 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       }
     }
 
-    return super.update(scanCriteria, _.omit(input.challenge, ['id']));
+    // toEntity parses the below properties thus we should now stringify them again
+    // for (const key of ["phases",
+    //   "terms",
+    //   "tags",
+    //   "metadata",
+    //   "events",
+    //   "prizeSets"]) {
+    //     _.set(input, key, JSON.stringify(_.get(input, key)))
+    //   }
+    //   console.log('------ before save --------');
+      
+    //   console.log(input);
+    console.log(_.omit(input, ['id']));
+    
+    return super.update(scanCriteria, _.omit(input, ['id']));
   }
 }
 
