@@ -7,7 +7,6 @@ import {
 
 import {
   LookupCriteria,
-  Operator,
   ScanRequest,
   ScanResult,
   UpdateResult,
