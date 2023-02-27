@@ -88,7 +88,7 @@ abstract class CoreOperations<
         },
       },
     };
-
+    
     const queryResponse: QueryResponse = await noSqlClient.query(queryRequest);
 
     switch (queryResponse.kind?.$case) {
@@ -362,7 +362,7 @@ abstract class CoreOperations<
       return {
         kind: {
           $case: "stringValue",
-          stringValue: value as string,
+          stringValue: (typeof value === 'object') ? JSON.stringify(value) : ((value as string) || '').toString(),
         },
       };
     }

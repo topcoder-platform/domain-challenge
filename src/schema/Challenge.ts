@@ -9,7 +9,7 @@ export const ChallengeSchema = {
     },
     {
       name: "phases",
-      type: DataType.DATA_TYPE_LIST,
+      type: DataType.DATA_TYPE_STRING,
     },
     {
       name: "legacyId",

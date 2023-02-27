@@ -19,7 +19,7 @@ import {
   Challenge,
   ChallengeList,
   CreateChallengeInput,
-  UpdateChallengeInput,
+  UpdateChallengeInput_UpdateInput,
 } from "../models/domain-layer/challenge/challenge";
 import { ChallengeSchema } from "../schema/Challenge";
 
@@ -38,6 +38,8 @@ import _ from "lodash";
 import * as v5Api from "../api/v5Api";
 import {
   PaymentTypeIds,
+  PrizeSetTypes,
+  PrizeTypeIds,
   ProjectInfoIds,
   ProjectPaymentTypeIds,
   ResourceRoleTypes,
@@ -46,12 +48,14 @@ import m2m from "../helpers/MachineToMachineToken";
 import { ScanCriteria } from "../models/common/common";
 import constants from "../util/constants";
 import legacyMapper from "../util/LegacyMapper";
+import { CreateResult, Operator } from "@topcoder-framework/lib-common";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
   throw new Error(
     "Missing required configurations GRPC_ACL_SERVER_HOST and GRPC_ACL_SERVER_PORT"
   );
 }
+
 const legacyPrizeDomain = new LegacyPrizeDomain(
   process.env.GRPC_ACL_SERVER_HOST,
   process.env.GRPC_ACL_SERVER_PORT
@@ -115,7 +119,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
   public async create(input: CreateChallengeInput): Promise<Challenge> {
     input.name = xss(input.name);
-    input.description = xss(input.description);
 
     if (Array.isArray(input.discussions)) {
       for (const discussion of input.discussions) {
@@ -169,6 +172,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         totalPrizes: placementPrizes,
       },
       ...input,
+      description: xss(input.description ?? ""),
     };
 
     return super.create(challenge);
@@ -219,10 +223,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
                 phase.duration
               } to duration ${v5Equivalent.duration * 1000} milli`
             );
-            let newStatus = _.toInteger(phase.phase_status_id);
+            let newStatus = _.toInteger(phase.phaseStatusId);
             if (
               v5Equivalent.isOpen &&
-              _.toInteger(phase.phase_status_id) ===
+              _.toInteger(phase.phaseStatusId) ===
                 constants.PhaseStatusTypes.Closed
             ) {
               newStatus = constants.PhaseStatusTypes.Scheduled;
@@ -245,19 +249,49 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
                 `Challenge phase ${v5Equivalent.name} status is being set to: ${newStatus} on challenge activation.`
               );
             }
+            console.log({
+              projectPhaseId: phase.projectPhaseId,
+              phaseStatusId: newStatus,
+              fixedStartTime: moment(phase.fixedStartTime).format(
+                "yyyy-MM-DD HH:mm:ss"
+              )
+                ? moment(v5Equivalent.scheduledStartDate).format(
+                    "yyyy-MM-DD HH:mm:ss"
+                  )
+                : undefined,
+              scheduledStartTime: moment(
+                v5Equivalent.scheduledStartDate
+              ).format("yyyy-MM-DD HH:mm:ss"),
+              scheduledEndTime: moment(v5Equivalent.scheduledEndDate).format(
+                "yyyy-MM-DD HH:mm:ss"
+              ),
+              duration: v5Equivalent.duration * 1000,
+              ...(isBeingActivated &&
+              newStatus == constants.PhaseStatusTypes.Open
+                ? { actualStartTime: moment().format("yyyy-MM-DD HH:mm:ss") }
+                : {}),
+            });
 
             await legacyPhaseDomain.updateProjectPhase({
               projectPhaseId: phase.projectPhaseId,
               phaseStatusId: newStatus,
-              fixedStartTime: phase.fixedStartTime
-                ? v5Equivalent.scheduledStartDate
-                : null,
-              scheduledStartTime: v5Equivalent.scheduledStartDate,
-              scheduledEndTime: v5Equivalent.scheduledEndDate,
+              fixedStartTime: moment(phase.fixedStartTime).format(
+                "yyyy-MM-DD HH:mm:ss"
+              )
+                ? moment(v5Equivalent.scheduledStartDate).format(
+                    "yyyy-MM-DD HH:mm:ss"
+                  )
+                : undefined,
+              scheduledStartTime: moment(
+                v5Equivalent.scheduledStartDate
+              ).format("yyyy-MM-DD HH:mm:ss"),
+              scheduledEndTime: moment(v5Equivalent.scheduledEndDate).format(
+                "yyyy-MM-DD HH:mm:ss"
+              ),
               duration: v5Equivalent.duration * 1000,
               ...(isBeingActivated &&
               newStatus == constants.PhaseStatusTypes.Open
-                ? { actualStartTime: moment().format("MM.dd.yyyy hh:mm a") }
+                ? { actualStartTime: moment().format("yyyy-MM-DD HH:mm:ss") }
                 : {}),
             });
           } else {
@@ -403,109 +437,124 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   }
 
   private async updateMemberPayments(legacyId: number, v5PrizeSets: any) {
-    // const { projectPrizes: prizesFromIfx } = await legacyPrizeDomain.get({
-    //   criteria: [
-    //     {
-    //       key: "projectId",
-    //       value: legacyId,
-    //       operator: Operator.OPERATOR_EQUAL,
-    //     },
-    //     {
-    //       key: "prizeTypeId",
-    //       value: PrizeTypeIds.Contest,
-    //       operator: Operator.OPERATOR_EQUAL,
-    //     },
-    //   ],
-    // });
-    // const { checkpointPrizes } = await legacyPrizeDomain.get({
-    //   criteria: [
-    //     {
-    //       key: "projectId",
-    //       value: legacyId,
-    //       operator: Operator.OPERATOR_EQUAL,
-    //     },
-    //     {
-    //       key: "prizeTypeId",
-    //       value: PrizeTypeIds.Checkpoint,
-    //       operator: Operator.OPERATOR_EQUAL,
-    //     },
-    //   ],
-    // });
-    // const [checkpointPrizesFromIfx] = checkpointPrizes;
-    // const v5Prizes = _.map(
-    //   _.get(
-    //     _.find(v5PrizeSets, (p) => p.type === PrizeSetTypes.ChallengePrizes),
-    //     "prizes",
-    //     []
-    //   ),
-    //   (prize) => prize.value
-    // );
-    // const v5CheckPointPrizes = _.map(
-    //   _.get(
-    //     _.find(v5PrizeSets, (p) => p.type === PrizeSetTypes.CheckPoint),
-    //     "prizes",
-    //     []
-    //   ),
-    //   (prize) => prize.value
-    // );
-    // // compare prizes
-    // if (v5Prizes && v5Prizes.length > 0) {
-    //   v5Prizes.sort((a, b) => b - a);
-    //   for (let i = 0; i < v5Prizes.length; i += 1) {
-    //     const ifxPrize = _.find(prizesFromIfx, (p) => p.place === i + 1);
-    //     if (ifxPrize) {
-    //       if (_.toInteger(ifxPrize.prizeAmount) !== v5Prizes[i]) {
-    //         await legacyPaymentDomain.update({
-    //           prizeId: ifxPrize.prizeId,
-    //           projectId: legacyId,
-    //           prizeAmount: v5Prizes[i],
-    //         });
-    //       }
-    //     } else {
-    //       await legacyPaymentDomain.create({
-    //         projectId: legacyId,
-    //         place: i + 1,
-    //         prizeAmount: v5Prizes[i],
-    //         prizeTypeId: PrizeTypeIds.Contest,
-    //         numberOfSubmissions: 1,
-    //       });
-    //     }
-    //   }
-    //   if (prizesFromIfx.length > v5Prizes.length) {
-    //     const prizesToDelete = _.filter(
-    //       prizesFromIfx,
-    //       (p) => p.place > v5Prizes.length
-    //     );
-    //     for (const prizeToDelete of prizesToDelete) {
-    //       await legacyPaymentDomain.delete({
-    //         prizeId: prizeToDelete.prizeId,
-    //         projectId: legacyId,
-    //       });
-    //     }
-    //   }
-    // }
-    // // compare checkpoint prizes
-    // if (v5CheckPointPrizes && v5CheckPointPrizes.length > 0) {
-    //   // we assume that all checkpoint prizes will be the same
-    //   if (
-    //     v5CheckPointPrizes.length !==
-    //       checkpointPrizesFromIfx.numberOfSubmissions ||
-    //     v5CheckPointPrizes[0] !==
-    //       _.toInteger(checkpointPrizesFromIfx.prizeAmount)
-    //   ) {
-    //     await legacyPaymentDomain.updateProjectPrize({
-    //       prizeId: checkpointPrizesFromIfx.prizeId,
-    //       projectId: legacyId,
-    //       prizeAmount: v5CheckPointPrizes[0],
-    //       numberOfSubmissions: v5CheckPointPrizes.length,
-    //     });
-    //   }
-    // } else if (checkpointPrizesFromIfx) {
-    //   await legacyPaymentDomain.deleteProjectPrize({
-    //     prizeId: checkpointPrizesFromIfx.prizeId,
-    //     projectId: legacyId,
-    //   });
-    // }
+    const { prizes: prizesFromIfx } = await legacyPrizeDomain.get({
+      criteria: [
+        {
+          key: "projectId",
+          value: legacyId,
+          operator: Operator.OPERATOR_EQUAL,
+        },
+        {
+          key: "prizeTypeId",
+          value: PrizeTypeIds.Contest,
+          operator: Operator.OPERATOR_EQUAL,
+        },
+      ],
+    });
+    const { prizes: checkpointPrizes } = await legacyPrizeDomain.get({
+      criteria: [
+        {
+          key: "projectId",
+          value: legacyId,
+          operator: Operator.OPERATOR_EQUAL,
+        },
+        {
+          key: "prizeTypeId",
+          value: PrizeTypeIds.Checkpoint,
+          operator: Operator.OPERATOR_EQUAL,
+        },
+      ],
+    });
+
+    const checkpointPrizesFromIfx = checkpointPrizes
+      ? checkpointPrizes[0]
+      : null;
+    const v5Prizes = _.map(
+      _.get(
+        _.find(v5PrizeSets, (p) => p.type === PrizeSetTypes.ChallengePrizes),
+        "prizes",
+        []
+      ),
+      (prize) => prize.value
+    );
+    const v5CheckPointPrizes = _.map(
+      _.get(
+        _.find(v5PrizeSets, (p) => p.type === PrizeSetTypes.CheckPoint),
+        "prizes",
+        []
+      ),
+      (prize) => prize.value
+    );
+    // compare prizes
+    if (v5Prizes && v5Prizes.length > 0) {
+      v5Prizes.sort((a, b) => b - a);
+      for (let i = 0; i < v5Prizes.length; i += 1) {
+        const ifxPrize = _.find(prizesFromIfx, (p) => p.place === i + 1);
+        if (ifxPrize) {
+          if (_.toInteger(ifxPrize.prizeAmount) !== v5Prizes[i]) {
+            await legacyPrizeDomain.update({
+              updateCriteria: {
+                prizeId: ifxPrize.prizeId,
+                projectId: legacyId,
+              },
+              updateInput: {
+                prizeAmount: v5Prizes[i],
+              },
+            });
+          }
+        } else {
+          await legacyPrizeDomain.create({
+            projectId: legacyId,
+            place: i + 1,
+            prizeAmount: v5Prizes[i],
+            prizeTypeId: PrizeTypeIds.Contest,
+            numberOfSubmissions: 1,
+          });
+        }
+      }
+      if (prizesFromIfx.length > v5Prizes.length) {
+        const prizesToDelete = _.filter(
+          prizesFromIfx,
+          (p) => p.place > v5Prizes.length
+        );
+        for (const prizeToDelete of prizesToDelete) {
+          await legacyPrizeDomain.delete({
+            prizeId: prizeToDelete.prizeId,
+            projectId: legacyId,
+          });
+        }
+      }
+    }
+    // compare checkpoint prizes
+    if (
+      checkpointPrizesFromIfx &&
+      v5CheckPointPrizes &&
+      v5CheckPointPrizes.length > 0
+    ) {
+      // we assume that all checkpoint prizes will be the same
+      if (
+        v5CheckPointPrizes.length !==
+          checkpointPrizesFromIfx.numberOfSubmissions ||
+        v5CheckPointPrizes[0] !==
+          _.toInteger(checkpointPrizesFromIfx.prizeAmount)
+      ) {
+        await legacyPrizeDomain.update({
+          updateCriteria: {
+            prizeId: checkpointPrizesFromIfx.prizeId,
+            projectId: legacyId,
+          },
+          updateInput: {
+            prizeAmount: v5CheckPointPrizes[0],
+            numberOfSubmissions: v5CheckPointPrizes.length,
+          },
+        });
+      }
+    } else if (checkpointPrizesFromIfx) {
+      await legacyPrizeDomain.delete({
+        prizeId: checkpointPrizesFromIfx.prizeId,
+        projectId: legacyId,
+      });
+    }
   }
 
   async associateChallengeTerms(v5Terms: any[], legacyChallengeId: number) {
@@ -646,7 +695,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     };
   }
 
-  async associateChallengeGroups(v5groups: any[], legacyId: number) {
+  async associateChallengeGroups(
+    v5groups: any[],
+    legacyId: number,
+    isStudio: number
+  ) {
     const { groupsToBeAdded, groupsToBeDeleted } = await this.getGroups(
       v5groups,
       legacyId
@@ -656,26 +709,27 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         groupsToBeAdded
       )}`
     );
-    // for (const group of groupsToBeAdded) {
-    //   // await groupService.addGroupToChallenge(legacyId, group)
-    //   const createdContestEligibility: CreateResult =
-    //     await legacyGroupContestEligibilityDomain.createContestEligibility({
-    //       contestEligibilityId: group,
-    //       contestId: legacyId,
-    //     });
-    //   const ceId = createdContestEligibility.kind
-    //     ? _.get(
-    //         createdContestEligibility.kind,
-    //         createdContestEligibility.kind?.$case,
-    //         undefined
-    //       )
-    //     : undefined;
-    //   if (!ceId) throw new Error("cannot create contest eligibility");
-    //   await legacyGroupContestEligibilityDomain.createGroupContestEligibility({
-    //     contestEligibilityId: ceId,
-    //     groupId: group,
-    //   });
-    // }
+    for (const group of groupsToBeAdded) {
+      // await groupService.addGroupToChallenge(legacyId, group)
+      const createdContestEligibility: CreateResult =
+        await legacyGroupContestEligibilityDomain.createContestEligibility({
+          contestEligibilityId: group,
+          contestId: legacyId,
+          isStudio,
+        });
+      const ceId = createdContestEligibility.kind
+        ? _.get(
+            createdContestEligibility.kind,
+            createdContestEligibility.kind?.$case,
+            undefined
+          )
+        : undefined;
+      if (!ceId) throw new Error("cannot create contest eligibility");
+      await legacyGroupContestEligibilityDomain.createGroupContestEligibility({
+        contestEligibilityId: ceId,
+        groupId: group,
+      });
+    }
     console.log(
       `Groups to remove from challenge: ${legacyId}: ${JSON.stringify(
         groupsToBeDeleted
@@ -818,16 +872,16 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
   public async update(
     scanCriteria: ScanCriteria[],
-    input: UpdateChallengeInput
+    input: UpdateChallengeInput_UpdateInput
   ): Promise<ChallengeList> {
     // TODO: Use legacyChallengeDomain to backfill data in informix
     const createdByUserId = 22838965; // TODO: Extract from interceptors
     const updatedByUserId = 22838965; // TODO: Extract from interceptors
 
     // Make sure legacyId is there before we do anything
-    if (!input.challenge?.legacyId)
-      throw new Error(`Cannot update ${input.challenge?.id}. Missing legacyId`);
-    const legacyId = input.challenge.legacyId;
+    if (!input?.legacyId)
+      throw new Error(`Cannot update ${input?.id}. Missing legacyId`);
+    const legacyId = input.legacyId;
     const legacyChallenge = await legacyChallengeDomain.getLegacyChallenge({
       legacyChallengeId: legacyId,
     });
@@ -839,9 +893,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     });
     for (const metadataKey of _.keys(constants.supportedMetadata)) {
       try {
-        metaValue = constants.supportedMetadata[metadataKey].method(
-          input.challenge,
-          constants.supportedMetadata[metadataKey].defaultValue
+        metaValue = _.toString(
+          constants.supportedMetadata[metadataKey].method(
+            input,
+            constants.supportedMetadata[metadataKey].defaultValue
+          )
         );
         if (metaValue !== null && metaValue !== "") {
           if (
@@ -854,14 +910,12 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
               projectId: legacyId,
               projectInfoTypeId: _.toInteger(metadataKey),
               value: metaValue,
-              createUser: createdByUserId,
             });
           } else {
             await legacyProjectInfoDomain.update({
               projectId: legacyId,
               projectInfoTypeId: _.toInteger(metadataKey),
               value: metaValue,
-              modifyUser: updatedByUserId,
             });
           }
         }
@@ -869,52 +923,55 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         console.log(
           `Failed to set ${constants.supportedMetadata[metadataKey].description} to ${metaValue} for challenge ${legacyId}`
         );
+        console.log(e);
       }
     }
 
     // updateMemberPayments
-    await this.updateMemberPayments(legacyId, input.challenge.prizeSets);
+    await this.updateMemberPayments(legacyId, input.prizeSets);
     // associateChallengeGroups
-    await this.associateChallengeGroups(input.challenge.groups, legacyId);
-    // associateChallengeTerms
-    await this.associateChallengeTerms(input.challenge.terms, legacyId);
-    // setCopilotPayment
-    await this.setCopilotPayment(
-      input.challenge.id,
+    await this.associateChallengeGroups(
+      input.groups,
       legacyId,
-      _.get(input, "prizeSets")
+      _.includes(
+        constants.STUDIO_CATEGORY_TYPES,
+        legacyChallenge.projectCategoryId
+      )
+        ? 1
+        : 0
     );
+    // associateChallengeTerms
+    await this.associateChallengeTerms(input.terms, legacyId);
+    // setCopilotPayment
+    await this.setCopilotPayment(input.id, legacyId, _.get(input, "prizeSets"));
 
     // If iterative review is open
     if (
       _.find(
-        _.get(input.challenge, "phases"),
+        _.get(input, "phases"),
         (p) => p.isOpen && p.name === "Iterative Review"
       )
     ) {
       // Try to read reviews and insert them into informix DB
-      if (
-        input.challenge.metadata &&
-        input.challenge.legacy?.reviewScorecardId
-      ) {
+      if (input.metadata && input.legacy?.reviewScorecardId) {
         let orReviewFeedback: any = _.find(
-          input.challenge.metadata,
+          input.metadata,
           (meta) => meta.name === "or_review_feedback"
         );
         let orReviewScore: any = _.find(
-          input.challenge.metadata,
+          input.metadata,
           (meta) => meta.name === "or_review_score"
         );
         if (!_.isUndefined(orReviewFeedback) && !_.isUndefined(orReviewScore)) {
           orReviewFeedback = JSON.parse(_.toString(orReviewFeedback));
           const reviewResponses: any[] = [];
           _.each(orReviewFeedback, (value, key) => {
-            if (input.challenge?.legacy?.reviewScorecardId) {
+            if (input?.legacy?.reviewScorecardId) {
               const questionId = _.get(
                 _.find(
                   _.get(
                     constants.scorecardQuestionMapping,
-                    input.challenge.legacy.reviewScorecardId
+                    input.legacy.reviewScorecardId
                   ),
                   (item) =>
                     _.toString(item.questionId) === _.toString(key) ||
@@ -930,19 +987,19 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           });
           orReviewScore = _.toNumber(orReviewFeedback);
           const { resources } = await legacyResourceDomain.getResources({
-            projectId: input.challenge.legacyId,
+            projectId: input.legacyId,
             resourceRoleId: ResourceRoleTypes.IterativeReviewer,
           });
           if (resources.length === 0)
             throw new Error("Cannot find iterative reviewer");
           const iterativeReviewer = resources[0];
           const submission = await legacyReviewDomain.getSubmission({
-            projectId: input.challenge.legacyId,
+            projectId: input.legacyId,
             resourceId: iterativeReviewer.resourceId,
           });
           if (!submission) throw new Error("Cannot find submission");
           const { projectPhases } = await legacyPhaseDomain.getProjectPhases({
-            projectId: input.challenge.legacyId,
+            projectId: input.legacyId,
             phaseTypeId: 18,
           });
           if (projectPhases.length === 0)
@@ -952,7 +1009,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             resourceId: iterativeReviewer.resourceId,
             submissionId: submission.submissionId,
             projectPhaseId: projectPhase.projectPhaseId,
-            scorecardId: input.challenge.legacy.reviewScorecardId,
+            scorecardId: input.legacy.reviewScorecardId,
             committed: 1,
             score: orReviewScore,
             initialScore: orReviewScore,
@@ -976,9 +1033,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     let isBeingActivated = false;
 
-    if (input.challenge.status && legacyChallenge) {
+    if (input.status && legacyChallenge) {
       if (
-        input.challenge.status === constants.challengeStatuses.Active &&
+        input.status === constants.challengeStatuses.Active &&
         legacyChallenge.projectStatusId !==
           constants.legacyChallengeStatusesMap.Active
       ) {
@@ -994,32 +1051,27 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             projectId: legacyId,
             projectInfoTypeId: 9,
             value: "On",
-            createUser: createdByUserId,
           });
         } else {
           await legacyProjectInfoDomain.update({
             projectId: legacyId,
             projectInfoTypeId: 9,
             value: "On",
-            modifyUser: updatedByUserId,
           });
         }
       }
       if (
-        input.challenge.status === constants.challengeStatuses.Completed &&
+        input.status === constants.challengeStatuses.Completed &&
         legacyChallenge.projectStatusId !==
           constants.legacyChallengeStatusesMap.Completed
       ) {
-        if (input.challenge.task?.isTask) {
+        if (input.task?.isTask) {
           console.log("Challenge is a TASK");
-          if (
-            !input.challenge.winners ||
-            input.challenge.winners.length === 0
-          ) {
+          if (!input.winners || input.winners.length === 0) {
             throw new Error("Cannot close challenge without winners");
           }
           const winnerId = _.find(
-            input.challenge.winners,
+            input.winners,
             (winner) => winner.placement === 1
           )?.userId;
           console.log(
@@ -1029,7 +1081,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           await legacyChallengeDomain.closeChallenge({
             projectId: legacyId,
             winnerId,
-            modifyUser: updatedByUserId,
           });
         } else {
           console.log(
@@ -1038,22 +1089,21 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         }
       }
 
-      if (!_.get(input.challenge, "task.isTask")) {
+      if (!_.get(input, "task.isTask")) {
         const numOfReviewers = 2;
         await this.syncChallengePhases(
           legacyId,
-          input.challenge.phases,
+          input.phases,
           _.get(input, "legacy.selfService", false),
           numOfReviewers,
           isBeingActivated
         );
-        await this.addPhaseConstraints(legacyId, input.challenge.phases);
+        await this.addPhaseConstraints(legacyId, input.phases);
       } else {
         console.log("Will skip syncing phases as the challenge is a task...");
       }
       if (
-        input.challenge.status ===
-          constants.challengeStatuses.CancelledClientRequest &&
+        input.status === constants.challengeStatuses.CancelledClientRequest &&
         legacyChallenge.projectStatusId !==
           constants.legacyChallengeStatusesMap.CancelledClientRequest
       ) {
@@ -1062,11 +1112,25 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           projectId: legacyId,
           projectStatusId:
             constants.legacyChallengeStatusesMap.CancelledClientRequest,
-          modifyUser: updatedByUserId,
         });
       }
     }
-    return super.update(scanCriteria, input);
+
+    // toEntity parses the below properties thus we should now stringify them again
+    // for (const key of ["phases",
+    //   "terms",
+    //   "tags",
+    //   "metadata",
+    //   "events",
+    //   "prizeSets"]) {
+    //     _.set(input, key, JSON.stringify(_.get(input, key)))
+    //   }
+    //   console.log('------ before save --------');
+
+    //   console.log(input);
+    console.log(_.omit(input, ["id"]));
+
+    return super.update(scanCriteria, _.omit(input, ["id"]));
   }
 }
 

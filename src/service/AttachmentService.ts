@@ -32,13 +32,10 @@ class AttachmentServerImpl implements AttachmentServer {
     callback: sendUnaryData<ScanResult>
   ): Promise<void> => {
     const {
-      request: { criteria: scanCriteria, nextToken: inputNextToken },
+      request: { criteria, nextToken: inputNextToken },
     } = call;
 
-    const { items, nextToken } = await Domain.scan(
-      scanCriteria,
-      inputNextToken
-    );
+    const { items, nextToken } = await Domain.scan(criteria, inputNextToken);
 
     callback(null, {
       items,

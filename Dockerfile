@@ -38,5 +38,3 @@ ENV AUTH0_PROXY_SERVER_URL=""
 ENV AUTH0_URL=""
 
 CMD ["server.js"]
-
-
