@@ -35,10 +35,7 @@ class TimelineTemplateServerImpl implements TimelineTemplateServer {
       request: { criteria, nextToken: inputNextToken },
     } = call;
 
-    const { items, nextToken } = await Domain.scan(
-      criteria,
-      inputNextToken
-    );
+    const { items, nextToken } = await Domain.scan(criteria, inputNextToken);
 
     callback(null, {
       items,

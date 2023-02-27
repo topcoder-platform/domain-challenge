@@ -1,4 +1,9 @@
-import { handleUnaryCall, sendUnaryData, ServerUnaryCall, StatusObject } from "@grpc/grpc-js";
+import {
+  handleUnaryCall,
+  sendUnaryData,
+  ServerUnaryCall,
+  StatusObject,
+} from "@grpc/grpc-js";
 import {
   ScanRequest,
   ScanResult,
@@ -30,10 +35,7 @@ class PhaseServerImpl implements PhaseServer {
       request: { criteria, nextToken: inputNextToken },
     } = call;
 
-    const { items, nextToken } = await Domain.scan(
-      criteria,
-      inputNextToken
-    );
+    const { items, nextToken } = await Domain.scan(criteria, inputNextToken);
 
     callback(null, {
       items,
@@ -63,26 +65,22 @@ class PhaseServerImpl implements PhaseServer {
     callback(null, phase);
   };
 
-  update: handleUnaryCall<UpdatePhaseInput, PhaseList> =
-    async (
-      call: ServerUnaryCall<UpdatePhaseInput, PhaseList>,
-      callback: sendUnaryData<PhaseList>
-    ): Promise<void> => {
-      const {
-        request: { updateInput, filterCriteria },
-      } = call;
-  
-      Domain.update(filterCriteria, updateInput)
-        .then((phaseList) => {
-          callback(
-            null,
-            PhaseList.fromJSON(phaseList)
-          );
-        })
-        .catch((error: StatusObject) => {
-          callback(error, null);
-        });
-    };
+  update: handleUnaryCall<UpdatePhaseInput, PhaseList> = async (
+    call: ServerUnaryCall<UpdatePhaseInput, PhaseList>,
+    callback: sendUnaryData<PhaseList>
+  ): Promise<void> => {
+    const {
+      request: { updateInput, filterCriteria },
+    } = call;
+
+    Domain.update(filterCriteria, updateInput)
+      .then((phaseList) => {
+        callback(null, PhaseList.fromJSON(phaseList));
+      })
+      .catch((error: StatusObject) => {
+        callback(error, null);
+      });
+  };
 
   delete: handleUnaryCall<LookupCriteria, PhaseList> = async (
     call: ServerUnaryCall<LookupCriteria, PhaseList>,
@@ -96,7 +94,4 @@ class PhaseServerImpl implements PhaseServer {
   };
 }
 
-export {
-  PhaseServerImpl as PhaseServer,
-  PhaseService,
-};
+export { PhaseServerImpl as PhaseServer, PhaseService };

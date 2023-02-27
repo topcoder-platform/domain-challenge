@@ -22,7 +22,7 @@
     "@aws-sdk/client-dynamodb": "^3.183.0",
     "@aws-sdk/util-dynamodb": "^3.183.0",
     "@grpc/grpc-js": "^1.7.1",
-    "@topcoder-framework/domain-acl": "^0.4.24-ci.0",
+    "@topcoder-framework/domain-acl": "^0.5.2",
     "axios": "^1.2.2",
     "dotenv": "^16.0.3",
     "grpc-server-reflection": "^0.1.5",
@@ -30,12 +30,12 @@
     "moment": "^2.29.4",
     "source-map-support": "^0.5.21",
     "tc-core-library-js": "appirio-tech/tc-core-library-js.git#v2.6.4",
-    "topcoder-interface": "github:topcoder-platform/plat-interface-definition#feat/challenge-acl-proto",
+    "topcoder-interface": "github:topcoder-platform/plat-interface-definition#v0.0.20",
     "uuidv4": "^6.2.13",
     "xss": "^1.0.14"
   },
   "volta": {
-    "node": "18.13.0",
+    "node": "18.14.1",
     "typescript": "4.9.4",
     "yarn": "1.22.19"
   },

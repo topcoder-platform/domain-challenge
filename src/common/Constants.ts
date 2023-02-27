@@ -18,22 +18,22 @@ export const PrizeTypeIds = {
 };
 
 export const PaymentTypeIds = {
-  Copilot: 15
+  Copilot: 15,
 };
 
 export const ProjectPaymentTypeIds = {
-  Copilot: 4
+  Copilot: 4,
 };
 
 export const ResourceRoleTypes = {
   IterativeReviewer: 21,
-  Copilot: 14
+  Copilot: 14,
 };
 
 export const ProjectInfoIds = {
-  CopilotPayment: 49
+  CopilotPayment: 49,
 };
 
 export const ResourceInfoIds = {
-  CopilotPayment: 7
+  CopilotPayment: 7,
 };

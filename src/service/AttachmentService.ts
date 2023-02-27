@@ -1,4 +1,9 @@
-import { handleUnaryCall, sendUnaryData, ServerUnaryCall, StatusObject } from "@grpc/grpc-js";
+import {
+  handleUnaryCall,
+  sendUnaryData,
+  ServerUnaryCall,
+  StatusObject,
+} from "@grpc/grpc-js";
 import {
   ScanRequest,
   ScanResult,
@@ -30,10 +35,7 @@ class AttachmentServerImpl implements AttachmentServer {
       request: { criteria, nextToken: inputNextToken },
     } = call;
 
-    const { items, nextToken } = await Domain.scan(
-      criteria,
-      inputNextToken
-    );
+    const { items, nextToken } = await Domain.scan(criteria, inputNextToken);
 
     callback(null, {
       items,
@@ -63,26 +65,22 @@ class AttachmentServerImpl implements AttachmentServer {
     callback(null, Attachment);
   };
 
-  update: handleUnaryCall<UpdateAttachmentInput, AttachmentList> =
-    async (
-      call: ServerUnaryCall<UpdateAttachmentInput, AttachmentList>,
-      callback: sendUnaryData<AttachmentList>
-    ): Promise<void> => {
-      const {
-        request: { updateInput, filterCriteria },
-      } = call;
-  
-      Domain.update(filterCriteria, updateInput)
-        .then((challengeTypeList) => {
-          callback(
-            null,
-            AttachmentList.fromJSON(challengeTypeList)
-          );
-        })
-        .catch((error: StatusObject) => {
-          callback(error, null);
-        });
-    };
+  update: handleUnaryCall<UpdateAttachmentInput, AttachmentList> = async (
+    call: ServerUnaryCall<UpdateAttachmentInput, AttachmentList>,
+    callback: sendUnaryData<AttachmentList>
+  ): Promise<void> => {
+    const {
+      request: { updateInput, filterCriteria },
+    } = call;
+
+    Domain.update(filterCriteria, updateInput)
+      .then((challengeTypeList) => {
+        callback(null, AttachmentList.fromJSON(challengeTypeList));
+      })
+      .catch((error: StatusObject) => {
+        callback(error, null);
+      });
+  };
 
   delete: handleUnaryCall<LookupCriteria, AttachmentList> = async (
     call: ServerUnaryCall<LookupCriteria, AttachmentList>,
@@ -96,7 +94,4 @@ class AttachmentServerImpl implements AttachmentServer {
   };
 }
 
-export {
-  AttachmentServerImpl as AttachmentServer,
-  AttachmentService,
-};
+export { AttachmentServerImpl as AttachmentServer, AttachmentService };

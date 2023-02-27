@@ -1,4 +1,9 @@
-import { handleUnaryCall, sendUnaryData, ServerUnaryCall, StatusObject } from "@grpc/grpc-js";
+import {
+  handleUnaryCall,
+  sendUnaryData,
+  ServerUnaryCall,
+  StatusObject,
+} from "@grpc/grpc-js";
 import {
   ScanRequest,
   ScanResult,
@@ -30,10 +35,7 @@ class ChallengeTrackServerImpl implements ChallengeTrackServer {
       request: { criteria, nextToken: inputNextToken },
     } = call;
 
-    const { items, nextToken } = await Domain.scan(
-      criteria,
-      inputNextToken
-    );
+    const { items, nextToken } = await Domain.scan(criteria, inputNextToken);
 
     callback(null, {
       items,
@@ -71,13 +73,10 @@ class ChallengeTrackServerImpl implements ChallengeTrackServer {
       const {
         request: { updateInput, filterCriteria },
       } = call;
-  
+
       Domain.update(filterCriteria, updateInput)
         .then((challengeTrackList) => {
-          callback(
-            null,
-            ChallengeTrackList.fromJSON(challengeTrackList)
-          );
+          callback(null, ChallengeTrackList.fromJSON(challengeTrackList));
         })
         .catch((error: StatusObject) => {
           callback(error, null);

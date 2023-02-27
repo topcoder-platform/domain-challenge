@@ -1,4 +1,9 @@
-import { handleUnaryCall, sendUnaryData, ServerUnaryCall, StatusObject } from "@grpc/grpc-js";
+import {
+  handleUnaryCall,
+  sendUnaryData,
+  ServerUnaryCall,
+  StatusObject,
+} from "@grpc/grpc-js";
 import {
   ScanRequest,
   ScanResult,
@@ -30,10 +35,7 @@ class ChallengeTypeServerImpl implements ChallengeTypeServer {
       request: { criteria, nextToken: inputNextToken },
     } = call;
 
-    const { items, nextToken } = await Domain.scan(
-      criteria,
-      inputNextToken
-    );
+    const { items, nextToken } = await Domain.scan(criteria, inputNextToken);
 
     callback(null, {
       items,
@@ -63,26 +65,22 @@ class ChallengeTypeServerImpl implements ChallengeTypeServer {
     callback(null, ChallengeType);
   };
 
-  update: handleUnaryCall<UpdateChallengeTypeInput, ChallengeTypeList> =
-    async (
-      call: ServerUnaryCall<UpdateChallengeTypeInput, ChallengeTypeList>,
-      callback: sendUnaryData<ChallengeTypeList>
-    ): Promise<void> => {
-      const {
-        request: { updateInput, filterCriteria },
-      } = call;
-  
-      Domain.update(filterCriteria, updateInput)
-        .then((challengeTypeList) => {
-          callback(
-            null,
-            ChallengeTypeList.fromJSON(challengeTypeList)
-          );
-        })
-        .catch((error: StatusObject) => {
-          callback(error, null);
-        });
-    };
+  update: handleUnaryCall<UpdateChallengeTypeInput, ChallengeTypeList> = async (
+    call: ServerUnaryCall<UpdateChallengeTypeInput, ChallengeTypeList>,
+    callback: sendUnaryData<ChallengeTypeList>
+  ): Promise<void> => {
+    const {
+      request: { updateInput, filterCriteria },
+    } = call;
+
+    Domain.update(filterCriteria, updateInput)
+      .then((challengeTypeList) => {
+        callback(null, ChallengeTypeList.fromJSON(challengeTypeList));
+      })
+      .catch((error: StatusObject) => {
+        callback(error, null);
+      });
+  };
 
   delete: handleUnaryCall<LookupCriteria, ChallengeTypeList> = async (
     call: ServerUnaryCall<LookupCriteria, ChallengeTypeList>,
@@ -96,7 +94,4 @@ class ChallengeTypeServerImpl implements ChallengeTypeServer {
   };
 }
 
-export {
-  ChallengeTypeServerImpl as ChallengeTypeServer,
-  ChallengeTypeService,
-};
+export { ChallengeTypeServerImpl as ChallengeTypeServer, ChallengeTypeService };

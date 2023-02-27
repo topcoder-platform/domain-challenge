@@ -47,4 +47,4 @@ workflows:
           context: "org-global"
           filters:
             branches:
-              only: "feat/integrate-acl"
+              only: "feature/challenge-create"

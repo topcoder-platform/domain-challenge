@@ -7,7 +7,6 @@ import {
 
 import {
   LookupCriteria,
-  Operator,
   ScanRequest,
   ScanResult,
   UpdateResult,
@@ -58,10 +57,7 @@ class ChallengeServerImpl implements ChallengeServer {
       request: { criteria, nextToken: inputNextToken },
     } = call;
 
-    const { items, nextToken } = await Domain.scan(
-      criteria,
-      inputNextToken
-    );
+    const { items, nextToken } = await Domain.scan(criteria, inputNextToken);
 
     callback(null, { items, nextToken });
   };
@@ -70,11 +66,11 @@ class ChallengeServerImpl implements ChallengeServer {
     call: ServerUnaryCall<UpdateChallengeInput, UpdateResult>,
     callback: sendUnaryData<UpdateResult>
   ): Promise<void> => {
-    const { updateInput, filterCriteria } = call.request
-    if (!updateInput) return callback(null, { updatedCount: 0 })
-    await Domain.update(filterCriteria, updateInput)
+    const { updateInput, filterCriteria } = call.request;
+    if (!updateInput) return callback(null, { updatedCount: 0 });
+    await Domain.update(filterCriteria, updateInput);
 
-    callback(null, { updatedCount: 1});
+    callback(null, { updatedCount: 1 });
   };
 
   delete: handleUnaryCall<LookupCriteria, ChallengeList> = async (

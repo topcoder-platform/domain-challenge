@@ -10,36 +10,32 @@ const {
   LEGACY_SUBMITTER_ROLE_ID,
   V5_TERMS_STANDARD_ID,
 } = process.env;
-import { Value } from "../dal/models/nosql/parti_ql";
-import { ChallengeSchema } from "../schema/Challenge";
 import moment from "moment";
+import xss from "xss";
+import CoreOperations from "../common/CoreOperations";
+import { Value } from "../dal/models/nosql/parti_ql";
+import IdGenerator from "../helpers/IdGenerator";
 import {
   Challenge,
   ChallengeList,
   CreateChallengeInput,
   UpdateChallengeInput_UpdateInput,
 } from "../models/domain-layer/challenge/challenge";
+import { ChallengeSchema } from "../schema/Challenge";
 
-import CoreOperations from "../common/CoreOperations";
-import xss from "xss";
-import IdGenerator from "../helpers/IdGenerator";
-
-import v4Api from "../api/v4Api";
-import m2m from "../helpers/MachineToMachineToken";
-import { CreateResult, Operator, ScanCriteria } from "../models/common/common";
 import {
   ChallengeDomain as LegacyChallengeDomain,
-  ProjectInfoDomain as LegacyProjectInfoDomain,
+  GroupContestEligibilityDomain as LegacyGroupContestEligibilityDomain,
   PaymentDomain as LegacyPaymentDomain,
+  PhaseDomain as LegacyPhaseDomain,
+  PrizeDomain as LegacyPrizeDomain,
+  ProjectInfoDomain as LegacyProjectInfoDomain,
   ResourceDomain as LegacyResourceDomain,
   ReviewDomain as LegacyReviewDomain,
-  PhaseDomain as LegacyPhaseDomain,
-  GroupContestEligibilityDomain as LegacyGroupContestEligibilityDomain,
   TermDomain as LegacyTermDomain,
-  PrizeDomain as LegacyPrizeDomain
 } from "@topcoder-framework/domain-acl";
-import constants from "../util/constants";
 import _ from "lodash";
+import * as v5Api from "../api/v5Api";
 import {
   PaymentTypeIds,
   PrizeSetTypes,
@@ -48,7 +44,11 @@ import {
   ProjectPaymentTypeIds,
   ResourceRoleTypes,
 } from "../common/Constants";
-import * as v5Api from "../api/v5Api";
+import m2m from "../helpers/MachineToMachineToken";
+import { ScanCriteria } from "../models/common/common";
+import constants from "../util/constants";
+import legacyMapper from "../util/LegacyMapper";
+import { CreateResult, Operator } from "@topcoder-framework/lib-common";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
   throw new Error(
@@ -119,7 +119,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
   public async create(input: CreateChallengeInput): Promise<Challenge> {
     input.name = xss(input.name);
-    input.description = xss(input.description);
 
     if (Array.isArray(input.discussions)) {
       for (const discussion of input.discussions) {
@@ -139,11 +138,28 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         }
       }
     }
-    const now = new Date().getTime();
-    const token = await m2m.getM2MToken();
 
-    const { legacyId, track, subTrack, forumId } =
-      await v4Api.createLegacyChallenge(input, token);
+    const now = new Date().getTime();
+
+    // Begin Anti-Corruption Layer
+
+    const { track, subTrack, isTask, technologies } =
+      legacyMapper.mapTrackAndType(input.trackId, input.typeId, input.tags);
+
+    console.log("technologies:", technologies, "is not used in v4(??)");
+
+    input.legacy = {
+      ...input.legacy,
+      track,
+      subTrack,
+      pureV5Task: isTask,
+      forumId: 0,
+      directProjectId: input.legacy!.directProjectId,
+      reviewType: input.legacy!.reviewType,
+      confidentialityType: input.legacy!.confidentialityType,
+    };
+
+    // End Anti-Corruption Layer
 
     const challenge: Challenge = {
       id: IdGenerator.generateUUID(),
@@ -156,16 +172,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         totalPrizes: placementPrizes,
       },
       ...input,
-      legacyId,
-      legacy: {
-        ...input.legacy,
-        track,
-        subTrack,
-        forumId,
-        directProjectId: input.legacy!.directProjectId,
-        reviewType: input.legacy!.reviewType,
-        confidentialityType: input.legacy!.confidentialityType,
-      },
+      description: xss(input.description ?? ""),
     };
 
     return super.create(challenge);
@@ -177,7 +184,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     isSelfService: boolean,
     numOfReviewers: number,
     isBeingActivated: boolean
-  ) {    
+  ) {
     const { phaseTypes } = await legacyPhaseDomain.getPhaseTypes({});
     const { projectPhases: phasesFromIFx } =
       await legacyPhaseDomain.getProjectPhases({ projectId: legacyId });
@@ -245,26 +252,47 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             console.log({
               projectPhaseId: phase.projectPhaseId,
               phaseStatusId: newStatus,
-              fixedStartTime: moment(phase.fixedStartTime).format("yyyy-MM-DD HH:mm:ss")
-                ? moment(v5Equivalent.scheduledStartDate).format("yyyy-MM-DD HH:mm:ss")
+              fixedStartTime: moment(phase.fixedStartTime).format(
+                "yyyy-MM-DD HH:mm:ss"
+              )
+                ? moment(v5Equivalent.scheduledStartDate).format(
+                    "yyyy-MM-DD HH:mm:ss"
+                  )
                 : undefined,
-              scheduledStartTime: moment(v5Equivalent.scheduledStartDate).format("yyyy-MM-DD HH:mm:ss"),
-              scheduledEndTime: moment(v5Equivalent.scheduledEndDate).format("yyyy-MM-DD HH:mm:ss"),
+              scheduledStartTime: moment(
+                v5Equivalent.scheduledStartDate
+              ).format("yyyy-MM-DD HH:mm:ss"),
+              scheduledEndTime: moment(v5Equivalent.scheduledEndDate).format(
+                "yyyy-MM-DD HH:mm:ss"
+              ),
               duration: v5Equivalent.duration * 1000,
-              ...(isBeingActivated && newStatus == constants.PhaseStatusTypes.Open ? {actualStartTime:  moment().format("yyyy-MM-DD HH:mm:ss"),} : {})
+              ...(isBeingActivated &&
+              newStatus == constants.PhaseStatusTypes.Open
+                ? { actualStartTime: moment().format("yyyy-MM-DD HH:mm:ss") }
+                : {}),
             });
-            
 
             await legacyPhaseDomain.updateProjectPhase({
               projectPhaseId: phase.projectPhaseId,
               phaseStatusId: newStatus,
-              fixedStartTime: moment(phase.fixedStartTime).format("yyyy-MM-DD HH:mm:ss")
-                ? moment(v5Equivalent.scheduledStartDate).format("yyyy-MM-DD HH:mm:ss")
+              fixedStartTime: moment(phase.fixedStartTime).format(
+                "yyyy-MM-DD HH:mm:ss"
+              )
+                ? moment(v5Equivalent.scheduledStartDate).format(
+                    "yyyy-MM-DD HH:mm:ss"
+                  )
                 : undefined,
-              scheduledStartTime: moment(v5Equivalent.scheduledStartDate).format("yyyy-MM-DD HH:mm:ss"),
-              scheduledEndTime: moment(v5Equivalent.scheduledEndDate).format("yyyy-MM-DD HH:mm:ss"),
+              scheduledStartTime: moment(
+                v5Equivalent.scheduledStartDate
+              ).format("yyyy-MM-DD HH:mm:ss"),
+              scheduledEndTime: moment(v5Equivalent.scheduledEndDate).format(
+                "yyyy-MM-DD HH:mm:ss"
+              ),
               duration: v5Equivalent.duration * 1000,
-              ...(isBeingActivated && newStatus == constants.PhaseStatusTypes.Open ? {actualStartTime:  moment().format("yyyy-MM-DD HH:mm:ss"),} : {})
+              ...(isBeingActivated &&
+              newStatus == constants.PhaseStatusTypes.Open
+                ? { actualStartTime: moment().format("yyyy-MM-DD HH:mm:ss") }
+                : {}),
             });
           } else {
             console.log(`number of ${phaseName} does not match`);
@@ -310,9 +338,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       `addPhaseConstraints :: phaseTypes: ${JSON.stringify(phaseTypes)}`
     );
 
-    const {projectPhases: phasesFromIFx} = await legacyPhaseDomain.getProjectPhases({
-      projectId: legacyId,
-    });
+    const { projectPhases: phasesFromIFx } =
+      await legacyPhaseDomain.getProjectPhases({
+        projectId: legacyId,
+      });
 
     for (const phase of v5Phases) {
       console.log(
@@ -411,33 +440,35 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const { prizes: prizesFromIfx } = await legacyPrizeDomain.get({
       criteria: [
         {
-            key: "projectId",
-            value: legacyId,
-            operator: Operator.OPERATOR_EQUAL,
+          key: "projectId",
+          value: legacyId,
+          operator: Operator.OPERATOR_EQUAL,
         },
         {
           key: "prizeTypeId",
           value: PrizeTypeIds.Contest,
           operator: Operator.OPERATOR_EQUAL,
-        }
-      ]
+        },
+      ],
     });
     const { prizes: checkpointPrizes } = await legacyPrizeDomain.get({
       criteria: [
         {
-            key: "projectId",
-            value: legacyId,
-            operator: Operator.OPERATOR_EQUAL,
+          key: "projectId",
+          value: legacyId,
+          operator: Operator.OPERATOR_EQUAL,
         },
         {
           key: "prizeTypeId",
           value: PrizeTypeIds.Checkpoint,
           operator: Operator.OPERATOR_EQUAL,
-        }
-      ]
+        },
+      ],
     });
 
-    const checkpointPrizesFromIfx = checkpointPrizes ? checkpointPrizes[0] : null;
+    const checkpointPrizesFromIfx = checkpointPrizes
+      ? checkpointPrizes[0]
+      : null;
     const v5Prizes = _.map(
       _.get(
         _.find(v5PrizeSets, (p) => p.type === PrizeSetTypes.ChallengePrizes),
@@ -464,11 +495,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             await legacyPrizeDomain.update({
               updateCriteria: {
                 prizeId: ifxPrize.prizeId,
-                projectId: legacyId
+                projectId: legacyId,
               },
               updateInput: {
                 prizeAmount: v5Prizes[i],
-              }
+              },
             });
           }
         } else {
@@ -495,7 +526,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       }
     }
     // compare checkpoint prizes
-    if (checkpointPrizesFromIfx && v5CheckPointPrizes && v5CheckPointPrizes.length > 0) {
+    if (
+      checkpointPrizesFromIfx &&
+      v5CheckPointPrizes &&
+      v5CheckPointPrizes.length > 0
+    ) {
       // we assume that all checkpoint prizes will be the same
       if (
         v5CheckPointPrizes.length !==
@@ -511,8 +546,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           updateInput: {
             prizeAmount: v5CheckPointPrizes[0],
             numberOfSubmissions: v5CheckPointPrizes.length,
-          }
-        })
+          },
+        });
       }
     } else if (checkpointPrizesFromIfx) {
       await legacyPrizeDomain.delete({
@@ -529,16 +564,16 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         projectId: legacyChallengeId,
       });
     // console.log(`Legacy Terms Array: ${JSON.stringify(legacyTermsArray)}`)
-    const nda = _.find(v5Terms, (e:any) => e.id === V5_TERMS_NDA_ID);
-    const legacyNDA:any = _.find(
+    const nda = _.find(v5Terms, (e: any) => e.id === V5_TERMS_NDA_ID);
+    const legacyNDA: any = _.find(
       legacyTermsArray,
-      (e:any) => _.toNumber(e.id) === _.toNumber(LEGACY_TERMS_NDA_ID)
+      (e: any) => _.toNumber(e.id) === _.toNumber(LEGACY_TERMS_NDA_ID)
     );
 
     const standardTerms = _.find(v5Terms, (e) => e.id === V5_TERMS_STANDARD_ID);
-    const legacyStandardTerms:any = _.find(
+    const legacyStandardTerms: any = _.find(
       legacyTermsArray,
-      (e:any) => _.toNumber(e.id) === _.toNumber(LEGACY_TERMS_STANDARD_ID)
+      (e: any) => _.toNumber(e.id) === _.toNumber(LEGACY_TERMS_STANDARD_ID)
     );
 
     // console.log(`NDA: ${config.V5_TERMS_NDA_ID} - ${JSON.stringify(nda)}`)
@@ -660,7 +695,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     };
   }
 
-  async associateChallengeGroups(v5groups: any[], legacyId: number, isStudio: number) {
+  async associateChallengeGroups(
+    v5groups: any[],
+    legacyId: number,
+    isStudio: number
+  ) {
     const { groupsToBeAdded, groupsToBeDeleted } = await this.getGroups(
       v5groups,
       legacyId
@@ -672,11 +711,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     );
     for (const group of groupsToBeAdded) {
       // await groupService.addGroupToChallenge(legacyId, group)
-      const createdContestEligibility:CreateResult =
+      const createdContestEligibility: CreateResult =
         await legacyGroupContestEligibilityDomain.createContestEligibility({
           contestEligibilityId: group,
           contestId: legacyId,
-          isStudio
+          isStudio,
         });
       const ceId = createdContestEligibility.kind
         ? _.get(
@@ -773,11 +812,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         }
 
         // Set payment
-        const { projectPayments } =
-          await legacyPaymentDomain.get({
-            resourceId: resources[0].resourceId,
-            projectPaymentTypeId: ProjectPaymentTypeIds.Copilot,
-          });
+        const { projectPayments } = await legacyPaymentDomain.get({
+          resourceId: resources[0].resourceId,
+          projectPaymentTypeId: ProjectPaymentTypeIds.Copilot,
+        });
         const copilotProjectPayment =
           projectPayments?.length > 0 ? projectPayments[0] : undefined;
 
@@ -845,7 +883,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       throw new Error(`Cannot update ${input?.id}. Missing legacyId`);
     const legacyId = input.legacyId;
     const legacyChallenge = await legacyChallengeDomain.getLegacyChallenge({
-      legacyChallengeId: legacyId
+      legacyChallengeId: legacyId,
     });
 
     // Handle metadata (project_info)
@@ -855,10 +893,12 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     });
     for (const metadataKey of _.keys(constants.supportedMetadata)) {
       try {
-        metaValue = _.toString(constants.supportedMetadata[metadataKey].method(
-          input,
-          constants.supportedMetadata[metadataKey].defaultValue
-        ));
+        metaValue = _.toString(
+          constants.supportedMetadata[metadataKey].method(
+            input,
+            constants.supportedMetadata[metadataKey].defaultValue
+          )
+        );
         if (metaValue !== null && metaValue !== "") {
           if (
             !_.find(
@@ -870,14 +910,12 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
               projectId: legacyId,
               projectInfoTypeId: _.toInteger(metadataKey),
               value: metaValue,
-              createUser: createdByUserId,
             });
-          } else {            
+          } else {
             await legacyProjectInfoDomain.update({
               projectId: legacyId,
               projectInfoTypeId: _.toInteger(metadataKey),
               value: metaValue,
-              modifyUser: updatedByUserId,
             });
           }
         }
@@ -892,15 +930,20 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     // updateMemberPayments
     await this.updateMemberPayments(legacyId, input.prizeSets);
     // associateChallengeGroups
-    await this.associateChallengeGroups(input.groups, legacyId, _.includes(constants.STUDIO_CATEGORY_TYPES, legacyChallenge.projectCategoryId) ? 1 : 0);
+    await this.associateChallengeGroups(
+      input.groups,
+      legacyId,
+      _.includes(
+        constants.STUDIO_CATEGORY_TYPES,
+        legacyChallenge.projectCategoryId
+      )
+        ? 1
+        : 0
+    );
     // associateChallengeTerms
     await this.associateChallengeTerms(input.terms, legacyId);
     // setCopilotPayment
-    await this.setCopilotPayment(
-      input.id,
-      legacyId,
-      _.get(input, "prizeSets")
-    );
+    await this.setCopilotPayment(input.id, legacyId, _.get(input, "prizeSets"));
 
     // If iterative review is open
     if (
@@ -910,10 +953,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       )
     ) {
       // Try to read reviews and insert them into informix DB
-      if (
-        input.metadata &&
-        input.legacy?.reviewScorecardId
-      ) {
+      if (input.metadata && input.legacy?.reviewScorecardId) {
         let orReviewFeedback: any = _.find(
           input.metadata,
           (meta) => meta.name === "or_review_feedback"
@@ -1011,14 +1051,12 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             projectId: legacyId,
             projectInfoTypeId: 9,
             value: "On",
-            createUser: createdByUserId,
           });
         } else {
           await legacyProjectInfoDomain.update({
             projectId: legacyId,
             projectInfoTypeId: 9,
             value: "On",
-            modifyUser: updatedByUserId,
           });
         }
       }
@@ -1029,10 +1067,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       ) {
         if (input.task?.isTask) {
           console.log("Challenge is a TASK");
-          if (
-            !input.winners ||
-            input.winners.length === 0
-          ) {
+          if (!input.winners || input.winners.length === 0) {
             throw new Error("Cannot close challenge without winners");
           }
           const winnerId = _.find(
@@ -1042,11 +1077,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           console.log(
             `Will close the challenge with ID ${legacyId}. Winner ${winnerId}!`
           );
-          if (!winnerId) throw new Error("Cannot find winner")
+          if (!winnerId) throw new Error("Cannot find winner");
           await legacyChallengeDomain.closeChallenge({
             projectId: legacyId,
             winnerId,
-            modifyUser: updatedByUserId,
           });
         } else {
           console.log(
@@ -1069,8 +1103,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         console.log("Will skip syncing phases as the challenge is a task...");
       }
       if (
-        input.status ===
-          constants.challengeStatuses.CancelledClientRequest &&
+        input.status === constants.challengeStatuses.CancelledClientRequest &&
         legacyChallenge.projectStatusId !==
           constants.legacyChallengeStatusesMap.CancelledClientRequest
       ) {
@@ -1079,7 +1112,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           projectId: legacyId,
           projectStatusId:
             constants.legacyChallengeStatusesMap.CancelledClientRequest,
-          modifyUser: updatedByUserId,
         });
       }
     }
@@ -1094,11 +1126,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     //     _.set(input, key, JSON.stringify(_.get(input, key)))
     //   }
     //   console.log('------ before save --------');
-      
+
     //   console.log(input);
-    console.log(_.omit(input, ['id']));
-    
-    return super.update(scanCriteria, _.omit(input, ['id']));
+    console.log(_.omit(input, ["id"]));
+
+    return super.update(scanCriteria, _.omit(input, ["id"]));
   }
 }
 
