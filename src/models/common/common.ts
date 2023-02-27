@@ -1,5 +1,7 @@
 /* eslint-disable */
+import Long from "long";
 import _m0 from "protobufjs/minimal";
+import { Empty } from "../google/protobuf/empty";
 import { Struct, Value } from "../google/protobuf/struct";
 import { Timestamp } from "../google/protobuf/timestamp";
 
@@ -113,6 +115,7 @@ export enum Domain {
   DOMAIN_CHALLENGE_TRACK = 7,
   DOMAIN_CHALLENGE_PHASE = 8,
   DOMAIN_CHALLENGE_TIMELINE_TEMPLATE = 9,
+  DOMAIN_SUBMISSION = 10,
   UNRECOGNIZED = -1,
 }
 
@@ -148,6 +151,9 @@ export function domainFromJSON(object: any): Domain {
     case 9:
     case "DOMAIN_CHALLENGE_TIMELINE_TEMPLATE":
       return Domain.DOMAIN_CHALLENGE_TIMELINE_TEMPLATE;
+    case 10:
+    case "DOMAIN_SUBMISSION":
+      return Domain.DOMAIN_SUBMISSION;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -177,6 +183,8 @@ export function domainToJSON(object: Domain): string {
       return "DOMAIN_CHALLENGE_PHASE";
     case Domain.DOMAIN_CHALLENGE_TIMELINE_TEMPLATE:
       return "DOMAIN_CHALLENGE_TIMELINE_TEMPLATE";
+    case Domain.DOMAIN_SUBMISSION:
+      return "DOMAIN_SUBMISSION";
     case Domain.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
@@ -190,8 +198,8 @@ export interface ScanCriteria {
 }
 
 export interface ScanRequest {
+  criteria: ScanCriteria[];
   nextToken?: string | undefined;
-  scanCriteria: ScanCriteria[];
 }
 
 export interface ScanResult {
@@ -199,13 +207,28 @@ export interface ScanResult {
   items: { [key: string]: any }[];
 }
 
+export interface CreateResult {
+  kind?: { $case: "integerId"; integerId: number } | { $case: "stringId"; stringId: string };
+}
+
+export interface UpdateResult {
+  updatedCount: number;
+  message?: string | undefined;
+}
+
+export interface CheckExistsResult {
+  exists: boolean;
+}
+
 export interface LookupCriteria {
   key: string;
   value?: any;
 }
 
+/** TODO: There has to be a better way to do this. */
 export interface GoogleProtobufTypesPlaceholder {
   timestamp?: string;
+  empty?: Empty;
 }
 
 function createBaseScanCriteria(): ScanCriteria {
@@ -281,16 +304,16 @@ export const ScanCriteria = {
 };
 
 function createBaseScanRequest(): ScanRequest {
-  return { nextToken: undefined, scanCriteria: [] };
+  return { criteria: [], nextToken: undefined };
 }
 
 export const ScanRequest = {
   encode(message: ScanRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.nextToken !== undefined) {
-      writer.uint32(10).string(message.nextToken);
+    for (const v of message.criteria) {
+      ScanCriteria.encode(v!, writer.uint32(10).fork()).ldelim();
     }
-    for (const v of message.scanCriteria) {
-      ScanCriteria.encode(v!, writer.uint32(18).fork()).ldelim();
+    if (message.nextToken !== undefined) {
+      writer.uint32(18).string(message.nextToken);
     }
     return writer;
   },
@@ -303,10 +326,10 @@ export const ScanRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.nextToken = reader.string();
+          message.criteria.push(ScanCriteria.decode(reader, reader.uint32()));
           break;
         case 2:
-          message.scanCriteria.push(ScanCriteria.decode(reader, reader.uint32()));
+          message.nextToken = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -318,21 +341,19 @@ export const ScanRequest = {
 
   fromJSON(object: any): ScanRequest {
     return {
+      criteria: Array.isArray(object?.criteria) ? object.criteria.map((e: any) => ScanCriteria.fromJSON(e)) : [],
       nextToken: isSet(object.nextToken) ? String(object.nextToken) : undefined,
-      scanCriteria: Array.isArray(object?.scanCriteria)
-        ? object.scanCriteria.map((e: any) => ScanCriteria.fromJSON(e))
-        : [],
     };
   },
 
   toJSON(message: ScanRequest): unknown {
     const obj: any = {};
-    message.nextToken !== undefined && (obj.nextToken = message.nextToken);
-    if (message.scanCriteria) {
-      obj.scanCriteria = message.scanCriteria.map((e) => e ? ScanCriteria.toJSON(e) : undefined);
+    if (message.criteria) {
+      obj.criteria = message.criteria.map((e) => e ? ScanCriteria.toJSON(e) : undefined);
     } else {
-      obj.scanCriteria = [];
+      obj.criteria = [];
     }
+    message.nextToken !== undefined && (obj.nextToken = message.nextToken);
     return obj;
   },
 
@@ -342,8 +363,8 @@ export const ScanRequest = {
 
   fromPartial<I extends Exact<DeepPartial<ScanRequest>, I>>(object: I): ScanRequest {
     const message = createBaseScanRequest();
+    message.criteria = object.criteria?.map((e) => ScanCriteria.fromPartial(e)) || [];
     message.nextToken = object.nextToken ?? undefined;
-    message.scanCriteria = object.scanCriteria?.map((e) => ScanCriteria.fromPartial(e)) || [];
     return message;
   },
 };
@@ -414,6 +435,190 @@ export const ScanResult = {
   },
 };
 
+function createBaseCreateResult(): CreateResult {
+  return { kind: undefined };
+}
+
+export const CreateResult = {
+  encode(message: CreateResult, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    switch (message.kind?.$case) {
+      case "integerId":
+        writer.uint32(8).int64(message.kind.integerId);
+        break;
+      case "stringId":
+        writer.uint32(18).string(message.kind.stringId);
+        break;
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CreateResult {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateResult();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.kind = { $case: "integerId", integerId: longToNumber(reader.int64() as Long) };
+          break;
+        case 2:
+          message.kind = { $case: "stringId", stringId: reader.string() };
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CreateResult {
+    return {
+      kind: isSet(object.integerId)
+        ? { $case: "integerId", integerId: Number(object.integerId) }
+        : isSet(object.stringId)
+        ? { $case: "stringId", stringId: String(object.stringId) }
+        : undefined,
+    };
+  },
+
+  toJSON(message: CreateResult): unknown {
+    const obj: any = {};
+    message.kind?.$case === "integerId" && (obj.integerId = Math.round(message.kind?.integerId));
+    message.kind?.$case === "stringId" && (obj.stringId = message.kind?.stringId);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateResult>, I>>(base?: I): CreateResult {
+    return CreateResult.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<CreateResult>, I>>(object: I): CreateResult {
+    const message = createBaseCreateResult();
+    if (object.kind?.$case === "integerId" && object.kind?.integerId !== undefined && object.kind?.integerId !== null) {
+      message.kind = { $case: "integerId", integerId: object.kind.integerId };
+    }
+    if (object.kind?.$case === "stringId" && object.kind?.stringId !== undefined && object.kind?.stringId !== null) {
+      message.kind = { $case: "stringId", stringId: object.kind.stringId };
+    }
+    return message;
+  },
+};
+
+function createBaseUpdateResult(): UpdateResult {
+  return { updatedCount: 0, message: undefined };
+}
+
+export const UpdateResult = {
+  encode(message: UpdateResult, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.updatedCount !== 0) {
+      writer.uint32(8).int64(message.updatedCount);
+    }
+    if (message.message !== undefined) {
+      writer.uint32(18).string(message.message);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateResult {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateResult();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.updatedCount = longToNumber(reader.int64() as Long);
+          break;
+        case 2:
+          message.message = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateResult {
+    return {
+      updatedCount: isSet(object.updatedCount) ? Number(object.updatedCount) : 0,
+      message: isSet(object.message) ? String(object.message) : undefined,
+    };
+  },
+
+  toJSON(message: UpdateResult): unknown {
+    const obj: any = {};
+    message.updatedCount !== undefined && (obj.updatedCount = Math.round(message.updatedCount));
+    message.message !== undefined && (obj.message = message.message);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateResult>, I>>(base?: I): UpdateResult {
+    return UpdateResult.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<UpdateResult>, I>>(object: I): UpdateResult {
+    const message = createBaseUpdateResult();
+    message.updatedCount = object.updatedCount ?? 0;
+    message.message = object.message ?? undefined;
+    return message;
+  },
+};
+
+function createBaseCheckExistsResult(): CheckExistsResult {
+  return { exists: false };
+}
+
+export const CheckExistsResult = {
+  encode(message: CheckExistsResult, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.exists === true) {
+      writer.uint32(8).bool(message.exists);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CheckExistsResult {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCheckExistsResult();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.exists = reader.bool();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CheckExistsResult {
+    return { exists: isSet(object.exists) ? Boolean(object.exists) : false };
+  },
+
+  toJSON(message: CheckExistsResult): unknown {
+    const obj: any = {};
+    message.exists !== undefined && (obj.exists = message.exists);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CheckExistsResult>, I>>(base?: I): CheckExistsResult {
+    return CheckExistsResult.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<CheckExistsResult>, I>>(object: I): CheckExistsResult {
+    const message = createBaseCheckExistsResult();
+    message.exists = object.exists ?? false;
+    return message;
+  },
+};
+
 function createBaseLookupCriteria(): LookupCriteria {
   return { key: "", value: undefined };
 }
@@ -474,13 +679,16 @@ export const LookupCriteria = {
 };
 
 function createBaseGoogleProtobufTypesPlaceholder(): GoogleProtobufTypesPlaceholder {
-  return { timestamp: undefined };
+  return { timestamp: undefined, empty: undefined };
 }
 
 export const GoogleProtobufTypesPlaceholder = {
   encode(message: GoogleProtobufTypesPlaceholder, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.timestamp !== undefined) {
       Timestamp.encode(toTimestamp(message.timestamp), writer.uint32(10).fork()).ldelim();
+    }
+    if (message.empty !== undefined) {
+      Empty.encode(message.empty, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -495,6 +703,9 @@ export const GoogleProtobufTypesPlaceholder = {
         case 1:
           message.timestamp = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           break;
+        case 2:
+          message.empty = Empty.decode(reader, reader.uint32());
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -504,12 +715,16 @@ export const GoogleProtobufTypesPlaceholder = {
   },
 
   fromJSON(object: any): GoogleProtobufTypesPlaceholder {
-    return { timestamp: isSet(object.timestamp) ? String(object.timestamp) : undefined };
+    return {
+      timestamp: isSet(object.timestamp) ? String(object.timestamp) : undefined,
+      empty: isSet(object.empty) ? Empty.fromJSON(object.empty) : undefined,
+    };
   },
 
   toJSON(message: GoogleProtobufTypesPlaceholder): unknown {
     const obj: any = {};
     message.timestamp !== undefined && (obj.timestamp = message.timestamp);
+    message.empty !== undefined && (obj.empty = message.empty ? Empty.toJSON(message.empty) : undefined);
     return obj;
   },
 
@@ -522,9 +737,29 @@ export const GoogleProtobufTypesPlaceholder = {
   ): GoogleProtobufTypesPlaceholder {
     const message = createBaseGoogleProtobufTypesPlaceholder();
     message.timestamp = object.timestamp ?? undefined;
+    message.empty = (object.empty !== undefined && object.empty !== null) ? Empty.fromPartial(object.empty) : undefined;
     return message;
   },
 };
+
+declare var self: any | undefined;
+declare var window: any | undefined;
+declare var global: any | undefined;
+var tsProtoGlobalThis: any = (() => {
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  if (typeof self !== "undefined") {
+    return self;
+  }
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
+  throw "Unable to locate global object";
+})();
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
@@ -549,6 +784,18 @@ function fromTimestamp(t: Timestamp): string {
   let millis = t.seconds * 1_000;
   millis += t.nanos / 1_000_000;
   return new Date(millis).toISOString();
+}
+
+function longToNumber(long: Long): number {
+  if (long.gt(Number.MAX_SAFE_INTEGER)) {
+    throw new tsProtoGlobalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+  }
+  return long.toNumber();
+}
+
+if (_m0.util.Long !== Long) {
+  _m0.util.Long = Long as any;
+  _m0.configure();
 }
 
 function isSet(value: any): boolean {
