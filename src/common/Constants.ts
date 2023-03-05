@@ -2,6 +2,8 @@ export const {
   REGISTRATION_PHASE_ID,
   SUBMISSION_PHASE_ID,
   CHECKPOINT_SUBMISSION_PHASE_ID,
+  ES_INDEX,
+  ES_REFRESH,
 } = process.env;
 
 export const CancelledPaymentFailed = "Cancelled - Payment Failed";

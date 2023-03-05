@@ -1,7 +1,14 @@
 /* eslint-disable */
 import { handleUnaryCall, UntypedServiceImplementation } from "@grpc/grpc-js";
 import { LookupCriteria, ScanRequest, ScanResult, UpdateResult } from "../../../common/common";
-import { Challenge, ChallengeList, CreateChallengeInput, UpdateChallengeInput } from "../challenge";
+import { Empty } from "../../../google/protobuf/empty";
+import {
+  Challenge,
+  ChallengeList,
+  CreateChallengeInput,
+  UpdateChallengeInput,
+  UpdateChallengeInputForACL,
+} from "../challenge";
 
 export type ChallengeService = typeof ChallengeService;
 export const ChallengeService = {
@@ -50,6 +57,16 @@ export const ChallengeService = {
     responseSerialize: (value: ChallengeList) => Buffer.from(ChallengeList.encode(value).finish()),
     responseDeserialize: (value: Buffer) => ChallengeList.decode(value),
   },
+  updateForAcl: {
+    path: "/topcoder.domain.service.challenge.Challenge/UpdateForACL",
+    requestStream: false,
+    responseStream: false,
+    requestSerialize: (value: UpdateChallengeInputForACL) =>
+      Buffer.from(UpdateChallengeInputForACL.encode(value).finish()),
+    requestDeserialize: (value: Buffer) => UpdateChallengeInputForACL.decode(value),
+    responseSerialize: (value: Empty) => Buffer.from(Empty.encode(value).finish()),
+    responseDeserialize: (value: Buffer) => Empty.decode(value),
+  },
 } as const;
 
 export interface ChallengeServer extends UntypedServiceImplementation {
@@ -58,4 +75,5 @@ export interface ChallengeServer extends UntypedServiceImplementation {
   lookup: handleUnaryCall<LookupCriteria, Challenge>;
   update: handleUnaryCall<UpdateChallengeInput, UpdateResult>;
   delete: handleUnaryCall<LookupCriteria, ChallengeList>;
+  updateForAcl: handleUnaryCall<UpdateChallengeInputForACL, Empty>;
 }

@@ -30,7 +30,8 @@ const protoConfig = [
   `--include_imports`,
   `--descriptor_set_out ${PROTO_REFLECTIONS}`,
   `--proto_path ${PROTO_DIR} ${PROTO_DIR}/common/*.proto`,
-  `--proto_path ${PROTO_DIR} ${PROTO_DIR}/domain-layer/challenge/**/*.proto`,
+  `--proto_path ${PROTO_DIR} ${PROTO_DIR}/domain-layer/challenge/*.proto`,
+  `--proto_path ${PROTO_DIR} ${PROTO_DIR}/domain-layer/challenge/services/*.proto`,
 ];
 
 // https://github.com/stephenh/ts-proto#usage
