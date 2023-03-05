@@ -1182,7 +1182,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         ..._.differenceBy(challenge.prizeSets, input.prizeSets.prizeSets, 'type')
       ], entry => entry.type !== 'copilot')
       const copilotPayments = _.filter(input.prizeSets.prizeSets, entry => entry.type === 'copilot')
-      if (!_.isEmpty()) {
+      if (!_.isEmpty(copilotPayments)) {
         prizeSets.push(...copilotPayments)
       }
       data.prizeSets = prizeSets
