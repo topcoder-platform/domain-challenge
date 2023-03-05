@@ -22,9 +22,11 @@ import {
   Challenge,
   ChallengeList,
   UpdateChallengeInput,
+  UpdateChallengeInputForACL,
 } from "../models/domain-layer/challenge/challenge";
 
 import Domain from "../domain/Challenge";
+import { Empty } from "../models/google/protobuf/empty";
 class ChallengeServerImpl implements ChallengeServer {
   [name: string]: UntypedHandleCall;
 
@@ -73,10 +75,20 @@ class ChallengeServerImpl implements ChallengeServer {
     callback(null, { updatedCount: 1 });
   };
 
+  updateForAcl: handleUnaryCall<UpdateChallengeInputForACL, Empty> = async (
+    call: ServerUnaryCall<UpdateChallengeInputForACL, Empty>,
+    callback: sendUnaryData<Empty>
+  ): Promise<void> => {
+    const { updateInputForAcl, filterCriteria } = call.request;
+    if (!updateInputForAcl) return callback(null);
+    await Domain.updateForAcl(filterCriteria, updateInputForAcl);
+    callback(null);
+  };
+
   delete: handleUnaryCall<LookupCriteria, ChallengeList> = async (
     call: ServerUnaryCall<LookupCriteria, ChallengeList>,
     callback: sendUnaryData<ChallengeList>
-  ): Promise<void> => {};
+  ): Promise<void> => { };
 }
 
 export { ChallengeServerImpl as ChallengeServer, ChallengeService };
