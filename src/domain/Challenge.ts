@@ -1196,7 +1196,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         input.prizeSets.prizeSets,
         (entry) => entry.type === "copilot"
       );
-      if (!_.isEmpty()) {
+      if (!_.isEmpty(copilotPayments)) {
         prizeSets.push(...copilotPayments);
       }
       data.prizeSets = prizeSets;
