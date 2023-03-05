@@ -2,6 +2,7 @@ import "source-map-support/register";
 
 import * as dotenv from "dotenv";
 import * as path from "path";
+import * as grpc from "@grpc/grpc-js";
 
 dotenv.config();
 
@@ -44,8 +45,6 @@ const server = new Server({
 if (ENV === "local") {
   addReflection(server, path.join(__dirname, "../reflections/reflection.bin"));
 }
-
-// server.addService(LegacyChallengeService, new LegacyChallengeServer());
 
 server.addService(
   ChallengeTimelineTemplateService,
