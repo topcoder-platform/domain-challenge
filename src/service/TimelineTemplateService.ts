@@ -1,6 +1,7 @@
 import {
   handleUnaryCall,
   sendUnaryData,
+  ServerErrorResponse,
   ServerUnaryCall,
   StatusObject,
 } from "@grpc/grpc-js";
@@ -49,9 +50,12 @@ class TimelineTemplateServerImpl implements TimelineTemplateServer {
   ): Promise<void> => {
     const { request: lookupCriteria } = call;
 
-    const TimelineTemplate = await Domain.lookup(lookupCriteria);
-
-    callback(null, TimelineTemplate);
+    try {
+      const TimelineTemplate = await Domain.lookup(lookupCriteria);
+      callback(null, TimelineTemplate);
+    } catch (err) {
+      callback(err as StatusObject, null);
+    }
   };
 
   create: handleUnaryCall<CreateTimelineTemplateInput, TimelineTemplate> =

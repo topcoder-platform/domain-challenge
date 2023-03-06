@@ -18,7 +18,13 @@ import IdGenerator from "../helpers/IdGenerator";
 import {
   Challenge,
   ChallengeList,
+  Challenge_Legacy,
+  Challenge_Overview,
+  Challenge_Phase,
+  Challenge_PrizeSet,
   CreateChallengeInput,
+  UpdateChallengeInputForACL_UpdateInputForACL,
+  UpdateChallengeInputForACL_WinnerACL,
   UpdateChallengeInput_UpdateInput,
 } from "../models/domain-layer/challenge/challenge";
 import { ChallengeSchema } from "../schema/Challenge";
@@ -33,6 +39,7 @@ import {
   ResourceDomain as LegacyResourceDomain,
   ReviewDomain as LegacyReviewDomain,
   TermDomain as LegacyTermDomain,
+  CreateChallengeInput as LegacyCreateChallengeInput,
 } from "@topcoder-framework/domain-acl";
 import _ from "lodash";
 import * as v5Api from "../api/v5Api";
@@ -43,12 +50,17 @@ import {
   ProjectInfoIds,
   ProjectPaymentTypeIds,
   ResourceRoleTypes,
+  ES_INDEX,
+  ES_REFRESH,
 } from "../common/Constants";
 import m2m from "../helpers/MachineToMachineToken";
+import ElasticSearch from "../helpers/ElasticSearch";
 import { ScanCriteria } from "../models/common/common";
 import constants from "../util/constants";
 import legacyMapper from "../util/LegacyMapper";
 import { CreateResult, Operator } from "@topcoder-framework/lib-common";
+import { StatusBuilder } from "@grpc/grpc-js";
+import { Status } from "@grpc/grpc-js/build/src/constants";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
   throw new Error(
@@ -99,6 +111,7 @@ interface GetGroupsResult {
 }
 
 class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
+  private esClient = ElasticSearch.getESClient();
   protected toEntity(item: { [key: string]: Value }): Challenge {
     for (const key of [
       "phases",
@@ -130,7 +143,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     let placementPrizes = 0;
     if (input.prizeSets) {
       for (const { type, prizes } of input.prizeSets) {
-        // TODO: use enum/constants
         if (type === "placement") {
           for (const { value } of prizes) {
             placementPrizes += value;
@@ -146,8 +158,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const { track, subTrack, isTask, technologies } =
       legacyMapper.mapTrackAndType(input.trackId, input.typeId, input.tags);
 
-    console.log("technologies:", technologies, "is not used in v4(??)");
-
     input.legacy = {
       ...input.legacy,
       track,
@@ -158,6 +168,29 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       reviewType: input.legacy!.reviewType,
       confidentialityType: input.legacy!.confidentialityType,
     };
+
+    let legacyChallengeId: number | null = null;
+    if (input.status === "Draft") {
+      try {
+        // prettier-ignore
+        const legacyChallengeCreateInput = LegacyCreateChallengeInput.fromPartial(legacyMapper.mapChallengeDraftUpdateInput(input));
+        console.log(
+          "legacy-challenge-create-input",
+          legacyChallengeCreateInput
+        );
+        // prettier-ignore
+        const legacyChallengeCreateResponse = await legacyChallengeDomain.create(legacyChallengeCreateInput);
+        if (legacyChallengeCreateResponse.kind?.$case === "integerId") {
+          legacyChallengeId = legacyChallengeCreateResponse.kind.integerId;
+        }
+      } catch (err) {
+        console.log("err", err);
+        throw new StatusBuilder()
+          .withCode(Status.INTERNAL)
+          .withDetails("Failed to create legacy challenge")
+          .build();
+      }
+    }
 
     // End Anti-Corruption Layer
 
@@ -172,7 +205,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         totalPrizes: placementPrizes,
       },
       ...input,
+      legacyId: legacyChallengeId != null ? legacyChallengeId : undefined,
       description: xss(input.description ?? ""),
+      privateDescription: xss(input.privateDescription ?? ""),
     };
 
     return super.create(challenge);
@@ -1132,6 +1167,112 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     return super.update(scanCriteria, _.omit(input, ["id"]));
   }
+
+  public async updateForAcl(
+    scanCriteria: ScanCriteria[],
+    input: UpdateChallengeInputForACL_UpdateInputForACL
+  ): Promise<void> {
+    const updatedBy = "tcwebservice"; // TODO: Extract from interceptors
+    let challenge: Challenge | undefined = undefined;
+    const id = scanCriteria[0].value;
+    const data: IUpdateDataFromACL = {};
+    if (!_.isUndefined(input.status)) {
+      data.status = input.status;
+    }
+    if (!_.isUndefined(input.phases)) {
+      data.phases = input.phases.phases;
+      data.currentPhase = input.currentPhase;
+      data.registrationEndDate = input.registrationStartDate;
+      data.registrationEndDate = input.registrationEndDate;
+      data.submissionStartDate = input.submissionStartDate;
+      data.submissionEndDate = input.submissionEndDate;
+      data.startDate = input.startDate;
+      data.endDate = input.endDate;
+    }
+    if (!_.isUndefined(input.currentPhaseNames)) {
+      data.currentPhaseNames = input.currentPhaseNames.currentPhaseNames;
+    }
+    if (!_.isUndefined(input.legacy)) {
+      if (_.isUndefined(challenge)) {
+        challenge = await this.lookup({ key: "id", value: id });
+      }
+      data.legacy = _.assign({}, challenge.legacy, input.legacy);
+    }
+    if (!_.isUndefined(input.prizeSets)) {
+      if (_.isUndefined(challenge)) {
+        challenge = await this.lookup({ key: "id", value: id });
+      }
+      const prizeSets = _.filter(
+        [
+          ..._.intersectionBy(
+            input.prizeSets.prizeSets,
+            challenge.prizeSets,
+            "type"
+          ),
+          ..._.differenceBy(
+            challenge.prizeSets,
+            input.prizeSets.prizeSets,
+            "type"
+          ),
+        ],
+        (entry) => entry.type !== "copilot"
+      );
+      const copilotPayments = _.filter(
+        input.prizeSets.prizeSets,
+        (entry) => entry.type === "copilot"
+      );
+      if (!_.isEmpty(copilotPayments)) {
+        prizeSets.push(...copilotPayments);
+      }
+      data.prizeSets = prizeSets;
+    }
+    if (!_.isUndefined(input.overview)) {
+      data.overview = input.overview;
+    }
+    if (!_.isUndefined(input.winners)) {
+      data.winners = input.winners.winners;
+    }
+    data.updated = new Date();
+    data.updatedBy = updatedBy;
+    super.update(
+      scanCriteria,
+      _.omit(data, [
+        "currentPhase",
+        "currentPhaseNames",
+        "registrationStartDate",
+        "registrationEndDate",
+        "submissionStartDate",
+        "submissionEndDate",
+      ])
+    );
+    await this.esClient.update({
+      index: ES_INDEX,
+      refresh: ES_REFRESH,
+      id,
+      body: {
+        doc: data,
+      },
+    });
+  }
+}
+
+interface IUpdateDataFromACL {
+  status?: string | undefined;
+  phases?: Challenge_Phase[] | undefined;
+  currentPhase?: Challenge_Phase | undefined;
+  currentPhaseNames?: string[] | undefined;
+  registrationStartDate?: string | undefined;
+  registrationEndDate?: string | undefined;
+  submissionStartDate?: string | undefined;
+  submissionEndDate?: string | undefined;
+  startDate?: string | undefined;
+  endDate?: string | undefined;
+  legacy?: Challenge_Legacy | undefined;
+  prizeSets?: Challenge_PrizeSet[] | undefined;
+  overview?: Challenge_Overview | undefined;
+  winners?: UpdateChallengeInputForACL_WinnerACL[] | undefined;
+  updated?: Date;
+  updatedBy?: string;
 }
 
 export default new ChallengeDomain(
