@@ -86,7 +86,7 @@ class LegacyMapper {
   private mapProjectInfo(
     input: any,
     prizeSets: any
-  ): { [key: number]: string } {
+  ): { [key: number]: string | undefined } {
     const firstPlacePrize =
       prizeSets[PrizeSetTypes.ChallengePrizes]?.length >= 1
         ? prizeSets[PrizeSetTypes.ChallengePrizes][0]?.toString()
