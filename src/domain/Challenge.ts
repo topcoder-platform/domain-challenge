@@ -39,6 +39,7 @@ import {
   ResourceDomain as LegacyResourceDomain,
   ReviewDomain as LegacyReviewDomain,
   TermDomain as LegacyTermDomain,
+  CreateChallengeInput as LegacyCreateChallengeInput,
 } from "@topcoder-framework/domain-acl";
 import _ from "lodash";
 import * as v5Api from "../api/v5Api";
@@ -58,6 +59,8 @@ import { ScanCriteria } from "../models/common/common";
 import constants from "../util/constants";
 import legacyMapper from "../util/LegacyMapper";
 import { CreateResult, Operator } from "@topcoder-framework/lib-common";
+import { StatusBuilder } from "@grpc/grpc-js";
+import { Status } from "@grpc/grpc-js/build/src/constants";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
   throw new Error(
@@ -140,7 +143,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     let placementPrizes = 0;
     if (input.prizeSets) {
       for (const { type, prizes } of input.prizeSets) {
-        // TODO: use enum/constants
         if (type === "placement") {
           for (const { value } of prizes) {
             placementPrizes += value;
@@ -156,8 +158,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const { track, subTrack, isTask, technologies } =
       legacyMapper.mapTrackAndType(input.trackId, input.typeId, input.tags);
 
-    console.log("technologies:", technologies, "is not used in v4(??)");
-
     input.legacy = {
       ...input.legacy,
       track,
@@ -168,6 +168,29 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       reviewType: input.legacy!.reviewType,
       confidentialityType: input.legacy!.confidentialityType,
     };
+
+    let legacyChallengeId: number | null = null;
+    if (input.status === "Draft") {
+      try {
+        // prettier-ignore
+        const legacyChallengeCreateInput = LegacyCreateChallengeInput.fromPartial(legacyMapper.mapChallengeDraftUpdateInput(input));
+        console.log(
+          "legacy-challenge-create-input",
+          legacyChallengeCreateInput
+        );
+        // prettier-ignore
+        const legacyChallengeCreateResponse = await legacyChallengeDomain.create(legacyChallengeCreateInput);
+        if (legacyChallengeCreateResponse.kind?.$case === "integerId") {
+          legacyChallengeId = legacyChallengeCreateResponse.kind.integerId;
+        }
+      } catch (err) {
+        console.log("err", err);
+        throw new StatusBuilder()
+          .withCode(Status.INTERNAL)
+          .withDetails("Failed to create legacy challenge")
+          .build();
+      }
+    }
 
     // End Anti-Corruption Layer
 
@@ -182,7 +205,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         totalPrizes: placementPrizes,
       },
       ...input,
+      legacyId: legacyChallengeId != null ? legacyChallengeId : undefined,
       description: xss(input.description ?? ""),
+      privateDescription: xss(input.privateDescription ?? ""),
     };
 
     return super.create(challenge);

@@ -115,31 +115,31 @@
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
   integrity sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==
 
-"@topcoder-framework/client-relational@^0.5.2":
-  version "0.5.2"
-  resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com:443/npm/topcoder-framework/@topcoder-framework/client-relational/-/client-relational-0.5.2.tgz#6015f84f0d7beb6d7d4f9692bbbe23a54509b5b4"
-  integrity sha512-6H7Fmu2dbJ5I8a60t2ZfEuHm8dEY67ndn5UwuVp0LpGpivcAz0gqlZG0Htoytze9pG/Z/KjjSBlIJXTGPA7E0w==
+"@topcoder-framework/client-relational@^0.6.0":
+  version "0.6.0"
+  resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com:443/npm/topcoder-framework/@topcoder-framework/client-relational/-/client-relational-0.6.0.tgz#aaf5108efec9164e62529f6d24b51f8926e9da06"
+  integrity sha512-+/OXdFvBxi+Gv8C1io/hk1JDyFyue6Sc3kZGoHjJ32TV/SNe7C2gL0FSFBqET1S9qrczYYPVJDxTej2owvkkVA==
   dependencies:
     "@grpc/grpc-js" "^1.8.0"
-    "@topcoder-framework/lib-common" "^0.5.2"
+    "@topcoder-framework/lib-common" "^0.6.0"
     topcoder-interface "github:topcoder-platform/plat-interface-definition#v0.0.20"
     tslib "^2.4.1"
 
-"@topcoder-framework/domain-acl@^0.5.2":
-  version "0.5.2"
-  resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com:443/npm/topcoder-framework/@topcoder-framework/domain-acl/-/domain-acl-0.5.2.tgz#02e2fbdb09736cfbf214364740c6a440e89fc758"
-  integrity sha512-VCr6IS5PaT3PxIJTChRFR8ax+tfv4ln1YjW7KMIciUOhH5ScO4ttkro/GpSPitj5gdW4qt9MvhvhQfkrqT/fkg==
+"@topcoder-framework/domain-acl@^0.6.2":
+  version "0.6.2"
+  resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com:443/npm/topcoder-framework/@topcoder-framework/domain-acl/-/domain-acl-0.6.2.tgz#60f43deb6e69a1f83d5e06576d7e47b45a6c68d3"
+  integrity sha512-aseAW+pJxE1i2XPgMFJtOV5iiPQB5f0eBvcl5dlbqYhoVreLPfJHlB/eCEvHpwSVlzBTXLQHCtdhbH9Kpd+uYw==
   dependencies:
     "@grpc/grpc-js" "^1.8.7"
-    "@topcoder-framework/client-relational" "^0.5.2"
-    "@topcoder-framework/lib-common" "^0.5.2"
+    "@topcoder-framework/client-relational" "^0.6.0"
+    "@topcoder-framework/lib-common" "^0.6.0"
     topcoder-interface "github:topcoder-platform/plat-interface-definition#v0.0.20"
     tslib "^2.4.1"
 
-"@topcoder-framework/lib-common@^0.5.2":
-  version "0.5.2"
-  resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com:443/npm/topcoder-framework/@topcoder-framework/lib-common/-/lib-common-0.5.2.tgz#f60ddfaeddc30190e30c2fd47b2455a4132cb9db"
-  integrity sha512-joN63C/Atuvc5DDCPeancWOznfr6o6PGcrLcvKBS0wGMkmeeJFFNHzLQGqAZPt9uDk5f+VJtwtLI/7Sfn9EL8w==
+"@topcoder-framework/lib-common@^0.6.0":
+  version "0.6.0"
+  resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com:443/npm/topcoder-framework/@topcoder-framework/lib-common/-/lib-common-0.6.0.tgz#4331956cc4386b624a48285fb36a0987cf829c6f"
+  integrity sha512-JYx4rQb0peZ9jqEbnpCsQMFBTrRS2W5KNPxHULqi/SgDIq0rO4AWp/lJTmWYc/8i3VPPTe6upDVXjnNdJBx3dg==
   dependencies:
     "@grpc/grpc-js" "^1.8.0"
     rimraf "^3.0.2"
