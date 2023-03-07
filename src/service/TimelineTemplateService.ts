@@ -1,21 +1,20 @@
 import {
   handleUnaryCall,
   sendUnaryData,
-  ServerErrorResponse,
   ServerUnaryCall,
   StatusObject,
 } from "@grpc/grpc-js";
 import {
+  LookupCriteria,
   ScanRequest,
   ScanResult,
-  LookupCriteria,
 } from "../models/common/common";
 
 import {
-  TimelineTemplate,
   CreateTimelineTemplateInput,
-  UpdateTimelineTemplateInput,
+  TimelineTemplate,
   TimelineTemplateList,
+  UpdateTimelineTemplateInput,
 } from "../models/domain-layer/challenge/timeline_template";
 
 import {
@@ -36,12 +35,13 @@ class TimelineTemplateServerImpl implements TimelineTemplateServer {
       request: { criteria, nextToken: inputNextToken },
     } = call;
 
-    const { items, nextToken } = await Domain.scan(criteria, inputNextToken);
-
-    callback(null, {
-      items,
-      nextToken,
-    });
+    Domain.scan(criteria, inputNextToken)
+      .then(({ items, nextToken }) => {
+        callback(null, { items, nextToken });
+      })
+      .catch((error: StatusObject) => {
+        callback(error, null);
+      });
   };
 
   lookup: handleUnaryCall<LookupCriteria, TimelineTemplate> = async (
@@ -50,12 +50,13 @@ class TimelineTemplateServerImpl implements TimelineTemplateServer {
   ): Promise<void> => {
     const { request: lookupCriteria } = call;
 
-    try {
-      const TimelineTemplate = await Domain.lookup(lookupCriteria);
-      callback(null, TimelineTemplate);
-    } catch (err) {
-      callback(err as StatusObject, null);
-    }
+    Domain.lookup(lookupCriteria)
+      .then((timelineTemplate) => {
+        callback(null, timelineTemplate);
+      })
+      .catch((error: StatusObject) => {
+        callback(error, null);
+      });
   };
 
   create: handleUnaryCall<CreateTimelineTemplateInput, TimelineTemplate> =
@@ -65,9 +66,13 @@ class TimelineTemplateServerImpl implements TimelineTemplateServer {
     ): Promise<void> => {
       const { request: createRequestInput } = call;
 
-      const TimelineTemplate = await Domain.create(createRequestInput);
-
-      callback(null, TimelineTemplate);
+      Domain.create(createRequestInput)
+        .then((timelineTemplate) => {
+          callback(null, timelineTemplate);
+        })
+        .catch((error: StatusObject) => {
+          callback(error, null);
+        });
     };
 
   update: handleUnaryCall<UpdateTimelineTemplateInput, TimelineTemplateList> =
@@ -94,9 +99,13 @@ class TimelineTemplateServerImpl implements TimelineTemplateServer {
   ): Promise<void> => {
     const { request: lookupCriteria } = call;
 
-    const challengeTypes = await Domain.delete(lookupCriteria);
-
-    callback(null, TimelineTemplateList.fromJSON(challengeTypes));
+    Domain.delete(lookupCriteria)
+      .then((timelineTemplateList) => {
+        callback(null, TimelineTemplateList.fromJSON(timelineTemplateList));
+      })
+      .catch((error: StatusObject) => {
+        callback(error, null);
+      });
   };
 }
 

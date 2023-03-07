@@ -35,12 +35,13 @@ class PhaseServerImpl implements PhaseServer {
       request: { criteria, nextToken: inputNextToken },
     } = call;
 
-    const { items, nextToken } = await Domain.scan(criteria, inputNextToken);
-
-    callback(null, {
-      items,
-      nextToken,
-    });
+    Domain.scan(criteria, inputNextToken)
+      .then(({ items, nextToken }) => {
+        callback(null, { items, nextToken });
+      })
+      .catch((error: StatusObject) => {
+        callback(error, null);
+      });
   };
 
   lookup: handleUnaryCall<LookupCriteria, Phase> = async (
@@ -49,9 +50,13 @@ class PhaseServerImpl implements PhaseServer {
   ): Promise<void> => {
     const { request: lookupCriteria } = call;
 
-    const phase = await Domain.lookup(lookupCriteria);
-
-    callback(null, phase);
+    Domain.lookup(lookupCriteria)
+      .then((phase) => {
+        callback(null, phase);
+      })
+      .catch((error: StatusObject) => {
+        callback(error, null);
+      });
   };
 
   create: handleUnaryCall<CreatePhaseInput, Phase> = async (
@@ -60,9 +65,13 @@ class PhaseServerImpl implements PhaseServer {
   ): Promise<void> => {
     const { request: createRequestInput } = call;
 
-    const phase = await Domain.create(createRequestInput);
-
-    callback(null, phase);
+    Domain.create(createRequestInput)
+      .then((phase) => {
+        callback(null, phase);
+      })
+      .catch((error: StatusObject) => {
+        callback(error, null);
+      });
   };
 
   update: handleUnaryCall<UpdatePhaseInput, PhaseList> = async (
@@ -88,9 +97,13 @@ class PhaseServerImpl implements PhaseServer {
   ): Promise<void> => {
     const { request: lookupCriteria } = call;
 
-    const challengeTypes = await Domain.delete(lookupCriteria);
-
-    callback(null, PhaseList.fromJSON(challengeTypes));
+    Domain.delete(lookupCriteria)
+      .then((phaseList) => {
+        callback(null, PhaseList.fromJSON(phaseList));
+      })
+      .catch((error: StatusObject) => {
+        callback(error, null);
+      });
   };
 }
 
