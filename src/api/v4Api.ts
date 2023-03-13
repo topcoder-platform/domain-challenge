@@ -8,7 +8,7 @@ import {
   CancelledFailedScreening,
   CancelledPaymentFailed,
   CHECKPOINT_SUBMISSION_PHASE_ID,
-  prizeSetTypes,
+  PrizeSetTypes,
   REGISTRATION_PHASE_ID,
   SUBMISSION_PHASE_ID,
 } from "../common/Constants";
@@ -17,13 +17,14 @@ import { V5_TO_V4 } from "../common/ConversionMap";
 
 // TODO: Create RPC calls in anticorruption-layer
 class V4Api {
-  private getLegacyTrackInformation(
+  public getLegacyTrackInformation(
     trackId: string,
     typeId: string,
     tags: string[]
   ) {
     return V5_TO_V4[trackId][typeId](tags);
   }
+
   /**
    * Construct DTO from challenge:create payload.
    * @param {Object} payload the challenge:create payload
@@ -125,7 +126,7 @@ class V4Api {
       if (payload.prizeSets) {
         // Only Design can have checkpoint phase and checkpoint prizes
         const checkpointPrize = _.find(payload.prizeSets, {
-          type: prizeSetTypes.CheckPoint,
+          type: PrizeSetTypes.CheckPoint,
         });
         if (checkpointPrize) {
           // checkpoint prize are the same for each checkpoint submission winner
@@ -138,7 +139,7 @@ class V4Api {
 
         // prize type can be Challenge prizes
         const challengePrizes = _.find(payload.prizeSets, {
-          type: prizeSetTypes.ChallengePrizes,
+          type: PrizeSetTypes.ChallengePrizes,
         });
         if (!challengePrizes) {
           throw new Error("Challenge prize information is invalid.");

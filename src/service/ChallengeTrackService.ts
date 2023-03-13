@@ -1,4 +1,9 @@
-import { handleUnaryCall, sendUnaryData, ServerUnaryCall, StatusObject } from "@grpc/grpc-js";
+import {
+  handleUnaryCall,
+  sendUnaryData,
+  ServerUnaryCall,
+  StatusObject,
+} from "@grpc/grpc-js";
 import {
   ScanRequest,
   ScanResult,
@@ -27,18 +32,16 @@ class ChallengeTrackServerImpl implements ChallengeTrackServer {
     callback: sendUnaryData<ScanResult>
   ): Promise<void> => {
     const {
-      request: { scanCriteria, nextToken: inputNextToken },
+      request: { criteria, nextToken: inputNextToken },
     } = call;
 
-    const { items, nextToken } = await Domain.scan(
-      scanCriteria,
-      inputNextToken
-    );
-
-    callback(null, {
-      items,
-      nextToken,
-    });
+    Domain.scan(criteria, inputNextToken)
+      .then(({ items, nextToken }) => {
+        callback(null, { items, nextToken });
+      })
+      .catch((error: StatusObject) => {
+        callback(error, null);
+      });
   };
 
   lookup: handleUnaryCall<LookupCriteria, ChallengeTrack> = async (
@@ -47,9 +50,13 @@ class ChallengeTrackServerImpl implements ChallengeTrackServer {
   ): Promise<void> => {
     const { request: lookupCriteria } = call;
 
-    const ChallengeTrack = await Domain.lookup(lookupCriteria);
-
-    callback(null, ChallengeTrack);
+    Domain.lookup(lookupCriteria)
+      .then((challengeTrack) => {
+        callback(null, challengeTrack);
+      })
+      .catch((error: StatusObject) => {
+        callback(error, null);
+      });
   };
 
   create: handleUnaryCall<CreateChallengeTrackInput, ChallengeTrack> = async (
@@ -58,9 +65,13 @@ class ChallengeTrackServerImpl implements ChallengeTrackServer {
   ): Promise<void> => {
     const { request: createRequestInput } = call;
 
-    const ChallengeTrack = await Domain.create(createRequestInput);
-
-    callback(null, ChallengeTrack);
+    Domain.create(createRequestInput)
+      .then((challengeTrack) => {
+        callback(null, challengeTrack);
+      })
+      .catch((error: StatusObject) => {
+        callback(error, null);
+      });
   };
 
   update: handleUnaryCall<UpdateChallengeTrackInput, ChallengeTrackList> =
@@ -71,13 +82,10 @@ class ChallengeTrackServerImpl implements ChallengeTrackServer {
       const {
         request: { updateInput, filterCriteria },
       } = call;
-  
+
       Domain.update(filterCriteria, updateInput)
         .then((challengeTrackList) => {
-          callback(
-            null,
-            ChallengeTrackList.fromJSON(challengeTrackList)
-          );
+          callback(null, ChallengeTrackList.fromJSON(challengeTrackList));
         })
         .catch((error: StatusObject) => {
           callback(error, null);
@@ -90,9 +98,13 @@ class ChallengeTrackServerImpl implements ChallengeTrackServer {
   ): Promise<void> => {
     const { request: lookupCriteria } = call;
 
-    const challengeTracks = await Domain.delete(lookupCriteria);
-
-    callback(null, ChallengeTrackList.fromJSON(challengeTracks));
+    Domain.delete(lookupCriteria)
+      .then((challengeTrackList) => {
+        callback(null, ChallengeTrackList.fromJSON(challengeTrackList));
+      })
+      .catch((error: StatusObject) => {
+        callback(error, null);
+      });
   };
 }
 

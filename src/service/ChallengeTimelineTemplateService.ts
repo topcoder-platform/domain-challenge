@@ -34,18 +34,16 @@ class ChallengeTimelineTemplatServerImpl
     callback: sendUnaryData<ScanResult>
   ): Promise<void> => {
     const {
-      request: { scanCriteria, nextToken: inputNextToken },
+      request: { criteria, nextToken: inputNextToken },
     } = call;
 
-    const { items, nextToken } = await Domain.scan(
-      scanCriteria,
-      inputNextToken
-    );
-
-    callback(null, {
-      items,
-      nextToken,
-    });
+    Domain.scan(criteria, inputNextToken)
+      .then(({ items, nextToken }) => {
+        callback(null, { items, nextToken });
+      })
+      .catch((error: StatusObject) => {
+        callback(error, null);
+      });
   };
 
   lookup: handleUnaryCall<LookupCriteria, ChallengeTimelineTemplate> = async (
