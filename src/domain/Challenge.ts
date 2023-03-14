@@ -27,6 +27,7 @@ import {
   UpdateChallengeInputForACL_WinnerACL,
   UpdateChallengeInput_UpdateInput,
 } from "../models/domain-layer/challenge/challenge";
+import { CreateChallengeInput as LegacyCreateChallengeInput } from "../models/domain-layer/legacy/challenge";
 import { ChallengeSchema } from "../schema/Challenge";
 
 import {
@@ -39,7 +40,6 @@ import {
   ResourceDomain as LegacyResourceDomain,
   ReviewDomain as LegacyReviewDomain,
   TermDomain as LegacyTermDomain,
-  CreateChallengeInput as LegacyCreateChallengeInput,
 } from "@topcoder-framework/domain-acl";
 import _ from "lodash";
 import * as v5Api from "../api/v5Api";
@@ -52,6 +52,7 @@ import {
   ResourceRoleTypes,
   ES_INDEX,
   ES_REFRESH,
+  ChallengeStatuses,
 } from "../common/Constants";
 import m2m from "../helpers/MachineToMachineToken";
 import ElasticSearch from "../helpers/ElasticSearch";
@@ -913,241 +914,250 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const createdByUserId = 22838965; // TODO: Extract from interceptors
     const updatedByUserId = 22838965; // TODO: Extract from interceptors
 
-    // Make sure legacyId is there before we do anything
-    if (!input?.legacyId)
-      throw new Error(`Cannot update ${input?.id}. Missing legacyId`);
-    const legacyId = input.legacyId;
-    const legacyChallenge = await legacyChallengeDomain.getLegacyChallenge({
-      legacyChallengeId: legacyId,
-    });
 
-    // Handle metadata (project_info)
-    let metaValue;
-    const { projectInfos } = await legacyProjectInfoDomain.getProjectInfo({
-      projectId: legacyId,
-    });
-    for (const metadataKey of _.keys(constants.supportedMetadata)) {
-      try {
-        metaValue = _.toString(
-          constants.supportedMetadata[metadataKey].method(
-            input,
-            constants.supportedMetadata[metadataKey].defaultValue
-          )
-        );
-        if (metaValue !== null && metaValue !== "") {
-          if (
-            !_.find(
-              projectInfos,
-              (pi: any) => pi.projectInfoTypeId === _.toInteger(metadataKey)
+    // Make sure legacyId is there or status is New before we do anything in legacy
+    if (!input?.legacyId) {
+      const { items } = await super.scan(scanCriteria, undefined);
+      const [existing] = items;
+      if (existing.status !== ChallengeStatuses.New) {
+        throw new Error(`Cannot update ${input?.id}. Missing legacyId and challenge is not in New status`);
+      }
+    }
+
+    if (input?.legacyId) {
+      const legacyId = input.legacyId;
+      const legacyChallenge = await legacyChallengeDomain.getLegacyChallenge({
+        legacyChallengeId: legacyId,
+      });
+
+      // Handle metadata (project_info)
+      let metaValue;
+      const { projectInfos } = await legacyProjectInfoDomain.getProjectInfo({
+        projectId: legacyId,
+      });
+      for (const metadataKey of _.keys(constants.supportedMetadata)) {
+        try {
+          metaValue = _.toString(
+            constants.supportedMetadata[metadataKey].method(
+              input,
+              constants.supportedMetadata[metadataKey].defaultValue
             )
-          ) {
+          );
+          if (metaValue !== null && metaValue !== "") {
+            if (
+              !_.find(
+                projectInfos,
+                (pi: any) => pi.projectInfoTypeId === _.toInteger(metadataKey)
+              )
+            ) {
+              await legacyProjectInfoDomain.create({
+                projectId: legacyId,
+                projectInfoTypeId: _.toInteger(metadataKey),
+                value: metaValue,
+              });
+            } else {
+              await legacyProjectInfoDomain.update({
+                projectId: legacyId,
+                projectInfoTypeId: _.toInteger(metadataKey),
+                value: metaValue,
+              });
+            }
+          }
+        } catch (e) {
+          console.log(
+            `Failed to set ${constants.supportedMetadata[metadataKey].description} to ${metaValue} for challenge ${legacyId}`
+          );
+          console.log(e);
+        }
+      }
+
+      // updateMemberPayments
+      await this.updateMemberPayments(legacyId, input.prizeSets);
+      // associateChallengeGroups
+      await this.associateChallengeGroups(
+        input.groups,
+        legacyId,
+        _.includes(
+          constants.STUDIO_CATEGORY_TYPES,
+          legacyChallenge.projectCategoryId
+        )
+          ? 1
+          : 0
+      );
+      // associateChallengeTerms
+      await this.associateChallengeTerms(input.terms, legacyId);
+      // setCopilotPayment
+      await this.setCopilotPayment(input.id, legacyId, _.get(input, "prizeSets"));
+
+      // If iterative review is open
+      if (
+        _.find(
+          _.get(input, "phases"),
+          (p) => p.isOpen && p.name === "Iterative Review"
+        )
+      ) {
+        // Try to read reviews and insert them into informix DB
+        if (input.metadata && input.legacy?.reviewScorecardId) {
+          let orReviewFeedback: any = _.find(
+            input.metadata,
+            (meta) => meta.name === "or_review_feedback"
+          );
+          let orReviewScore: any = _.find(
+            input.metadata,
+            (meta) => meta.name === "or_review_score"
+          );
+          if (!_.isUndefined(orReviewFeedback) && !_.isUndefined(orReviewScore)) {
+            orReviewFeedback = JSON.parse(_.toString(orReviewFeedback));
+            const reviewResponses: any[] = [];
+            _.each(orReviewFeedback, (value, key) => {
+              if (input?.legacy?.reviewScorecardId) {
+                const questionId = _.get(
+                  _.find(
+                    _.get(
+                      constants.scorecardQuestionMapping,
+                      input.legacy.reviewScorecardId
+                    ),
+                    (item) =>
+                      _.toString(item.questionId) === _.toString(key) ||
+                      _.toLower(item.description) === _.toLower(key)
+                  ),
+                  "questionId"
+                );
+                reviewResponses.push({
+                  questionId,
+                  answer: value,
+                });
+              }
+            });
+            orReviewScore = _.toNumber(orReviewFeedback);
+            const { resources } = await legacyResourceDomain.getResources({
+              projectId: input.legacyId,
+              resourceRoleId: ResourceRoleTypes.IterativeReviewer,
+            });
+            if (resources.length === 0)
+              throw new Error("Cannot find iterative reviewer");
+            const iterativeReviewer = resources[0];
+            const submission = await legacyReviewDomain.getSubmission({
+              projectId: input.legacyId,
+              resourceId: iterativeReviewer.resourceId,
+            });
+            if (!submission) throw new Error("Cannot find submission");
+            const { projectPhases } = await legacyPhaseDomain.getProjectPhases({
+              projectId: input.legacyId,
+              phaseTypeId: 18,
+            });
+            if (projectPhases.length === 0)
+              throw new Error("Cannot find project phase");
+            const projectPhase = projectPhases[0];
+            const review = await legacyReviewDomain.createReview({
+              resourceId: iterativeReviewer.resourceId,
+              submissionId: submission.submissionId,
+              projectPhaseId: projectPhase.projectPhaseId,
+              scorecardId: input.legacy.reviewScorecardId,
+              committed: 1,
+              score: orReviewScore,
+              initialScore: orReviewScore,
+            });
+            const reviewId = review.kind
+              ? _.get(review.kind, review.kind?.$case, undefined)
+              : undefined;
+            if (!reviewId) throw new Error("Cannot create review");
+            for (let i = 0; i < reviewResponses.length; i += 1) {
+              await legacyReviewDomain.createReviewItem({
+                reviewId,
+                scorecardQuestionId: reviewResponses[i].questionId,
+                uploadId: submission.uploadId,
+                answer: reviewResponses[i],
+                sort: i,
+              });
+            }
+          }
+        }
+      }
+
+      let isBeingActivated = false;
+
+      if (input.status && legacyChallenge) {
+        if (
+          input.status === constants.challengeStatuses.Active &&
+          legacyChallenge.projectStatusId !==
+            constants.legacyChallengeStatusesMap.Active
+        ) {
+          isBeingActivated = true;
+          console.log("Activating challenge...");
+          await legacyChallengeDomain.activate({
+            legacyChallengeId: legacyId,
+          });
+          console.log(`Activated! `);
+          // make sure autopilot is on
+          if (!_.find(projectInfos, (pi) => pi.projectInfoTypeId === 9)) {
             await legacyProjectInfoDomain.create({
               projectId: legacyId,
-              projectInfoTypeId: _.toInteger(metadataKey),
-              value: metaValue,
+              projectInfoTypeId: 9,
+              value: "On",
             });
           } else {
             await legacyProjectInfoDomain.update({
               projectId: legacyId,
-              projectInfoTypeId: _.toInteger(metadataKey),
-              value: metaValue,
+              projectInfoTypeId: 9,
+              value: "On",
             });
           }
         }
-      } catch (e) {
-        console.log(
-          `Failed to set ${constants.supportedMetadata[metadataKey].description} to ${metaValue} for challenge ${legacyId}`
-        );
-        console.log(e);
-      }
-    }
-
-    // updateMemberPayments
-    await this.updateMemberPayments(legacyId, input.prizeSets);
-    // associateChallengeGroups
-    await this.associateChallengeGroups(
-      input.groups,
-      legacyId,
-      _.includes(
-        constants.STUDIO_CATEGORY_TYPES,
-        legacyChallenge.projectCategoryId
-      )
-        ? 1
-        : 0
-    );
-    // associateChallengeTerms
-    await this.associateChallengeTerms(input.terms, legacyId);
-    // setCopilotPayment
-    await this.setCopilotPayment(input.id, legacyId, _.get(input, "prizeSets"));
-
-    // If iterative review is open
-    if (
-      _.find(
-        _.get(input, "phases"),
-        (p) => p.isOpen && p.name === "Iterative Review"
-      )
-    ) {
-      // Try to read reviews and insert them into informix DB
-      if (input.metadata && input.legacy?.reviewScorecardId) {
-        let orReviewFeedback: any = _.find(
-          input.metadata,
-          (meta) => meta.name === "or_review_feedback"
-        );
-        let orReviewScore: any = _.find(
-          input.metadata,
-          (meta) => meta.name === "or_review_score"
-        );
-        if (!_.isUndefined(orReviewFeedback) && !_.isUndefined(orReviewScore)) {
-          orReviewFeedback = JSON.parse(_.toString(orReviewFeedback));
-          const reviewResponses: any[] = [];
-          _.each(orReviewFeedback, (value, key) => {
-            if (input?.legacy?.reviewScorecardId) {
-              const questionId = _.get(
-                _.find(
-                  _.get(
-                    constants.scorecardQuestionMapping,
-                    input.legacy.reviewScorecardId
-                  ),
-                  (item) =>
-                    _.toString(item.questionId) === _.toString(key) ||
-                    _.toLower(item.description) === _.toLower(key)
-                ),
-                "questionId"
-              );
-              reviewResponses.push({
-                questionId,
-                answer: value,
-              });
+        if (
+          input.status === constants.challengeStatuses.Completed &&
+          legacyChallenge.projectStatusId !==
+            constants.legacyChallengeStatusesMap.Completed
+        ) {
+          if (input.task?.isTask) {
+            console.log("Challenge is a TASK");
+            if (!input.winners || input.winners.length === 0) {
+              throw new Error("Cannot close challenge without winners");
             }
-          });
-          orReviewScore = _.toNumber(orReviewFeedback);
-          const { resources } = await legacyResourceDomain.getResources({
-            projectId: input.legacyId,
-            resourceRoleId: ResourceRoleTypes.IterativeReviewer,
-          });
-          if (resources.length === 0)
-            throw new Error("Cannot find iterative reviewer");
-          const iterativeReviewer = resources[0];
-          const submission = await legacyReviewDomain.getSubmission({
-            projectId: input.legacyId,
-            resourceId: iterativeReviewer.resourceId,
-          });
-          if (!submission) throw new Error("Cannot find submission");
-          const { projectPhases } = await legacyPhaseDomain.getProjectPhases({
-            projectId: input.legacyId,
-            phaseTypeId: 18,
-          });
-          if (projectPhases.length === 0)
-            throw new Error("Cannot find project phase");
-          const projectPhase = projectPhases[0];
-          const review = await legacyReviewDomain.createReview({
-            resourceId: iterativeReviewer.resourceId,
-            submissionId: submission.submissionId,
-            projectPhaseId: projectPhase.projectPhaseId,
-            scorecardId: input.legacy.reviewScorecardId,
-            committed: 1,
-            score: orReviewScore,
-            initialScore: orReviewScore,
-          });
-          const reviewId = review.kind
-            ? _.get(review.kind, review.kind?.$case, undefined)
-            : undefined;
-          if (!reviewId) throw new Error("Cannot create review");
-          for (let i = 0; i < reviewResponses.length; i += 1) {
-            await legacyReviewDomain.createReviewItem({
-              reviewId,
-              scorecardQuestionId: reviewResponses[i].questionId,
-              uploadId: submission.uploadId,
-              answer: reviewResponses[i],
-              sort: i,
+            const winnerId = _.find(
+              input.winners,
+              (winner) => winner.placement === 1
+            )?.userId;
+            console.log(
+              `Will close the challenge with ID ${legacyId}. Winner ${winnerId}!`
+            );
+            if (!winnerId) throw new Error("Cannot find winner");
+            await legacyChallengeDomain.closeChallenge({
+              projectId: legacyId,
+              winnerId,
             });
+          } else {
+            console.log(
+              "Challenge type is not a task.. Skip closing challenge..."
+            );
           }
         }
-      }
-    }
 
-    let isBeingActivated = false;
-
-    if (input.status && legacyChallenge) {
-      if (
-        input.status === constants.challengeStatuses.Active &&
-        legacyChallenge.projectStatusId !==
-          constants.legacyChallengeStatusesMap.Active
-      ) {
-        isBeingActivated = true;
-        console.log("Activating challenge...");
-        await legacyChallengeDomain.activate({
-          legacyChallengeId: legacyId,
-        });
-        console.log(`Activated! `);
-        // make sure autopilot is on
-        if (!_.find(projectInfos, (pi) => pi.projectInfoTypeId === 9)) {
-          await legacyProjectInfoDomain.create({
-            projectId: legacyId,
-            projectInfoTypeId: 9,
-            value: "On",
-          });
+        if (!_.get(input, "task.isTask")) {
+          const numOfReviewers = 2;
+          await this.syncChallengePhases(
+            legacyId,
+            input.phases,
+            _.get(input, "legacy.selfService", false),
+            numOfReviewers,
+            isBeingActivated
+          );
+          await this.addPhaseConstraints(legacyId, input.phases);
         } else {
-          await legacyProjectInfoDomain.update({
+          console.log("Will skip syncing phases as the challenge is a task...");
+        }
+        if (
+          input.status === constants.challengeStatuses.CancelledClientRequest &&
+          legacyChallenge.projectStatusId !==
+            constants.legacyChallengeStatusesMap.CancelledClientRequest
+        ) {
+          console.log("Cancelling challenge...");
+          await legacyChallengeDomain.update({
             projectId: legacyId,
-            projectInfoTypeId: 9,
-            value: "On",
+            projectStatusId:
+              constants.legacyChallengeStatusesMap.CancelledClientRequest,
           });
         }
-      }
-      if (
-        input.status === constants.challengeStatuses.Completed &&
-        legacyChallenge.projectStatusId !==
-          constants.legacyChallengeStatusesMap.Completed
-      ) {
-        if (input.task?.isTask) {
-          console.log("Challenge is a TASK");
-          if (!input.winners || input.winners.length === 0) {
-            throw new Error("Cannot close challenge without winners");
-          }
-          const winnerId = _.find(
-            input.winners,
-            (winner) => winner.placement === 1
-          )?.userId;
-          console.log(
-            `Will close the challenge with ID ${legacyId}. Winner ${winnerId}!`
-          );
-          if (!winnerId) throw new Error("Cannot find winner");
-          await legacyChallengeDomain.closeChallenge({
-            projectId: legacyId,
-            winnerId,
-          });
-        } else {
-          console.log(
-            "Challenge type is not a task.. Skip closing challenge..."
-          );
-        }
-      }
-
-      if (!_.get(input, "task.isTask")) {
-        const numOfReviewers = 2;
-        await this.syncChallengePhases(
-          legacyId,
-          input.phases,
-          _.get(input, "legacy.selfService", false),
-          numOfReviewers,
-          isBeingActivated
-        );
-        await this.addPhaseConstraints(legacyId, input.phases);
-      } else {
-        console.log("Will skip syncing phases as the challenge is a task...");
-      }
-      if (
-        input.status === constants.challengeStatuses.CancelledClientRequest &&
-        legacyChallenge.projectStatusId !==
-          constants.legacyChallengeStatusesMap.CancelledClientRequest
-      ) {
-        console.log("Cancelling challenge...");
-        await legacyChallengeDomain.update({
-          projectId: legacyId,
-          projectStatusId:
-            constants.legacyChallengeStatusesMap.CancelledClientRequest,
-        });
       }
     }
 
