@@ -950,13 +950,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
                 (pi: any) => pi.projectInfoTypeId === _.toInteger(metadataKey)
               )
             ) {
+              console.log(`Trying to create ${metadataKey} with value ${metaValue} of type ${typeof metaValue} for challenge ${legacyId}`)
               await legacyProjectInfoDomain.create({
                 projectId: legacyId,
                 projectInfoTypeId: _.toInteger(metadataKey),
                 value: metaValue,
               });
             } else {
-              console.log(`Trying to save ${metadataKey} with value ${metaValue}} for challenge ${legacyId}`)
+              console.log(`Trying to update ${metadataKey} with value ${metaValue} of type ${typeof metaValue} for challenge ${legacyId}`)
               await legacyProjectInfoDomain.update({
                 projectId: legacyId,
                 projectInfoTypeId: _.toInteger(metadataKey),
