@@ -956,6 +956,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
                 value: metaValue,
               });
             } else {
+              console.log(`Trying to save ${metadataKey} with value ${metaValue}} for challenge ${legacyId}`)
               await legacyProjectInfoDomain.update({
                 projectId: legacyId,
                 projectInfoTypeId: _.toInteger(metadataKey),
