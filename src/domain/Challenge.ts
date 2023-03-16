@@ -870,11 +870,17 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
               value: amount,
             });
           } else {
-            await legacyProjectInfoDomain.create({
-              projectId: legacyChallengeId,
-              projectInfoTypeId: ProjectInfoIds.CopilotPayment,
-              value: amount,
-            });
+            console.log(`Creating copilot payment: ${amount}... with project id: ${legacyChallengeId} and project info type id: ${ProjectInfoIds.CopilotPayment}...`)
+            try {
+              await legacyProjectInfoDomain.create({
+                projectId: legacyChallengeId,
+                projectInfoTypeId: ProjectInfoIds.CopilotPayment,
+                value: amount,
+              });
+            } catch (e) {
+              console.log("Failed to create copilot payment!");
+              console.log(e);
+            }
           }
           if (copilotProjectPayment) {
             await legacyPaymentDomain.update({
@@ -950,14 +956,12 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
                 (pi: any) => pi.projectInfoTypeId === _.toInteger(metadataKey)
               )
             ) {
-              console.log(`Trying to create ${metadataKey} with value ${metaValue} of type ${typeof metaValue} for challenge ${legacyId}`)
               await legacyProjectInfoDomain.create({
                 projectId: legacyId,
                 projectInfoTypeId: _.toInteger(metadataKey),
                 value: metaValue,
               });
             } else {
-              console.log(`Trying to update ${metadataKey} with value ${metaValue} of type ${typeof metaValue} for challenge ${legacyId}`)
               await legacyProjectInfoDomain.update({
                 projectId: legacyId,
                 projectInfoTypeId: _.toInteger(metadataKey),
@@ -1093,11 +1097,16 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           console.log(`Activated! `);
           // make sure autopilot is on
           if (!_.find(projectInfos, (pi) => pi.projectInfoTypeId === 9)) {
-            await legacyProjectInfoDomain.create({
-              projectId: legacyId,
-              projectInfoTypeId: 9,
-              value: "On",
-            });
+            try {
+              await legacyProjectInfoDomain.create({
+                projectId: legacyId,
+                projectInfoTypeId: 9,
+                value: "On",
+              });
+            } catch (e) {
+              console.log("Failed to set autopilot to On");
+              console.log(e);
+            }
           } else {
             await legacyProjectInfoDomain.update({
               projectId: legacyId,
