@@ -21,7 +21,7 @@
   "dependencies": {
     "@grpc/grpc-js": "^1.7.1",
     "@opensearch-project/opensearch": "^2.2.0",
-    "@topcoder-framework/domain-acl": "^0.6.2",
+    "@topcoder-framework/domain-acl": "^0.6.3",
     "axios": "^1.2.2",
     "dotenv": "^16.0.3",
     "grpc-server-reflection": "^0.1.5",
