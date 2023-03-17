@@ -991,7 +991,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           : 0
       );
       // associateChallengeTerms
-      await this.associateChallengeTerms(input.terms, legacyId);
+      // await this.associateChallengeTerms(input.terms, legacyId);
       // setCopilotPayment
       await this.setCopilotPayment(input.id, legacyId, _.get(input, "prizeSets"));
 
