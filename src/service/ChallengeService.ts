@@ -64,15 +64,18 @@ class ChallengeServerImpl implements ChallengeServer {
     callback(null, { items, nextToken });
   };
 
-  update: handleUnaryCall<UpdateChallengeInput, UpdateResult> = async (
-    call: ServerUnaryCall<UpdateChallengeInput, UpdateResult>,
-    callback: sendUnaryData<UpdateResult>
+  update: handleUnaryCall<UpdateChallengeInput, ChallengeList> = async (
+    call: ServerUnaryCall<UpdateChallengeInput, ChallengeList>,
+    callback: sendUnaryData<ChallengeList>
   ): Promise<void> => {
-    const { updateInput, filterCriteria } = call.request;
-    if (!updateInput) return callback(null, { updatedCount: 0 });
-    await Domain.update(filterCriteria, updateInput);
-
-    callback(null, { updatedCount: 1 });
+    try {
+      const { updateInput, filterCriteria } = call.request;
+      if (!updateInput) return callback(null, { items: [] });
+      const result = await Domain.update(filterCriteria, updateInput);
+      callback(null, result);
+    } catch (error: any) {
+      callback(error, null);
+    }
   };
 
   updateForAcl: handleUnaryCall<UpdateChallengeInputForACL, Empty> = async (
