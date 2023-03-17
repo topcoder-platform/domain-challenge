@@ -603,13 +603,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const nda = _.find(v5Terms, (e: any) => e.id === V5_TERMS_NDA_ID);
     const legacyNDA: any = _.find(
       legacyTermsArray,
-      (e: any) => _.toNumber(e.id) === _.toNumber(LEGACY_TERMS_NDA_ID)
+      (e: any) => _.toNumber(e.termsOfUseId) === _.toNumber(LEGACY_TERMS_NDA_ID)
     );
 
     const standardTerms = _.find(v5Terms, (e) => e.id === V5_TERMS_STANDARD_ID);
     const legacyStandardTerms: any = _.find(
       legacyTermsArray,
-      (e: any) => _.toNumber(e.id) === _.toNumber(LEGACY_TERMS_STANDARD_ID)
+      (e: any) => _.toNumber(e.termsOfUseId) === _.toNumber(LEGACY_TERMS_STANDARD_ID)
     );
 
     // console.log(`NDA: ${config.V5_TERMS_NDA_ID} - ${JSON.stringify(nda)}`)
@@ -991,7 +991,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           : 0
       );
       // associateChallengeTerms
-      // await this.associateChallengeTerms(input.terms, legacyId);
+      await this.associateChallengeTerms(input.terms, legacyId);
       // setCopilotPayment
       await this.setCopilotPayment(input.id, legacyId, _.get(input, "prizeSets"));
 
