@@ -9,7 +9,6 @@ import {
   LookupCriteria,
   ScanRequest,
   ScanResult,
-  UpdateResult,
 } from "../models/common/common";
 
 import {
@@ -82,10 +81,15 @@ class ChallengeServerImpl implements ChallengeServer {
     call: ServerUnaryCall<UpdateChallengeInputForACL, Empty>,
     callback: sendUnaryData<Empty>
   ): Promise<void> => {
-    const { updateInputForAcl, filterCriteria } = call.request;
-    if (!updateInputForAcl) return callback(null);
-    await Domain.updateForAcl(filterCriteria, updateInputForAcl);
-    callback(null);
+    try {
+      const { updateInputForAcl, filterCriteria } = call.request;
+      if (!updateInputForAcl) return callback(null);
+      await Domain.updateForAcl(filterCriteria, updateInputForAcl);
+      callback(null);
+    } catch (error) {
+      console.error(`Error in updateForAcl: ${JSON.stringify(error)}`);
+      callback(null);
+    }
   };
 
   delete: handleUnaryCall<LookupCriteria, ChallengeList> = async (
