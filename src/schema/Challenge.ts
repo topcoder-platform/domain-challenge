@@ -128,5 +128,10 @@ export const ChallengeSchema = {
       type: DataType.DATA_TYPE_STRING,
     },
   ],
-  indices: {},
+  indices: {
+    legacyId: {
+      index: "legacyId-index",
+      partitionKey: "legacyId",
+    },
+  },
 };
