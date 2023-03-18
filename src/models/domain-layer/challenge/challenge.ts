@@ -377,7 +377,7 @@ export const Challenge = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Challenge {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallenge();
     while (reader.pos < end) {
@@ -706,7 +706,7 @@ export const Challenge_Legacy = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Challenge_Legacy {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallenge_Legacy();
     while (reader.pos < end) {
@@ -822,7 +822,7 @@ export const Challenge_Billing = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Challenge_Billing {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallenge_Billing();
     while (reader.pos < end) {
@@ -887,7 +887,7 @@ export const Challenge_Event = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Challenge_Event {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallenge_Event();
     while (reader.pos < end) {
@@ -955,7 +955,7 @@ export const Challenge_Term = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Challenge_Term {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallenge_Term();
     while (reader.pos < end) {
@@ -1014,7 +1014,7 @@ export const Challenge_Metadata = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Challenge_Metadata {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallenge_Metadata();
     while (reader.pos < end) {
@@ -1085,7 +1085,7 @@ export const Challenge_Discussion = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Challenge_Discussion {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallenge_Discussion();
     while (reader.pos < end) {
@@ -1196,7 +1196,7 @@ export const Challenge_Phase = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Challenge_Phase {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallenge_Phase();
     while (reader.pos < end) {
@@ -1303,7 +1303,7 @@ export const Challenge_Winner = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Challenge_Winner {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallenge_Winner();
     while (reader.pos < end) {
@@ -1374,7 +1374,7 @@ export const Challenge_Task = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Challenge_Task {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallenge_Task();
     while (reader.pos < end) {
@@ -1445,7 +1445,7 @@ export const Challenge_PrizeSet = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Challenge_PrizeSet {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallenge_PrizeSet();
     while (reader.pos < end) {
@@ -1517,7 +1517,7 @@ export const Challenge_PrizeSet_Prize = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Challenge_PrizeSet_Prize {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallenge_PrizeSet_Prize();
     while (reader.pos < end) {
@@ -1576,7 +1576,7 @@ export const Challenge_Overview = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Challenge_Overview {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallenge_Overview();
     while (reader.pos < end) {
@@ -1627,7 +1627,7 @@ export const ChallengeList = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): ChallengeList {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallengeList();
     while (reader.pos < end) {
@@ -1772,7 +1772,7 @@ export const CreateChallengeInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): CreateChallengeInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCreateChallengeInput();
     while (reader.pos < end) {
@@ -2007,7 +2007,7 @@ export const UpdateChallengeInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateChallengeInput();
     while (reader.pos < end) {
@@ -2201,7 +2201,7 @@ export const UpdateChallengeInput_UpdateInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeInput_UpdateInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateChallengeInput_UpdateInput();
     while (reader.pos < end) {
@@ -2495,7 +2495,7 @@ export const UpdateChallengeInputForACL = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeInputForACL {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateChallengeInputForACL();
     while (reader.pos < end) {
@@ -2621,7 +2621,7 @@ export const UpdateChallengeInputForACL_UpdateInputForACL = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeInputForACL_UpdateInputForACL {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateChallengeInputForACL_UpdateInputForACL();
     while (reader.pos < end) {
@@ -2784,7 +2784,7 @@ export const UpdateChallengeInputForACL_PhasesACL = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeInputForACL_PhasesACL {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateChallengeInputForACL_PhasesACL();
     while (reader.pos < end) {
@@ -2846,7 +2846,7 @@ export const UpdateChallengeInputForACL_CurrentPhaseNamesACL = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeInputForACL_CurrentPhaseNamesACL {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateChallengeInputForACL_CurrentPhaseNamesACL();
     while (reader.pos < end) {
@@ -2912,7 +2912,7 @@ export const UpdateChallengeInputForACL_LegacyACL = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeInputForACL_LegacyACL {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateChallengeInputForACL_LegacyACL();
     while (reader.pos < end) {
@@ -2975,7 +2975,7 @@ export const UpdateChallengeInputForACL_PrizeSetsACL = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeInputForACL_PrizeSetsACL {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateChallengeInputForACL_PrizeSetsACL();
     while (reader.pos < end) {
@@ -3038,7 +3038,7 @@ export const UpdateChallengeInputForACL_WinnersACL = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeInputForACL_WinnersACL {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateChallengeInputForACL_WinnersACL();
     while (reader.pos < end) {
@@ -3104,7 +3104,7 @@ export const UpdateChallengeInputForACL_WinnerACL = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeInputForACL_WinnerACL {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateChallengeInputForACL_WinnerACL();
     while (reader.pos < end) {

@@ -59,7 +59,7 @@ export const TimelineTemplatePhase = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): TimelineTemplatePhase {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseTimelineTemplatePhase();
     while (reader.pos < end) {
@@ -136,7 +136,7 @@ export const TimelineTemplate = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): TimelineTemplate {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseTimelineTemplate();
     while (reader.pos < end) {
@@ -217,7 +217,7 @@ export const TimelineTemplateList = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): TimelineTemplateList {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseTimelineTemplateList();
     while (reader.pos < end) {
@@ -281,7 +281,7 @@ export const CreateTimelineTemplateInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): CreateTimelineTemplateInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCreateTimelineTemplateInput();
     while (reader.pos < end) {
@@ -359,7 +359,7 @@ export const UpdateTimelineTemplateInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateTimelineTemplateInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateTimelineTemplateInput();
     while (reader.pos < end) {
@@ -439,7 +439,7 @@ export const UpdateTimelineTemplateInput_UpdateInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateTimelineTemplateInput_UpdateInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateTimelineTemplateInput_UpdateInput();
     while (reader.pos < end) {

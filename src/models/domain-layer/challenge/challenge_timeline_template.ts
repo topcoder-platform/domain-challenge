@@ -58,7 +58,7 @@ export const ChallengeTimelineTemplate = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): ChallengeTimelineTemplate {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallengeTimelineTemplate();
     while (reader.pos < end) {
@@ -135,7 +135,7 @@ export const ChallengeTimelineTemplateList = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): ChallengeTimelineTemplateList {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallengeTimelineTemplateList();
     while (reader.pos < end) {
@@ -203,7 +203,7 @@ export const CreateChallengeTimelineTemplateInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): CreateChallengeTimelineTemplateInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCreateChallengeTimelineTemplateInput();
     while (reader.pos < end) {
@@ -281,7 +281,7 @@ export const UpdateChallengeTimelineTemplateInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeTimelineTemplateInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateChallengeTimelineTemplateInput();
     while (reader.pos < end) {
@@ -368,7 +368,7 @@ export const UpdateChallengeTimelineTemplateInput_UpdateInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeTimelineTemplateInput_UpdateInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateChallengeTimelineTemplateInput_UpdateInput();
     while (reader.pos < end) {

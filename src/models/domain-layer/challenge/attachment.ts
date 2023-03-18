@@ -65,7 +65,7 @@ export const Attachment = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Attachment {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseAttachment();
     while (reader.pos < end) {
@@ -148,7 +148,7 @@ export const AttachmentList = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): AttachmentList {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseAttachmentList();
     while (reader.pos < end) {
@@ -215,7 +215,7 @@ export const CreateAttachmentInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): CreateAttachmentInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCreateAttachmentInput();
     while (reader.pos < end) {
@@ -295,7 +295,7 @@ export const UpdateAttachmentInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateAttachmentInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateAttachmentInput();
     while (reader.pos < end) {
@@ -379,7 +379,7 @@ export const UpdateAttachmentInput_UpdateInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateAttachmentInput_UpdateInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateAttachmentInput_UpdateInput();
     while (reader.pos < end) {

@@ -250,7 +250,7 @@ export const ScanCriteria = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): ScanCriteria {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseScanCriteria();
     while (reader.pos < end) {
@@ -319,7 +319,7 @@ export const ScanRequest = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): ScanRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseScanRequest();
     while (reader.pos < end) {
@@ -385,7 +385,7 @@ export const ScanResult = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): ScanResult {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseScanResult();
     while (reader.pos < end) {
@@ -453,7 +453,7 @@ export const CreateResult = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): CreateResult {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCreateResult();
     while (reader.pos < end) {
@@ -522,7 +522,7 @@ export const UpdateResult = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateResult {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateResult();
     while (reader.pos < end) {
@@ -581,7 +581,7 @@ export const CheckExistsResult = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): CheckExistsResult {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCheckExistsResult();
     while (reader.pos < end) {
@@ -635,7 +635,7 @@ export const LookupCriteria = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): LookupCriteria {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseLookupCriteria();
     while (reader.pos < end) {
@@ -694,7 +694,7 @@ export const GoogleProtobufTypesPlaceholder = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): GoogleProtobufTypesPlaceholder {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseGoogleProtobufTypesPlaceholder();
     while (reader.pos < end) {

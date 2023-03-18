@@ -58,7 +58,7 @@ export const ChallengeTrack = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): ChallengeTrack {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallengeTrack();
     while (reader.pos < end) {
@@ -135,7 +135,7 @@ export const ChallengeTrackList = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): ChallengeTrackList {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallengeTrackList();
     while (reader.pos < end) {
@@ -199,7 +199,7 @@ export const CreateChallengeTrackInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): CreateChallengeTrackInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCreateChallengeTrackInput();
     while (reader.pos < end) {
@@ -273,7 +273,7 @@ export const UpdateChallengeTrackInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeTrackInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateChallengeTrackInput();
     while (reader.pos < end) {
@@ -353,7 +353,7 @@ export const UpdateChallengeTrackInput_UpdateInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeTrackInput_UpdateInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateChallengeTrackInput_UpdateInput();
     while (reader.pos < end) {
