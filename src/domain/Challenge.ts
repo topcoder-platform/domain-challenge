@@ -27,7 +27,6 @@ import {
   UpdateChallengeInputForACL_WinnerACL,
   UpdateChallengeInput_UpdateInput,
 } from "../models/domain-layer/challenge/challenge";
-import { CreateChallengeInput as LegacyCreateChallengeInput } from "../models/domain-layer/legacy/challenge";
 import { ChallengeSchema } from "../schema/Challenge";
 
 import {
@@ -40,6 +39,7 @@ import {
   ResourceDomain as LegacyResourceDomain,
   ReviewDomain as LegacyReviewDomain,
   TermDomain as LegacyTermDomain,
+  CreateChallengeInput as LegacyCreateChallengeInput,
 } from "@topcoder-framework/domain-acl";
 import _ from "lodash";
 import * as v5Api from "../api/v5Api";
@@ -609,7 +609,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const standardTerms = _.find(v5Terms, (e) => e.id === V5_TERMS_STANDARD_ID);
     const legacyStandardTerms: any = _.find(
       legacyTermsArray,
-      (e: any) => _.toNumber(e.termsOfUseId) === _.toNumber(LEGACY_TERMS_STANDARD_ID)
+      (e: any) =>
+        _.toNumber(e.termsOfUseId) === _.toNumber(LEGACY_TERMS_STANDARD_ID)
     );
 
     // console.log(`NDA: ${config.V5_TERMS_NDA_ID} - ${JSON.stringify(nda)}`)
@@ -870,7 +871,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
               value: amount,
             });
           } else {
-            console.log(`Creating copilot payment: ${amount}... with project id: ${legacyChallengeId} and project info type id: ${ProjectInfoIds.CopilotPayment}...`)
+            console.log(
+              `Creating copilot payment: ${amount}... with project id: ${legacyChallengeId} and project info type id: ${ProjectInfoIds.CopilotPayment}...`
+            );
             try {
               await legacyProjectInfoDomain.create({
                 projectId: legacyChallengeId,
@@ -920,13 +923,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const createdByUserId = 22838965; // TODO: Extract from interceptors
     const updatedByUserId = 22838965; // TODO: Extract from interceptors
 
-
     // Make sure legacyId is there or status is New before we do anything in legacy
     if (!input?.legacyId) {
       const { items } = await super.scan(scanCriteria, undefined);
       const [existing] = items;
       if (existing.status !== ChallengeStatuses.New) {
-        throw new Error(`Cannot update ${input?.id}. Missing legacyId and challenge is not in New status`);
+        throw new Error(
+          `Cannot update ${input?.id}. Missing legacyId and challenge is not in New status`
+        );
       }
     }
 
@@ -993,7 +997,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       // associateChallengeTerms
       await this.associateChallengeTerms(input.terms, legacyId);
       // setCopilotPayment
-      await this.setCopilotPayment(input.id, legacyId, _.get(input, "prizeSets"));
+      await this.setCopilotPayment(
+        input.id,
+        legacyId,
+        _.get(input, "prizeSets")
+      );
 
       // If iterative review is open
       if (
@@ -1012,7 +1020,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             input.metadata,
             (meta) => meta.name === "or_review_score"
           );
-          if (!_.isUndefined(orReviewFeedback) && !_.isUndefined(orReviewScore)) {
+          if (
+            !_.isUndefined(orReviewFeedback) &&
+            !_.isUndefined(orReviewScore)
+          ) {
             orReviewFeedback = JSON.parse(_.toString(orReviewFeedback));
             const reviewResponses: any[] = [];
             _.each(orReviewFeedback, (value, key) => {
