@@ -59,7 +59,7 @@ export const Phase = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Phase {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBasePhase();
     while (reader.pos < end) {
@@ -136,7 +136,7 @@ export const PhaseList = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): PhaseList {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBasePhaseList();
     while (reader.pos < end) {
@@ -200,7 +200,7 @@ export const CreatePhaseInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): CreatePhaseInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCreatePhaseInput();
     while (reader.pos < end) {
@@ -274,7 +274,7 @@ export const UpdatePhaseInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdatePhaseInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdatePhaseInput();
     while (reader.pos < end) {
@@ -351,7 +351,7 @@ export const UpdatePhaseInput_UpdateInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdatePhaseInput_UpdateInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdatePhaseInput_UpdateInput();
     while (reader.pos < end) {

@@ -64,7 +64,7 @@ export const ChallengeType = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): ChallengeType {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallengeType();
     while (reader.pos < end) {
@@ -147,7 +147,7 @@ export const ChallengeTypeList = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): ChallengeTypeList {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseChallengeTypeList();
     while (reader.pos < end) {
@@ -214,7 +214,7 @@ export const CreateChallengeTypeInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): CreateChallengeTypeInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseCreateChallengeTypeInput();
     while (reader.pos < end) {
@@ -294,7 +294,7 @@ export const UpdateChallengeTypeInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeTypeInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateChallengeTypeInput();
     while (reader.pos < end) {
@@ -377,7 +377,7 @@ export const UpdateChallengeTypeInput_UpdateInput = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeTypeInput_UpdateInput {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateChallengeTypeInput_UpdateInput();
     while (reader.pos < end) {

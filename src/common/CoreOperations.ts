@@ -27,7 +27,6 @@ import {
 } from "../dal/models/nosql/parti_ql";
 import { StatusBuilder } from "@grpc/grpc-js";
 import { Status } from "@grpc/grpc-js/build/src/constants";
-import { GrpcError } from "./GrpcError";
 
 export type ValueType =
   | "nullValue"
@@ -88,33 +87,29 @@ abstract class CoreOperations<
         },
       },
     };
-    
+
     const queryResponse: QueryResponse = await noSqlClient.query(queryRequest);
 
     switch (queryResponse.kind?.$case) {
       case "error":
-        throw new GrpcError(
-          new StatusBuilder()
-            .withCode(Status.INTERNAL) // TODO: Map error code
-            .withDetails(queryResponse.kind?.error?.message)
-            .build()
-        );
+        throw new StatusBuilder()
+          .withCode(Status.INTERNAL)
+          .withDetails(queryResponse.kind?.error?.message)
+          .build();
       case "response":
         if (queryResponse.kind?.response?.items?.length > 0) {
           return this.toEntity(queryResponse.kind?.response?.items[0]);
         }
     }
 
-    throw new GrpcError(
-      new StatusBuilder()
-        .withCode(Status.NOT_FOUND)
-        .withDetails(
-          `Entity not found: ${lookupCriteria.key} = ${Value.unwrap(
-            (lookupCriteria.value as { value: Value }).value
-          )}`
-        )
-        .build()
-    );
+    throw new StatusBuilder()
+      .withCode(Status.NOT_FOUND)
+      .withDetails(
+        `Entity not found: ${lookupCriteria.key} = ${Value.unwrap(
+          (lookupCriteria.value as { value: Value }).value
+        )}`
+      )
+      .build();
   }
 
   public async scan(
@@ -219,12 +214,10 @@ abstract class CoreOperations<
     }
     const response: Response = queryResponse.kind?.response!;
     if (response.items?.length === 0) {
-      throw new GrpcError(
-        new StatusBuilder()
-          .withCode(Status.NOT_FOUND)
-          .withDetails(`No record matched the filter criteria`)
-          .build()
-      );
+      throw new StatusBuilder()
+        .withCode(Status.NOT_FOUND)
+        .withDetails(`No record matched the filter criteria`)
+        .build();
     }
 
     return {
@@ -258,27 +251,23 @@ abstract class CoreOperations<
     const queryResponse: QueryResponse = await noSqlClient.query(queryRequest);
 
     if (queryResponse.kind?.$case === "error") {
-      throw new GrpcError(
-        new StatusBuilder()
-          .withCode(Status.INTERNAL)
-          .withDetails(queryResponse.kind?.error?.message)
-          .build()
-      );
+      throw new StatusBuilder()
+        .withCode(Status.INTERNAL)
+        .withDetails(queryResponse.kind?.error?.message)
+        .build();
     }
 
     const response: Response = queryResponse.kind?.response!;
 
     if (response.items?.length === 0) {
-      throw new GrpcError(
-        new StatusBuilder()
-          .withCode(Status.NOT_FOUND)
-          .withDetails(
-            `Entity not found: ${lookupCriteria.key} = ${Value.unwrap(
-              (lookupCriteria.value as { value: Value }).value
-            )}`
-          )
-          .build()
-      );
+      throw new StatusBuilder()
+        .withCode(Status.NOT_FOUND)
+        .withDetails(
+          `Entity not found: ${lookupCriteria.key} = ${Value.unwrap(
+            (lookupCriteria.value as { value: Value }).value
+          )}`
+        )
+        .build();
     }
 
     return {
@@ -362,7 +351,10 @@ abstract class CoreOperations<
       return {
         kind: {
           $case: "stringValue",
-          stringValue: (typeof value === 'object') ? JSON.stringify(value) : ((value as string) || '').toString(),
+          stringValue:
+            typeof value === "object"
+              ? JSON.stringify(value)
+              : ((value as string) || "").toString(),
         },
       };
     }

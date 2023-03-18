@@ -14,7 +14,7 @@ class LegacyMapper {
       projectStatusId: legacyChallengeStatusesMap.Draft,
       ...this.mapTrackAndTypeToCategoryStudioSpecAndMmSpec(
         input.legacy.track,
-        input.legacySubTrack
+        input.legacy.subTrack
       ),
       tcDirectProjectId: input.legacy?.directProjectId!,
       winnerPrizes:
@@ -27,7 +27,7 @@ class LegacyMapper {
           })
         ) ?? [],
       phases: input.phases.map((phase: any, index: number) => ({
-        phaseTypeId: index, // TODO: map from phaseTypeId,
+        phaseTypeId: this.mapPhaseNameToPhaseTypeId(phase.name),
         phaseStatusId: 1,
         fixedStartTime: index == 1 ? phase.scheduledStartDate : undefined,
         scheduledStartTime: phase.scheduledStartDate,
@@ -83,10 +83,13 @@ class LegacyMapper {
     }, {});
   }
 
-  private mapProjectInfo(input: any, prizeSets: any) {
+  private mapProjectInfo(
+    input: any,
+    prizeSets: any
+  ): { [key: number]: string | undefined } {
     const firstPlacePrize =
-      prizeSets[PrizeSetTypes.ChallengePrizes].length >= 1
-        ? prizeSets[PrizeSetTypes.ChallengePrizes][0].toString()
+      prizeSets[PrizeSetTypes.ChallengePrizes]?.length >= 1
+        ? prizeSets[PrizeSetTypes.ChallengePrizes][0]?.toString()
         : undefined;
 
     return {
@@ -108,8 +111,8 @@ class LegacyMapper {
       32: input.billing?.billingAccountId!.toString(),
       // Review Cost
       33:
-        prizeSets[PrizeSetTypes.ReviewerPayment].length == 1
-          ? prizeSets[PrizeSetTypes.ReviewerPayment][0].toString()
+        prizeSets[PrizeSetTypes.ReviewerPayment]?.length == 1
+          ? prizeSets[PrizeSetTypes.ReviewerPayment][0]?.toString()
           : undefined,
       // Confidentiality Type
       34: input.legacy?.confidentialityType ?? "public",
@@ -121,8 +124,8 @@ class LegacyMapper {
       36: firstPlacePrize?.toString(),
       // Second Place Prize
       37:
-        prizeSets[PrizeSetTypes.ChallengePrizes].length >= 2
-          ? prizeSets[PrizeSetTypes.ChallengePrizes][1].toString()
+        prizeSets[PrizeSetTypes.ChallengePrizes]?.length >= 2
+          ? prizeSets[PrizeSetTypes.ChallengePrizes][1]?.toString()
           : undefined,
       // Reliability Bonus Cost
       38: undefined,
@@ -141,6 +144,63 @@ class LegacyMapper {
       89: "0", // Estimate Efforts Days Offshore (extract from metadata)
       90: "0", // Estimate Efforts Days Onsite (extract from metadata)
     };
+  }
+
+  private mapPhaseNameToPhaseTypeId(name: string) {
+    if (name == "Registration") {
+      return 1;
+    }
+    if (name == "Submission") {
+      return 2;
+    }
+    if (name == "Screening") {
+      return 3;
+    }
+    if (name == "Review") {
+      return 4;
+    }
+    if (name == "Appeals") {
+      return 5;
+    }
+    if (name == "Appeals Response") {
+      return 6;
+    }
+    if (name == "Aggregation") {
+      return 7;
+    }
+    if (name == "Aggregation Review") {
+      return 8;
+    }
+    if (name == "Final Fix") {
+      return 9;
+    }
+    if (name == "Final Review") {
+      return 10;
+    }
+    if (name == "Approval") {
+      return 11;
+    }
+    if (name == "Post-Mortem") {
+      return 12;
+    }
+    if (name == "Specification Submission") {
+      return 13;
+    }
+    if (name == "Specification Review") {
+      return 14;
+    }
+    if (name == "Checkpoint Submission") {
+      return 15;
+    }
+    if (name == "Checkpoint Screening") {
+      return 16;
+    }
+    if (name == "Checkpoint Review") {
+      return 17;
+    }
+    if (name == "Iterative Review") {
+      return 18;
+    }
   }
 }
 

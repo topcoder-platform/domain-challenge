@@ -668,7 +668,7 @@ export const StringSet = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): StringSet {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseStringSet();
     while (reader.pos < end) {
@@ -725,7 +725,7 @@ export const NumberSet = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): NumberSet {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseNumberSet();
     while (reader.pos < end) {
@@ -813,7 +813,7 @@ export const Value = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Value {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseValue();
     while (reader.pos < end) {
@@ -965,7 +965,7 @@ export const Attribute = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Attribute {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseAttribute();
     while (reader.pos < end) {
@@ -1030,7 +1030,7 @@ export const Filter = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Filter {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseFilter();
     while (reader.pos < end) {
@@ -1107,7 +1107,7 @@ export const SelectQuery = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): SelectQuery {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseSelectQuery();
     while (reader.pos < end) {
@@ -1195,7 +1195,7 @@ export const InsertQuery = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): InsertQuery {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseInsertQuery();
     while (reader.pos < end) {
@@ -1268,7 +1268,7 @@ export const UpdateOperation = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateOperation {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateOperation();
     while (reader.pos < end) {
@@ -1348,7 +1348,7 @@ export const UpdateQuery = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): UpdateQuery {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseUpdateQuery();
     while (reader.pos < end) {
@@ -1434,7 +1434,7 @@ export const DeleteQuery = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): DeleteQuery {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseDeleteQuery();
     while (reader.pos < end) {
@@ -1504,7 +1504,7 @@ export const ReadQuery = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): ReadQuery {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseReadQuery();
     while (reader.pos < end) {
@@ -1567,7 +1567,7 @@ export const WriteQuery = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): WriteQuery {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseWriteQuery();
     while (reader.pos < end) {
@@ -1645,7 +1645,7 @@ export const BulkWriteQuery = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): BulkWriteQuery {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseBulkWriteQuery();
     while (reader.pos < end) {
@@ -1705,7 +1705,7 @@ export const BulkQuery = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): BulkQuery {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseBulkQuery();
     while (reader.pos < end) {
@@ -1792,7 +1792,7 @@ export const Query = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Query {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQuery();
     while (reader.pos < end) {
@@ -1883,7 +1883,7 @@ export const Response = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): Response {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseResponse();
     while (reader.pos < end) {
@@ -1951,7 +1951,7 @@ export const QueryRequest = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): QueryRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryRequest();
     while (reader.pos < end) {
@@ -2019,7 +2019,7 @@ export const ResponseError = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): ResponseError {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseResponseError();
     while (reader.pos < end) {
@@ -2075,7 +2075,7 @@ export const QueryResponse = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): QueryResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseQueryResponse();
     while (reader.pos < end) {
