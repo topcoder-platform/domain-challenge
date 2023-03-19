@@ -884,6 +884,16 @@
     topcoder-interface "github:topcoder-platform/plat-interface-definition#v0.0.27"
     tslib "^2.4.1"
 
+"@topcoder-framework/lib-common@^0.6.5":
+  version "0.6.5"
+  resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com:443/npm/topcoder-framework/@topcoder-framework/lib-common/-/lib-common-0.6.5.tgz#7034e2cadd6a81a02e30d69ffc4355171e195ac7"
+  integrity sha512-z+rVKEv8gUV741TNcPh1nTcaR3H3jpCYwEoUG0LDNyrZBnc5yl83b5BlNosNF2lzS4RyqV8ilnz1nYMRQK2ERw==
+  dependencies:
+    "@grpc/grpc-js" "^1.8.0"
+    rimraf "^3.0.2"
+    topcoder-interface "github:topcoder-platform/plat-interface-definition#v0.0.27"
+    tslib "^2.4.1"
+
 "@tsconfig/node10@^1.0.7":
   version "1.0.9"
   resolved "https://registry.yarnpkg.com/@tsconfig/node10/-/node10-1.0.9.tgz#df4907fc07a886922637b15e02d4cebc4c0021b2"

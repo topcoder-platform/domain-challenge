@@ -15,6 +15,7 @@ import xss from "xss";
 import CoreOperations from "../common/CoreOperations";
 import { Value } from "../dal/models/nosql/parti_ql";
 import IdGenerator from "../helpers/IdGenerator";
+import { DomainHelper } from "@topcoder-framework/lib-common";
 import {
   Challenge,
   ChallengeList,
@@ -56,7 +57,7 @@ import {
 } from "../common/Constants";
 import m2m from "../helpers/MachineToMachineToken";
 import ElasticSearch from "../helpers/ElasticSearch";
-import { ScanCriteria } from "../models/common/common";
+import { LookupCriteria, ScanCriteria } from "../models/common/common";
 import constants from "../util/constants";
 import legacyMapper from "../util/LegacyMapper";
 import { CreateResult, Operator } from "@topcoder-framework/lib-common";
@@ -177,10 +178,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       try {
         // prettier-ignore
         const legacyChallengeCreateInput = LegacyCreateChallengeInput.fromPartial(legacyMapper.mapChallengeDraftUpdateInput(input));
-        console.log(
-          "legacy-challenge-create-input",
-          legacyChallengeCreateInput
-        );
         // prettier-ignore
         const legacyChallengeCreateResponse = await legacyChallengeDomain.create(legacyChallengeCreateInput);
         if (legacyChallengeCreateResponse.kind?.$case === "integerId") {
@@ -1223,6 +1220,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     scanCriteria: ScanCriteria[],
     input: UpdateChallengeInputForACL_UpdateInputForACL
   ): Promise<void> {
+    console.log("updateforacl", JSON.stringify(input.phases));
+    console.log("scan-criteria", scanCriteria);
     const updatedBy = "tcwebservice"; // TODO: Extract from interceptors
     let challenge: Challenge | undefined = undefined;
     const id = scanCriteria[0].value;
@@ -1231,7 +1230,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       data.status = input.status;
     }
     if (!_.isUndefined(input.phases)) {
+      console.log("setting phases");
       data.phases = input.phases.phases;
+      console.log("done setting phases");
       data.currentPhase = input.currentPhase;
       data.registrationEndDate = input.registrationStartDate;
       data.registrationEndDate = input.registrationEndDate;
@@ -1240,18 +1241,30 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       data.startDate = input.startDate;
       data.endDate = input.endDate;
     }
+    console.log("current-phase");
     if (!_.isUndefined(input.currentPhaseNames)) {
       data.currentPhaseNames = input.currentPhaseNames.currentPhaseNames;
     }
+    console.log("done-phase");
     if (!_.isUndefined(input.legacy)) {
       if (_.isUndefined(challenge)) {
-        challenge = await this.lookup({ key: "id", value: id });
+        console.log("lookup challenge");
+        try {
+          challenge = await this.lookup(
+            DomainHelper.getLookupCriteria("id", id)
+          );
+        } catch (err) {
+          console.error(err);
+          throw err;
+        }
+        console.log("done lookoing up challenge");
       }
       data.legacy = _.assign({}, challenge.legacy, input.legacy);
     }
+    console.log("done-legacy");
     if (!_.isUndefined(input.prizeSets)) {
       if (_.isUndefined(challenge)) {
-        challenge = await this.lookup({ key: "id", value: id });
+        challenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
       }
       const prizeSets = _.filter(
         [
@@ -1277,16 +1290,20 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       }
       data.prizeSets = prizeSets;
     }
+    console.log("done with prizesets");
     if (!_.isUndefined(input.overview)) {
       data.overview = input.overview;
     }
+    console.log("done with overview");
     if (!_.isUndefined(input.winners)) {
       data.winners = input.winners.winners;
     }
+    console.log("done with winners");
 
     data.updated = new Date();
     data.updatedBy = updatedBy;
 
+    console.log("Updating...", JSON.stringify(data, null, 2));
     await super.update(
       scanCriteria,
       _.omit(data, [
