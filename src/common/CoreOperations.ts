@@ -289,9 +289,7 @@ abstract class CoreOperations<
         name: criteria.key,
         // TODO: Map operator from topcoder.common.Operator to PartiQL.Operator
         operator: Operator.OPERATOR_EQUAL,
-        value: {
-          stringValue: criteria.value,
-        },
+        value: this.toValue(criteria.key, criteria.value),
       });
     });
 
