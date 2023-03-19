@@ -154,7 +154,7 @@ class LegacyMapper {
       3: phase.name === "Submission" ? 1 : undefined, // Submission Number
       4: undefined, // View Response During Appeals
       5: undefined, // Manual Screening
-      6: phase.name === "Review" ? 6 : undefined, // Reviewer Number
+      6: phase.name === "Review" ? 2 : undefined, // Reviewer Number
       7: undefined, // View Reviews During Review
     };
   }
