@@ -19,6 +19,8 @@
   "author": "Rakib Ansary <rakibansary@topcoder.com>",
   "license": "ISC",
   "dependencies": {
+    "@aws-sdk/client-lambda": "^3.294.0",
+    "@aws-sdk/util-utf8-node": "^3.259.0",
     "@grpc/grpc-js": "^1.7.1",
     "@opensearch-project/opensearch": "^2.2.0",
     "@topcoder-framework/domain-acl": "^0.6.4",

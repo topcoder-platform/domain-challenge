@@ -41,5 +41,6 @@ export const ResourceInfoIds = {
 };
 
 export const ChallengeStatuses = {
-  New: 'New',
+  New: "New",
+  Active: "Active",
 };

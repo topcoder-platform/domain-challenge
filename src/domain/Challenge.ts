@@ -62,6 +62,7 @@ import legacyMapper from "../util/LegacyMapper";
 import { CreateResult, Operator } from "@topcoder-framework/lib-common";
 import { StatusBuilder } from "@grpc/grpc-js";
 import { Status } from "@grpc/grpc-js/build/src/constants";
+import ChallengeScheduler from "../util/ChallengeScheduler";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
   throw new Error(
@@ -113,6 +114,7 @@ interface GetGroupsResult {
 
 class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   private esClient = ElasticSearch.getESClient();
+
   protected toEntity(item: { [key: string]: Value }): Challenge {
     for (const key of [
       "phases",
@@ -1197,7 +1199,24 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     //   console.log(input);
     console.log(_.omit(input, ["id"]));
 
-    return super.update(scanCriteria, _.omit(input, ["id"]));
+    const challengeList = await super.update(
+      scanCriteria,
+      _.omit(input, ["id"])
+    );
+
+    if (input.phases && input.phases.length) {
+      await ChallengeScheduler.schedule({
+        action: "schedule",
+        challengeId: input.id,
+        phases: input.phases.map((phase) => ({
+          name: phase.name,
+          scheduledStartDate: phase.scheduledStartDate,
+          scheduledEndDate: phase.scheduledEndDate,
+        })),
+      });
+    }
+
+    return challengeList;
   }
 
   public async updateForAcl(
@@ -1264,9 +1283,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     if (!_.isUndefined(input.winners)) {
       data.winners = input.winners.winners;
     }
+
     data.updated = new Date();
     data.updatedBy = updatedBy;
-    super.update(
+
+    await super.update(
       scanCriteria,
       _.omit(data, [
         "currentPhase",
@@ -1277,6 +1298,19 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         "submissionEndDate",
       ])
     );
+
+    if (input.phases?.phases && input.phases.phases.length) {
+      await ChallengeScheduler.schedule({
+        action: "schedule",
+        challengeId: id,
+        phases: input.phases.phases.map((phase) => ({
+          name: phase.name,
+          scheduledStartDate: phase.scheduledStartDate,
+          scheduledEndDate: phase.scheduledEndDate,
+        })),
+      });
+    }
+
     await this.esClient.update({
       index: ES_INDEX,
       refresh: ES_REFRESH,
