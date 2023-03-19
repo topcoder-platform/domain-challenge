@@ -29,7 +29,7 @@ export const ChallengeSchema = {
     },
     {
       name: "legacy",
-      type: DataType.DATA_TYPE_STRING,
+      type: DataType.DATA_TYPE_NUMBER,
     },
     {
       name: "billing",
