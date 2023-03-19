@@ -35,6 +35,7 @@ class LegacyMapper {
         actualStartTime: phase.actualStartDate,
         actualEndTime: phase.actualEndDate,
         duration: phase.duration,
+        phaseCriteria: this.mapPhaseCriteria(phase),
       })),
       reviewType: input.legacy?.reviewType ?? "INTERNAL",
       confidentialityType: input.legacy?.confidentialityType ?? "public",
@@ -143,6 +144,18 @@ class LegacyMapper {
       88: "0", // Effort Hours Estimate
       89: "0", // Estimate Efforts Days Offshore (extract from metadata)
       90: "0", // Estimate Efforts Days Onsite (extract from metadata)
+    };
+  }
+
+  private mapPhaseCriteria(phase: any) {
+    return {
+      1: phase.name === "Review" ? 30001610 : undefined, // Scorecard ID
+      2: phase.name === "Registration" ? 1 : undefined, // Registration Number
+      3: phase.name === "Submission" ? 1 : undefined, // Submission Number
+      4: undefined, // View Response During Appeals
+      5: undefined, // Manual Screening
+      6: phase.name === "Review" ? 6 : undefined, // Reviewer Number
+      7: undefined, // View Reviews During Review
     };
   }
 
