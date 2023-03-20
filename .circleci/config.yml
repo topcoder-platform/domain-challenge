@@ -48,5 +48,6 @@ workflows:
         filters:
           branches:
             only:
+            - fix/update-new-challenges
             - feature/autopilot
             - main
