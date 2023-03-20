@@ -573,10 +573,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             await legacyPrizeDomain.update({
               updateCriteria: {
                 prizeId: ifxPrize.prizeId,
+                place: i + 1,
                 projectId: legacyId,
               },
               updateInput: {
-                place: i + 1,
                 prizeAmount: v5Prizes[i],
               },
             });
