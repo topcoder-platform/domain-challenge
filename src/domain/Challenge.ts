@@ -1268,6 +1268,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       _.omit(input, ["id"])
     );
 
+    console.log('------ after save --------');
+
     if (input.phases && input.phases.length) {
       await ChallengeScheduler.schedule({
         action: "schedule",
