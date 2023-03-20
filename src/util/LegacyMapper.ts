@@ -2,6 +2,7 @@ import _ from "lodash";
 import { PrizeSetTypes } from "../common/Constants";
 import { V5_TO_V4 } from "../common/ConversionMap";
 import { legacyChallengeStatusesMap } from "./constants";
+import DateUtil from "./DateUtil";
 
 class LegacyMapper {
   // To be used on challenge:update calls that change state from New -> Draft
@@ -29,11 +30,14 @@ class LegacyMapper {
       phases: input.phases.map((phase: any, index: number) => ({
         phaseTypeId: this.mapPhaseNameToPhaseTypeId(phase.name),
         phaseStatusId: 1,
-        fixedStartTime: index == 1 ? phase.scheduledStartDate : undefined,
-        scheduledStartTime: phase.scheduledStartDate,
-        scheduledEndTime: phase.scheduledEndDate,
-        actualStartTime: phase.actualStartDate,
-        actualEndTime: phase.actualEndDate,
+        fixedStartTime:
+          index == 0
+            ? DateUtil.formatDateForIfx(phase.scheduledStartDate)
+            : undefined, // Registration Phase needs a fixedStartTime
+        scheduledStartTime: DateUtil.formatDateForIfx(phase.scheduledStartDate),
+        scheduledEndTime: DateUtil.formatDateForIfx(phase.scheduledEndDate),
+        actualStartTime: DateUtil.formatDateForIfx(phase.actualStartDate),
+        actualEndTime: DateUtil.formatDateForIfx(phase.actualEndDate),
         duration: phase.duration,
         phaseCriteria: this.mapPhaseCriteria(phase),
       })),
@@ -148,13 +152,30 @@ class LegacyMapper {
   }
 
   private mapPhaseCriteria(phase: any) {
+    const reviewPhaseConstraint = phase.constraints?.find(
+      (constraint: { name: string; value: number }) =>
+        constraint.name === "Number of Reviewers"
+    );
+
+    const submissionPhaseConstraint = phase.constraints?.find(
+      (constraint: { name: string; value: number }) =>
+        constraint.name === "Number of Submissions"
+    );
+
     return {
       1: phase.name === "Review" ? 30001610 : undefined, // Scorecard ID
       2: phase.name === "Registration" ? 1 : undefined, // Registration Number
-      3: phase.name === "Submission" ? 1 : undefined, // Submission Number
+      3:
+        phase.name === "Submission"
+          ? submissionPhaseConstraint?.value ??
+            reviewPhaseConstraint?.value != null
+            ? 1
+            : undefined
+          : undefined, // Submission Number
       4: undefined, // View Response During Appeals
       5: undefined, // Manual Screening
-      6: phase.name === "Review" ? 2 : undefined, // Reviewer Number
+      6:
+        phase.name === "Review" ? reviewPhaseConstraint?.value ?? 2 : undefined, // Reviewer Number
       7: undefined, // View Reviews During Review
     };
   }

@@ -178,10 +178,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       try {
         // prettier-ignore
         const legacyChallengeCreateInput = LegacyCreateChallengeInput.fromPartial(legacyMapper.mapChallengeDraftUpdateInput(input));
-        console.log(
-          "legacy-challenge-create-input",
-          legacyChallengeCreateInput
-        );
         // prettier-ignore
         const legacyChallengeCreateResponse = await legacyChallengeDomain.create(legacyChallengeCreateInput);
         if (legacyChallengeCreateResponse.kind?.$case === "integerId") {
