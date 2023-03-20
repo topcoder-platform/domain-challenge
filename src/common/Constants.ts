@@ -39,3 +39,8 @@ export const ProjectInfoIds = {
 export const ResourceInfoIds = {
   CopilotPayment: 7,
 };
+
+export const ChallengeStatuses = {
+  New: "New",
+  Active: "Active",
+};

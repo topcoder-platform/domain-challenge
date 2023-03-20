@@ -3,48 +3,50 @@ version: 2.1
 jobs:
   publish-image:
     docker:
-      - image: cimg/aws:2023.01
+    - image: cimg/aws:2023.01
     environment:
       CODEARTIFACT_ENV: PROD
       ECR_ENV: QA
       SERVICE_NAME: "domain-challenge"
       OUT_DIR: "buildscripts"
     steps:
-      - checkout
-      - setup_remote_docker:
-          docker_layer_caching: true
-      - run:
-          name: "Setup deploy scripts"
-          command: |
-            git clone -b v1.4 https://github.com/topcoder-platform/tc-deploy-scripts ../${OUT_DIR}
-            cp ./../${OUT_DIR}/awsconfiguration.sh .
-      - run:
-          name: "Authenticate with AWS CodeArtifact and Build Docker Image"
-          command: |
-            ./awsconfiguration.sh ${CODEARTIFACT_ENV}
-            source awsenvconf
-            aws codeartifact login --tool npm --repository topcoder-framework --domain topcoder --domain-owner $AWS_ACCOUNT_ID --region $AWS_REGION --namespace @topcoder-framework
-            cp ~/.npmrc .
-            rm -f awsenvconf
-            docker build -t ${SERVICE_NAME}:${CIRCLE_SHA1} .
-      - run:
-          name: "Set AWS environment variables"
-          command: |
-            ./awsconfiguration.sh ${ECR_ENV}
-      - run:
-          name: "Publish docker image"
-          command: |
-            source awsenvconf
-            aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-            docker tag ${SERVICE_NAME}:${CIRCLE_SHA1} $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}:${CIRCLE_SHA1}
-            docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}:${CIRCLE_SHA1}
+    - checkout
+    - setup_remote_docker:
+        docker_layer_caching: true
+    - run:
+        name: "Setup deploy scripts"
+        command: |
+          git clone -b v1.4 https://github.com/topcoder-platform/tc-deploy-scripts ../${OUT_DIR}
+          cp ./../${OUT_DIR}/awsconfiguration.sh .
+    - run:
+        name: "Authenticate with AWS CodeArtifact and Build Docker Image"
+        command: |
+          ./awsconfiguration.sh ${CODEARTIFACT_ENV}
+          source awsenvconf
+          aws codeartifact login --tool npm --repository topcoder-framework --domain topcoder --domain-owner $AWS_ACCOUNT_ID --region $AWS_REGION --namespace @topcoder-framework
+          cp ~/.npmrc .
+          rm -f awsenvconf
+          docker build -t ${SERVICE_NAME}:${CIRCLE_SHA1} .
+    - run:
+        name: "Set AWS environment variables"
+        command: |
+          ./awsconfiguration.sh ${ECR_ENV}
+    - run:
+        name: "Publish docker image"
+        command: |
+          source awsenvconf
+          aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+          docker tag ${SERVICE_NAME}:${CIRCLE_SHA1} $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}:${CIRCLE_SHA1}
+          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}:${CIRCLE_SHA1}
 
 workflows:
   version: 2
   publish:
     jobs:
-      - "publish-image":
-          context: "org-global"
-          filters:
-            branches:
-              only: "main"
+    - "publish-image":
+        context: "org-global"
+        filters:
+          branches:
+            only:
+            - feature/autopilot
+            - main

@@ -9,7 +9,6 @@ import {
   LookupCriteria,
   ScanRequest,
   ScanResult,
-  UpdateResult,
 } from "../models/common/common";
 
 import {
@@ -64,25 +63,33 @@ class ChallengeServerImpl implements ChallengeServer {
     callback(null, { items, nextToken });
   };
 
-  update: handleUnaryCall<UpdateChallengeInput, UpdateResult> = async (
-    call: ServerUnaryCall<UpdateChallengeInput, UpdateResult>,
-    callback: sendUnaryData<UpdateResult>
+  update: handleUnaryCall<UpdateChallengeInput, ChallengeList> = async (
+    call: ServerUnaryCall<UpdateChallengeInput, ChallengeList>,
+    callback: sendUnaryData<ChallengeList>
   ): Promise<void> => {
-    const { updateInput, filterCriteria } = call.request;
-    if (!updateInput) return callback(null, { updatedCount: 0 });
-    await Domain.update(filterCriteria, updateInput);
-
-    callback(null, { updatedCount: 1 });
+    try {
+      const { updateInput, filterCriteria } = call.request;
+      if (!updateInput) return callback(null, { items: [] });
+      const result = await Domain.update(filterCriteria, updateInput);
+      callback(null, result);
+    } catch (error: any) {
+      callback(error, null);
+    }
   };
 
   updateForAcl: handleUnaryCall<UpdateChallengeInputForACL, Empty> = async (
     call: ServerUnaryCall<UpdateChallengeInputForACL, Empty>,
     callback: sendUnaryData<Empty>
   ): Promise<void> => {
-    const { updateInputForAcl, filterCriteria } = call.request;
-    if (!updateInputForAcl) return callback(null);
-    await Domain.updateForAcl(filterCriteria, updateInputForAcl);
-    callback(null);
+    try {
+      const { updateInputForAcl, filterCriteria } = call.request;
+      if (!updateInputForAcl) return callback(null);
+      await Domain.updateForAcl(filterCriteria, updateInputForAcl);
+      callback(null);
+    } catch (error) {
+      console.error(`Error in updateForAcl: ${JSON.stringify(error)}`);
+      callback(null);
+    }
   };
 
   delete: handleUnaryCall<LookupCriteria, ChallengeList> = async (

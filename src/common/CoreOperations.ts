@@ -285,14 +285,12 @@ abstract class CoreOperations<
         index = this.entityIndexList[criteria.key].index!;
       }
 
-      return Filter.fromJSON({
+      return {
         name: criteria.key,
         // TODO: Map operator from topcoder.common.Operator to PartiQL.Operator
         operator: Operator.OPERATOR_EQUAL,
-        value: {
-          stringValue: criteria.value,
-        },
-      });
+        value: this.toValue(criteria.key, criteria.value),
+      };
     });
 
     return {
