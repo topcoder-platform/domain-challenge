@@ -1265,7 +1265,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     const challengeList = await super.update(
       scanCriteria,
-      _.omit(input, ["id"])
+      {
+        ..._.omit(input, ["id"]),
+        ...(input.prizeSets ? { prizeSets: input.prizeSets.map(ps => JSON.stringify(ps)) } : {}),
+      }
     );
 
     console.log('------ after save --------');
