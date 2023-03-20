@@ -496,8 +496,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           });
         } else {
           console.log(
-            `Could not find phase criteria type for ${constraintName}`
+            `Could not find phase criteria type for ${constraintName}. Will create it with value ${constraintValue}`
           );
+          await legacyPhaseDomain.createPhaseCriteria({
+            projectPhaseId,
+            phaseCriteriaTypeId: phaseCriteriaList[0].phaseCriteriaTypeId,
+            parameter: constraintValue,
+          });
         }
       }
     }
