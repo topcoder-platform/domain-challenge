@@ -478,9 +478,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       if (constraintName && constraintValue) {
         constraintValue = _.toString(constraintValue);
         const { phaseCriteriaList } = await legacyPhaseDomain.getPhaseCriteria({
-          projectPhaseId: phase.projectPhaseId,
+          projectPhaseId,
         });
-        console.log(`phaseCriteriaList: ${JSON.stringify(phaseCriteriaList)} for projectPhaseId: ${phase.projectPhaseId}`)
+        console.log(`phaseCriteriaList: ${JSON.stringify(phaseCriteriaList)} for projectPhaseId: ${projectPhaseId}`)
         if (
           phaseCriteriaList &&
           phaseCriteriaList.length > 0
