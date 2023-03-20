@@ -16,6 +16,10 @@ import CoreOperations from "../common/CoreOperations";
 import { Value } from "../dal/models/nosql/parti_ql";
 import IdGenerator from "../helpers/IdGenerator";
 import {
+  DomainHelper,
+  Value as ProtobufValue,
+} from "@topcoder-framework/lib-common";
+import {
   Challenge,
   ChallengeList,
   Challenge_Legacy,
@@ -62,6 +66,7 @@ import legacyMapper from "../util/LegacyMapper";
 import { CreateResult, Operator } from "@topcoder-framework/lib-common";
 import { StatusBuilder } from "@grpc/grpc-js";
 import { Status } from "@grpc/grpc-js/build/src/constants";
+import ChallengeScheduler from "../util/ChallengeScheduler";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
   throw new Error(
@@ -113,6 +118,7 @@ interface GetGroupsResult {
 
 class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   private esClient = ElasticSearch.getESClient();
+
   protected toEntity(item: { [key: string]: Value }): Challenge {
     for (const key of [
       "phases",
@@ -123,6 +129,23 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       "prizeSets",
     ]) {
       try {
+        if (key === "metadata") {
+          if (item["metadata"].kind?.$case === "listValue") {
+            item["metadata"] = {
+              kind: {
+                $case: "listValue",
+                listValue: item["metadata"].kind.listValue.map((v) => {
+                  try {
+                    return JSON.stringify(JSON.parse(v.toString()));
+                  } catch (e) {
+                    return v;
+                  }
+                }),
+              },
+            };
+          }
+        }
+
         item[key] = JSON.parse(item[key].toString());
       } catch (e) {
         // do nothing
@@ -175,10 +198,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       try {
         // prettier-ignore
         const legacyChallengeCreateInput = LegacyCreateChallengeInput.fromPartial(legacyMapper.mapChallengeDraftUpdateInput(input));
-        console.log(
-          "legacy-challenge-create-input",
-          legacyChallengeCreateInput
-        );
         // prettier-ignore
         const legacyChallengeCreateResponse = await legacyChallengeDomain.create(legacyChallengeCreateInput);
         if (legacyChallengeCreateResponse.kind?.$case === "integerId") {
@@ -209,6 +228,19 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       legacyId: legacyChallengeId != null ? legacyChallengeId : undefined,
       description: xss(input.description ?? ""),
       privateDescription: xss(input.privateDescription ?? ""),
+      metadata:
+        input.metadata.map((m) => {
+          let parsedValue = m.value;
+          try {
+            parsedValue = JSON.parse(m.value);
+          } catch (e) {
+            // ignore error and use unparsed value
+          }
+          return {
+            name: m.name,
+            value: parsedValue,
+          };
+        }) ?? [],
     };
 
     return super.create(challenge);
@@ -1197,13 +1229,32 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     //   console.log(input);
     console.log(_.omit(input, ["id"]));
 
-    return super.update(scanCriteria, _.omit(input, ["id"]));
+    const challengeList = await super.update(
+      scanCriteria,
+      _.omit(input, ["id"])
+    );
+
+    if (input.phases && input.phases.length) {
+      await ChallengeScheduler.schedule({
+        action: "schedule",
+        challengeId: input.id,
+        phases: input.phases.map((phase) => ({
+          name: phase.name,
+          scheduledStartDate: phase.scheduledStartDate,
+          scheduledEndDate: phase.scheduledEndDate,
+        })),
+      });
+    }
+
+    return challengeList;
   }
 
   public async updateForAcl(
     scanCriteria: ScanCriteria[],
     input: UpdateChallengeInputForACL_UpdateInputForACL
   ): Promise<void> {
+    console.log("updateforacl", JSON.stringify(input.phases));
+    console.log("scan-criteria", scanCriteria);
     const updatedBy = "tcwebservice"; // TODO: Extract from interceptors
     let challenge: Challenge | undefined = undefined;
     const id = scanCriteria[0].value;
@@ -1212,7 +1263,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       data.status = input.status;
     }
     if (!_.isUndefined(input.phases)) {
+      console.log("setting phases");
       data.phases = input.phases.phases;
+      console.log("done setting phases");
       data.currentPhase = input.currentPhase;
       data.registrationEndDate = input.registrationStartDate;
       data.registrationEndDate = input.registrationEndDate;
@@ -1221,18 +1274,30 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       data.startDate = input.startDate;
       data.endDate = input.endDate;
     }
+    console.log("current-phase");
     if (!_.isUndefined(input.currentPhaseNames)) {
       data.currentPhaseNames = input.currentPhaseNames.currentPhaseNames;
     }
+    console.log("done-phase");
     if (!_.isUndefined(input.legacy)) {
       if (_.isUndefined(challenge)) {
-        challenge = await this.lookup({ key: "id", value: id });
+        console.log("lookup challenge");
+        try {
+          challenge = await this.lookup(
+            DomainHelper.getLookupCriteria("id", id)
+          );
+        } catch (err) {
+          console.error(err);
+          throw err;
+        }
+        console.log("done lookoing up challenge");
       }
       data.legacy = _.assign({}, challenge.legacy, input.legacy);
     }
+    console.log("done-legacy");
     if (!_.isUndefined(input.prizeSets)) {
       if (_.isUndefined(challenge)) {
-        challenge = await this.lookup({ key: "id", value: id });
+        challenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
       }
       const prizeSets = _.filter(
         [
@@ -1258,15 +1323,21 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       }
       data.prizeSets = prizeSets;
     }
+    console.log("done with prizesets");
     if (!_.isUndefined(input.overview)) {
       data.overview = input.overview;
     }
+    console.log("done with overview");
     if (!_.isUndefined(input.winners)) {
       data.winners = input.winners.winners;
     }
+    console.log("done with winners");
+
     data.updated = new Date();
     data.updatedBy = updatedBy;
-    super.update(
+
+    console.log("Updating...", JSON.stringify(data, null, 2));
+    await super.update(
       scanCriteria,
       _.omit(data, [
         "currentPhase",
@@ -1277,6 +1348,19 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         "submissionEndDate",
       ])
     );
+
+    if (input.phases?.phases && input.phases.phases.length) {
+      await ChallengeScheduler.schedule({
+        action: "schedule",
+        challengeId: id,
+        phases: input.phases.phases.map((phase) => ({
+          name: phase.name,
+          scheduledStartDate: phase.scheduledStartDate,
+          scheduledEndDate: phase.scheduledEndDate,
+        })),
+      });
+    }
+
     await this.esClient.update({
       index: ES_INDEX,
       refresh: ES_REFRESH,
