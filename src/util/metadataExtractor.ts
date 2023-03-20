@@ -2,6 +2,7 @@
  * Metadata extractor
  */
 import _ from "lodash";
+import { PrizeSetTypes } from "../common/Constants";
 
 /**
  * Get metadata entry by key
@@ -200,6 +201,21 @@ function extractEstimateEffortOnsite (challenge:any, defaultValue:any) {
   return _.toNumber(entry.value)
 }
 
+/**
+ * Extract reviewer payment
+ * @param {Object} challenge the challenge object
+ * @param {Any} defaultValue the default value
+ */
+function extractReviewerPayment (challenge:any, defaultValue:any) {
+  try {
+    const value = challenge?.prizeSets[PrizeSetTypes.ReviewerPayment]?.length == 1 ? challenge?.prizeSets[PrizeSetTypes.ReviewerPayment][0] : null
+    if (!value) return _.toString(defaultValue)
+    return _.toString(value)
+  } catch (e) {
+    return _.toString(defaultValue)
+  }
+}
+
 export default {
   extractMarkup,
   extractAdminFee,
@@ -217,5 +233,6 @@ export default {
   extractCodeRepo,
   extractEstimateEffortHours,
   extractEstimateEffortOffshore,
-  extractEstimateEffortOnsite
+  extractEstimateEffortOnsite,
+  extractReviewerPayment
 }

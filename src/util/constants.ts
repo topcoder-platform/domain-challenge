@@ -156,6 +156,11 @@ const supportedMetadata: any = {
     defaultValue: 0,
     description: "Estimate Effort Days Onsite",
   },
+  33: {
+    method: metadataExtractor.extractReviewerPayment,
+    defaultValue: null,
+    description: "Reviewer Payment",
+  }
 };
 
 const STUDIO_CATEGORY_TYPES = [

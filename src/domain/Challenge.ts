@@ -434,6 +434,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
       let constraintName: any = null;
       let constraintValue = null;
+      let phaseCriteriaTypeId = null;
 
       if (phase.name === "Submission") {
         const numSubmissionsConstraint = phase.constraints.find(
@@ -442,6 +443,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         if (numSubmissionsConstraint) {
           constraintName = "Submission Number";
           constraintValue = numSubmissionsConstraint.value;
+          phaseCriteriaTypeId = 3;
         }
       }
 
@@ -452,6 +454,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         if (numRegistrantsConstraint) {
           constraintName = "Registration Number";
           constraintValue = numRegistrantsConstraint.value;
+          phaseCriteriaTypeId = 2;
         }
       }
 
@@ -462,6 +465,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         if (numReviewersConstraint) {
           constraintName = "Reviewer Number";
           constraintValue = numReviewersConstraint.value;
+          phaseCriteriaTypeId = 6;
         }
       }
 
@@ -472,13 +476,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       // A quick solution would have been adding a registration constraint with value 1 if none is provided when there is a submission phase constraint
 
       if (constraintName && constraintValue) {
+        constraintValue = _.toString(constraintValue);
         const { phaseCriteriaList } = await legacyPhaseDomain.getPhaseCriteria({
-          projectPhaseId: phase.projectPhaseId,
+          projectPhaseId,
         });
+        console.log(`phaseCriteriaList: ${JSON.stringify(phaseCriteriaList)} for projectPhaseId: ${projectPhaseId}`)
         if (
           phaseCriteriaList &&
-          phaseCriteriaList.length > 0 &&
-          phaseCriteriaList[0].phaseCriteriaTypeId
+          phaseCriteriaList.length > 0
         ) {
           console.log(
             `Will create phase constraint ${constraintName} with value ${constraintValue}`
@@ -487,17 +492,22 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           // and it's a backend processor, so we can just drop and recreate without slowing down anything
           await legacyPhaseDomain.deletePhaseCriteria({
             projectPhaseId,
-            phaseCriteriaTypeId: phaseCriteriaList[0].phaseCriteriaTypeId,
+            phaseCriteriaTypeId: phaseCriteriaTypeId as number,
           });
           await legacyPhaseDomain.createPhaseCriteria({
             projectPhaseId,
-            phaseCriteriaTypeId: phaseCriteriaList[0].phaseCriteriaTypeId,
+            phaseCriteriaTypeId: phaseCriteriaTypeId as number,
             parameter: constraintValue,
           });
         } else {
           console.log(
-            `Could not find phase criteria type for ${constraintName}`
+            `Could not find phase criteria type for ${constraintName}. Will create it with value ${constraintValue}`
           );
+          await legacyPhaseDomain.createPhaseCriteria({
+            projectPhaseId,
+            phaseCriteriaTypeId: phaseCriteriaTypeId as number,
+            parameter: constraintValue,
+          });
         }
       }
     }
@@ -563,6 +573,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             await legacyPrizeDomain.update({
               updateCriteria: {
                 prizeId: ifxPrize.prizeId,
+                place: i + 1,
                 projectId: legacyId,
               },
               updateInput: {
@@ -955,15 +966,39 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const createdByUserId = 22838965; // TODO: Extract from interceptors
     const updatedByUserId = 22838965; // TODO: Extract from interceptors
 
-    // Make sure legacyId is there or status is New before we do anything in legacy
     if (!input?.legacyId) {
-      const { items } = await super.scan(scanCriteria, undefined);
-      const [existing] = items;
-      if (existing.status !== ChallengeStatuses.New) {
-        throw new Error(
-          `Cannot update ${input?.id}. Missing legacyId and challenge is not in New status`
-        );
+      const { track, subTrack, isTask, technologies } =
+      legacyMapper.mapTrackAndType(input.trackId as string, input.typeId as string, input.tags);
+
+      input.legacy = {
+        ...input.legacy,
+        track,
+        subTrack,
+        pureV5Task: isTask,
+        forumId: 0,
+        directProjectId: input.legacy!.directProjectId,
+        reviewType: input.legacy!.reviewType,
+        confidentialityType: input.legacy!.confidentialityType,
+      };
+
+      let legacyChallengeId: number | null = null;
+
+      try {
+        // prettier-ignore
+        const legacyChallengeCreateInput = LegacyCreateChallengeInput.fromPartial(legacyMapper.mapChallengeDraftUpdateInput(input));
+        // prettier-ignore
+        const legacyChallengeCreateResponse = await legacyChallengeDomain.create(legacyChallengeCreateInput);
+        if (legacyChallengeCreateResponse.kind?.$case === "integerId") {
+          legacyChallengeId = legacyChallengeCreateResponse.kind.integerId;
+        }
+      } catch (err) {
+        console.log("err", err);
+        throw new StatusBuilder()
+          .withCode(Status.INTERNAL)
+          .withDetails("Failed to create legacy challenge")
+          .build();
       }
+      input.legacyId = legacyChallengeId as number;
     }
 
     if (input?.legacyId) {
@@ -1231,8 +1266,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     const challengeList = await super.update(
       scanCriteria,
-      _.omit(input, ["id"])
+      {
+        ..._.omit(input, ["id"]),
+        ...(input.prizeSets ? { prizeSets: input.prizeSets.map(ps => JSON.stringify(ps)) } : {}),
+      }
     );
+
+    console.log('------ after save --------');
 
     if (input.phases && input.phases.length) {
       await ChallengeScheduler.schedule({
