@@ -434,6 +434,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
       let constraintName: any = null;
       let constraintValue = null;
+      let phaseCriteriaTypeId = null;
 
       if (phase.name === "Submission") {
         const numSubmissionsConstraint = phase.constraints.find(
@@ -442,6 +443,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         if (numSubmissionsConstraint) {
           constraintName = "Submission Number";
           constraintValue = numSubmissionsConstraint.value;
+          phaseCriteriaTypeId = 3;
         }
       }
 
@@ -452,6 +454,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         if (numRegistrantsConstraint) {
           constraintName = "Registration Number";
           constraintValue = numRegistrantsConstraint.value;
+          phaseCriteriaTypeId = 2;
         }
       }
 
@@ -462,6 +465,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         if (numReviewersConstraint) {
           constraintName = "Reviewer Number";
           constraintValue = numReviewersConstraint.value;
+          phaseCriteriaTypeId = 6;
         }
       }
 
@@ -477,8 +481,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         });
         if (
           phaseCriteriaList &&
-          phaseCriteriaList.length > 0 &&
-          phaseCriteriaList[0].phaseCriteriaTypeId
+          phaseCriteriaList.length > 0
         ) {
           console.log(
             `Will create phase constraint ${constraintName} with value ${constraintValue}`
@@ -487,11 +490,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           // and it's a backend processor, so we can just drop and recreate without slowing down anything
           await legacyPhaseDomain.deletePhaseCriteria({
             projectPhaseId,
-            phaseCriteriaTypeId: phaseCriteriaList[0].phaseCriteriaTypeId,
+            phaseCriteriaTypeId: phaseCriteriaTypeId as number,
           });
           await legacyPhaseDomain.createPhaseCriteria({
             projectPhaseId,
-            phaseCriteriaTypeId: phaseCriteriaList[0].phaseCriteriaTypeId,
+            phaseCriteriaTypeId: phaseCriteriaTypeId as number,
             parameter: constraintValue,
           });
         } else {
@@ -500,7 +503,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           );
           await legacyPhaseDomain.createPhaseCriteria({
             projectPhaseId,
-            phaseCriteriaTypeId: phaseCriteriaList[0].phaseCriteriaTypeId,
+            phaseCriteriaTypeId: phaseCriteriaTypeId as number,
             parameter: constraintValue,
           });
         }
