@@ -563,8 +563,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       ),
       (prize) => prize.value
     );
-    console.log(`v5Prizes: ${JSON.stringify(v5Prizes)}`);
-    console.log(`prizesFromIfx: ${JSON.stringify(prizesFromIfx)}`);
     // compare prizes
     if (v5Prizes && v5Prizes.length > 0) {
       v5Prizes.sort((a, b) => b - a);
@@ -578,6 +576,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
                 projectId: legacyId,
               },
               updateInput: {
+                place: i + 1,
                 prizeAmount: v5Prizes[i],
               },
             });
