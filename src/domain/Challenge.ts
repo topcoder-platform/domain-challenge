@@ -476,6 +476,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       // A quick solution would have been adding a registration constraint with value 1 if none is provided when there is a submission phase constraint
 
       if (constraintName && constraintValue) {
+        constraintValue = _.toString(constraintValue);
         const { phaseCriteriaList } = await legacyPhaseDomain.getPhaseCriteria({
           projectPhaseId: phase.projectPhaseId,
         });
