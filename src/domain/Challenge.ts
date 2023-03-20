@@ -126,6 +126,25 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       "prizeSets",
     ]) {
       try {
+        if (key === "metadata") {
+          if (item["metadata"].kind?.$case === "listValue") {
+            item["metadata"] = {
+              kind: {
+                $case: "listValue",
+                listValue: item["metadata"].kind.listValue.map((v) => {
+                  try {
+                    return JSON.parse(v.toString());
+                  } catch (e) {
+                    return v;
+                  }
+                }),
+              },
+            };
+          }
+
+          console.log("Metadata", item["metadata"]);
+        }
+
         item[key] = JSON.parse(item[key].toString());
       } catch (e) {
         // do nothing
