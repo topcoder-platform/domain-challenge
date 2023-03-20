@@ -208,6 +208,19 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       legacyId: legacyChallengeId != null ? legacyChallengeId : undefined,
       description: xss(input.description ?? ""),
       privateDescription: xss(input.privateDescription ?? ""),
+      metadata:
+        input.metadata.map((m) => {
+          let parsedValue = m.value;
+          try {
+            parsedValue = JSON.parse(m.value);
+          } catch (e) {
+            // ignore error and use unparsed value
+          }
+          return {
+            name: m.name,
+            value: parsedValue,
+          };
+        }) ?? [],
     };
 
     return super.create(challenge);
