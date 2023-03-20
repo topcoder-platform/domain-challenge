@@ -15,7 +15,10 @@ import xss from "xss";
 import CoreOperations from "../common/CoreOperations";
 import { Value } from "../dal/models/nosql/parti_ql";
 import IdGenerator from "../helpers/IdGenerator";
-import { DomainHelper } from "@topcoder-framework/lib-common";
+import {
+  DomainHelper,
+  Value as ProtobufValue,
+} from "@topcoder-framework/lib-common";
 import {
   Challenge,
   ChallengeList,
@@ -57,7 +60,7 @@ import {
 } from "../common/Constants";
 import m2m from "../helpers/MachineToMachineToken";
 import ElasticSearch from "../helpers/ElasticSearch";
-import { LookupCriteria, ScanCriteria } from "../models/common/common";
+import { ScanCriteria } from "../models/common/common";
 import constants from "../util/constants";
 import legacyMapper from "../util/LegacyMapper";
 import { CreateResult, Operator } from "@topcoder-framework/lib-common";
@@ -133,7 +136,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
                 $case: "listValue",
                 listValue: item["metadata"].kind.listValue.map((v) => {
                   try {
-                    return JSON.parse(v.toString());
+                    return JSON.stringify(JSON.parse(v.toString()));
                   } catch (e) {
                     return v;
                   }
@@ -141,8 +144,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
               },
             };
           }
-
-          console.log("Metadata", item["metadata"]);
         }
 
         item[key] = JSON.parse(item[key].toString());
