@@ -955,15 +955,39 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const createdByUserId = 22838965; // TODO: Extract from interceptors
     const updatedByUserId = 22838965; // TODO: Extract from interceptors
 
-    // Make sure legacyId is there or status is New before we do anything in legacy
     if (!input?.legacyId) {
-      const { items } = await super.scan(scanCriteria, undefined);
-      const [existing] = items;
-      if (existing.status !== ChallengeStatuses.New) {
-        throw new Error(
-          `Cannot update ${input?.id}. Missing legacyId and challenge is not in New status`
-        );
+      const { track, subTrack, isTask, technologies } =
+      legacyMapper.mapTrackAndType(input.trackId as string, input.typeId as string, input.tags);
+
+      input.legacy = {
+        ...input.legacy,
+        track,
+        subTrack,
+        pureV5Task: isTask,
+        forumId: 0,
+        directProjectId: input.legacy!.directProjectId,
+        reviewType: input.legacy!.reviewType,
+        confidentialityType: input.legacy!.confidentialityType,
+      };
+
+      let legacyChallengeId: number | null = null;
+
+      try {
+        // prettier-ignore
+        const legacyChallengeCreateInput = LegacyCreateChallengeInput.fromPartial(legacyMapper.mapChallengeDraftUpdateInput(input));
+        // prettier-ignore
+        const legacyChallengeCreateResponse = await legacyChallengeDomain.create(legacyChallengeCreateInput);
+        if (legacyChallengeCreateResponse.kind?.$case === "integerId") {
+          legacyChallengeId = legacyChallengeCreateResponse.kind.integerId;
+        }
+      } catch (err) {
+        console.log("err", err);
+        throw new StatusBuilder()
+          .withCode(Status.INTERNAL)
+          .withDetails("Failed to create legacy challenge")
+          .build();
       }
+      input.legacyId = legacyChallengeId as number;
     }
 
     if (input?.legacyId) {
