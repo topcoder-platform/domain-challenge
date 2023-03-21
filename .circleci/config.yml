@@ -20,6 +20,7 @@ install_deploysuite: &install_deploysuite
     cp ./../buildscript/buildproperties.sh .
 
 deploy_steps: &deploy_steps
+  - checkout
   - setup_remote_docker
   - run: *install_dependency
   - run: *install_deploysuite
