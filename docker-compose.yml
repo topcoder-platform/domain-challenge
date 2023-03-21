@@ -37,7 +37,7 @@ services:
     hostname: anticorruption-layer
     restart: always
     ports:
-      - "0:9099" 
+      - "0:40020" 
     links:
       - informix-access-layer      
     logging:
@@ -64,10 +64,7 @@ services:
     links:
       - anticorruption-layer
       - informix-access-layer  
-      - dynamo-access-layer 
-    environment:
-      - grpc_client_or_address=tc-or-grpc-server
-      - grpc_client_or_port=9099        
+      - dynamo-access-layer        
     logging:
       driver: awslogs
       options:
