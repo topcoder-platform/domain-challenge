@@ -12,6 +12,6 @@ sed -i='' "s|informix-access-layer:latest|$informix_access_layer_TAG|" docker-co
 
 sed -i='' "s|anticorruption-layer:latest|$anticorruption_layer_TAG|" docker-compose.yml
 
-sed -i='' "s|domain-challenge_TAG:latest|$domain_challenge_TAG|" docker-compose.yml
+sed -i='' "s|domain-challenge:latest|$domain_challenge_TAG|" docker-compose.yml
 
 
