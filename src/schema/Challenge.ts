@@ -125,7 +125,7 @@ export const ChallengeSchema = {
     },
     {
       name: "overview",
-      type: DataType.DATA_TYPE_STRING,
+      type: DataType.DATA_TYPE_MAP,
     },
   ],
   indices: {
