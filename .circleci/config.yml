@@ -81,6 +81,7 @@ jobs:
     environment:
       DEPLOY_ENV: "DEV"
       LOGICAL_ENV: "dev"
+      BUILD_ENV: "dev"
       APPNAME: "domain-challenge"
     steps: *deploy_steps
        
