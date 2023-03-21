@@ -480,11 +480,12 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         const { phaseCriteriaList } = await legacyPhaseDomain.getPhaseCriteria({
           projectPhaseId,
         });
-        console.log(`phaseCriteriaList: ${JSON.stringify(phaseCriteriaList)} for projectPhaseId: ${projectPhaseId}`)
-        if (
-          phaseCriteriaList &&
-          phaseCriteriaList.length > 0
-        ) {
+        console.log(
+          `phaseCriteriaList: ${JSON.stringify(
+            phaseCriteriaList
+          )} for projectPhaseId: ${projectPhaseId}`
+        );
+        if (phaseCriteriaList && phaseCriteriaList.length > 0) {
           console.log(
             `Will create phase constraint ${constraintName} with value ${constraintValue}`
           );
@@ -968,7 +969,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     if (!input?.legacyId) {
       const { track, subTrack, isTask, technologies } =
-      legacyMapper.mapTrackAndType(input.trackId as string, input.typeId as string, input.tags);
+        legacyMapper.mapTrackAndType(
+          input.trackId as string,
+          input.typeId as string,
+          input.tags
+        );
 
       input.legacy = {
         ...input.legacy,
@@ -1264,27 +1269,26 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     //   console.log(input);
     console.log(_.omit(input, ["id"]));
 
-    const challengeList = await super.update(
-      scanCriteria,
-      {
-        ..._.omit(input, ["id"]),
-        ...(input.prizeSets ? { prizeSets: input.prizeSets.map(ps => JSON.stringify(ps)) } : {}),
-      }
-    );
+    const challengeList = await super.update(scanCriteria, {
+      ..._.omit(input, ["id"]),
+      ...(input.prizeSets
+        ? { prizeSets: input.prizeSets.map((ps) => JSON.stringify(ps)) }
+        : {}),
+    });
 
-    console.log('------ after save --------');
+    console.log("------ after save --------");
 
-    if (input.phases && input.phases.length) {
-      await ChallengeScheduler.schedule({
-        action: "schedule",
-        challengeId: input.id,
-        phases: input.phases.map((phase) => ({
-          name: phase.name,
-          scheduledStartDate: phase.scheduledStartDate,
-          scheduledEndDate: phase.scheduledEndDate,
-        })),
-      });
-    }
+    // if (input.phases && input.phases.length) {
+    //   await ChallengeScheduler.schedule({
+    //     action: "schedule",
+    //     challengeId: input.id,
+    //     phases: input.phases.map((phase) => ({
+    //       name: phase.name,
+    //       scheduledStartDate: phase.scheduledStartDate,
+    //       scheduledEndDate: phase.scheduledEndDate,
+    //     })),
+    //   });
+    // }
 
     return challengeList;
   }
@@ -1389,17 +1393,17 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       ])
     );
 
-    if (input.phases?.phases && input.phases.phases.length) {
-      await ChallengeScheduler.schedule({
-        action: "schedule",
-        challengeId: id,
-        phases: input.phases.phases.map((phase) => ({
-          name: phase.name,
-          scheduledStartDate: phase.scheduledStartDate,
-          scheduledEndDate: phase.scheduledEndDate,
-        })),
-      });
-    }
+    // if (input.phases?.phases && input.phases.phases.length) {
+    //   await ChallengeScheduler.schedule({
+    //     action: "schedule",
+    //     challengeId: id,
+    //     phases: input.phases.phases.map((phase) => ({
+    //       name: phase.name,
+    //       scheduledStartDate: phase.scheduledStartDate,
+    //       scheduledEndDate: phase.scheduledEndDate,
+    //     })),
+    //   });
+    // }
 
     await this.esClient.update({
       index: ES_INDEX,
