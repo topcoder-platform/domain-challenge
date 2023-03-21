@@ -1,4 +1,40 @@
 version: 2.1
+defaults: &defaults
+  docker:
+    - image: circleci/python:2.7-stretch-browsers
+install_dependency: &install_dependency
+  name: Installation of build and deployment dependencies.
+  command: |
+    sudo apt install jq
+    sudo pip install awscli --upgrade
+    sudo pip install docker-compose
+    sudo curl -o /usr/local/bin/ecs-cli https://s3.amazonaws.com/amazon-ecs-cli/ecs-cli-linux-amd64-latest  
+    sudo chmod +x /usr/local/bin/ecs-cli
+install_deploysuite: &install_deploysuite
+  name: Installation of install_deploysuite.
+  command: |
+    git clone --branch v1.4.14 https://github.com/topcoder-platform/tc-deploy-scripts ../buildscript
+    cp ./../buildscript/master_deploy.sh .
+    cp ./../buildscript/buildenv.sh .
+    cp ./../buildscript/awsconfiguration.sh .
+
+deploy_steps: &deploy_steps
+  - attach_workspace: *workspace_attach
+  - setup_remote_docker
+  - run: *install_deploy_dependency
+  - run: *install_deploysuite
+  - deploy:
+      name: Running MasterScript.
+      command: |
+        #./awsconfiguration.sh $DEPLOY_ENV
+        ./awsconfiguration.sh $DEPLOY_ENV
+        source awsenvconf
+        ./buildproperties.sh -e $BUILD_ENV -k grpc
+        ./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-deployvar
+        source buildenvvar
+        #./master_deploy.sh -d ECS -e $DEPLOY_ENV -m CLI -t latest -i ${APPNAME}    
+        ecs-cli configure --region us-east-1 --cluster $AWS_ECS_CLUSTER
+        ecs-cli compose --project-name domain-challenge service up
 
 jobs:
   publish-image:
@@ -39,6 +75,14 @@ jobs:
           docker tag ${SERVICE_NAME}:${CIRCLE_SHA1} $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}:${CIRCLE_SHA1}
           docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}:${CIRCLE_SHA1}
 
+  deploy-dev:
+    <<: *deploy_defaults
+    environment:
+      DEPLOY_ENV: "DEV"
+      LOGICAL_ENV: "dev"
+      APPNAME: "domain-challenge"
+    steps: *deploy_steps
+       
 workflows:
   version: 2
   publish:
@@ -49,3 +93,10 @@ workflows:
           branches:
             only:
             - main
+    - "deploy-dev":
+        context: "org-global"
+        filters:
+          branches:
+            only:
+            - dev
+

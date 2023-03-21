@@ -1,0 +1,83 @@
+version: "3"
+services:
+  dynamo-access-layer:
+    image: dynamo-access-layer:de77b2c82be50d851701139201a7d50f46f909d8
+    container_name: dynamo-access-layer
+    hostname: dynamo-access-layer
+    restart: always  
+    ports:
+      - "0:50052"    
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /aws/ecs/grpc-services
+        awslogs-region: us-east-1
+        awslogs-stream-prefix: dynamo-access-layer 
+    environment:
+      - GRPC_SERVER_HOST=0.0.0.0
+      - GRPC_SERVER_PORT=50052             
+  informix-access-layer:
+    image: informix-access-layer:3970668f68bdde0c86aca79e5e4fefc51f2e10cc
+    container_name: informix-access-layer
+    hostname: informix-access-layer
+    restart: always
+    ports:
+      - "0:9090"    
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /aws/ecs/grpc-services
+        awslogs-region: us-east-1
+        awslogs-stream-prefix: informix-access-layer  
+    env_file:
+      - ia_env.ini  
+  anticorruption-layer:
+    image: anticorruption-layer:4706f8b8aced8bef5f74d59ec94726ff8d3e6b44
+    container_name: anticorruption-layer
+    hostname: anticorruption-layer
+    restart: always
+    ports:
+      - "0:9099" 
+    links:
+      - informix-access-layer  
+      - domain-challenge        
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /aws/ecs/grpc-services
+        awslogs-region: us-east-1
+        awslogs-stream-prefix: anticorruption-layer
+    environment:
+      - GRPC_SERVER_PORT=40020
+      - GRPC_RDB_SERVER_HOST=informix-access-layer
+      - GRPC_RDB_SERVER_PORT=9090
+      - GRPC_CHALLENGE_DOMAIN_SERVER_HOST=domain-challenge
+      - GRPC_CHALLENGE_DOMAIN_SERVER_PORT=8888 
+    depends_on:
+      - informix-access-layer         
+  domain-challenge: 
+    image: domain-challenge:7ebc2092935c541ad4a12a4089578fd914929e71
+    container_name: domain-challenge
+    hostname: domain-challenge
+    restart: always
+    ports:
+      - "0:8888"  
+    links:
+      - anticorruption-layer
+      - informix-access-layer  
+      - dynamo-access-layer 
+    environment:
+      - grpc_client_or_address=tc-or-grpc-server
+      - grpc_client_or_port=9099        
+    logging:
+      driver: awslogs
+      options:
+        awslogs-group: /aws/ecs/grpc-services
+        awslogs-region: us-east-1
+        awslogs-stream-prefix: domain-challenge
+    env_file:
+      - dc_env.ini   
+    depends_on:
+      - dynamo-access-layer  
+      - informix-access-layer 
+      - anticorruption-layer    

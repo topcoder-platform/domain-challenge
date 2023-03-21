@@ -1,0 +1,16 @@
+version: 1
+task_definition:
+  task_role_arn: ${GRPC_ROLE}
+  services:
+    dynamo-access-layer:
+      cpu_shares: 100
+      mem_limit: 1G
+    informix-access-layer:
+      cpu_shares: 100
+      mem_limit: 1G 
+    anticorruption-layer:
+      cpu_shares: 100
+      mem_limit: 1G            
+    domain-challenge:
+      cpu_shares: 100
+      mem_limit: 6GB
