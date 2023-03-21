@@ -20,7 +20,7 @@ install_deploysuite: &install_deploysuite
 
 deploy_steps: &deploy_steps
   - setup_remote_docker
-  - run: *install_deploy_dependency
+  - run: *install_dependency
   - run: *install_deploysuite
   - deploy:
       name: Running MasterScript.
