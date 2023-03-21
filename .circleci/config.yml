@@ -17,6 +17,7 @@ install_deploysuite: &install_deploysuite
     cp ./../buildscript/master_deploy.sh .
     cp ./../buildscript/buildenv.sh .
     cp ./../buildscript/awsconfiguration.sh .
+    cp ./../buildscript/buildproperties.sh .
 
 deploy_steps: &deploy_steps
   - setup_remote_docker
