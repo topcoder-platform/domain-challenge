@@ -69,7 +69,7 @@ export const ChallengeSchema = {
     },
     {
       name: "prizeSets",
-      type: DataType.DATA_TYPE_STRING_SET,
+      type: DataType.DATA_TYPE_LIST,
     },
     {
       name: "tags",
