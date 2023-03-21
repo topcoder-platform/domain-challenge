@@ -25,10 +25,13 @@
     "@opensearch-project/opensearch": "^2.2.0",
     "@topcoder-framework/domain-acl": "^0.7.0",
     "@topcoder-framework/lib-common": "^0.7.0",
+    "aws-sdk": "^2.1339.0",
     "axios": "^1.2.2",
     "dayjs": "^1.11.7",
     "dotenv": "^16.0.3",
+    "elasticsearch": "^16.7.3",
     "grpc-server-reflection": "^0.1.5",
+    "http-aws-es": "^6.0.0",
     "lodash": "^4.17.21",
     "moment": "^2.29.4",
     "source-map-support": "^0.5.21",
@@ -43,6 +46,7 @@
     "yarn": "1.22.19"
   },
   "devDependencies": {
+    "@types/elasticsearch": "^5.0.40",
     "@types/lodash": "^4.14.191",
     "@types/node": "^18.11.17",
     "ts-node-dev": "^2.0.0",

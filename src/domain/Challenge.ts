@@ -15,10 +15,7 @@ import xss from "xss";
 import CoreOperations from "../common/CoreOperations";
 import { Value } from "../dal/models/nosql/parti_ql";
 import IdGenerator from "../helpers/IdGenerator";
-import {
-  DomainHelper,
-  Value as ProtobufValue,
-} from "@topcoder-framework/lib-common";
+import { DomainHelper } from "@topcoder-framework/lib-common";
 import {
   Challenge,
   ChallengeList,
@@ -1407,6 +1404,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     await this.esClient.update({
       index: ES_INDEX,
+      type: process.env.OPENSEARCH === "true" ? undefined : "_doc",
       refresh: ES_REFRESH,
       id,
       body: {
