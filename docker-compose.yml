@@ -4,42 +4,42 @@ services:
     image: dynamo-access-layer:latest
     container_name: dynamo-access-layer
     hostname: dynamo-access-layer
-    restart: always  
+    restart: always
     ports:
-      - "0:50052"    
+      - "0:50052"
     logging:
       driver: awslogs
       options:
         awslogs-group: /aws/ecs/grpc-services
         awslogs-region: us-east-1
-        awslogs-stream-prefix: dynamo-access-layer 
+        awslogs-stream-prefix: dynamo-access-layer
     environment:
       - GRPC_SERVER_HOST=0.0.0.0
-      - GRPC_SERVER_PORT=50052             
+      - GRPC_SERVER_PORT=50052
   informix-access-layer:
     image: informix-access-layer:latest
     container_name: informix-access-layer
     hostname: informix-access-layer
     restart: always
     ports:
-      - "0:9090"    
+      - "0:9090"
     logging:
       driver: awslogs
       options:
         awslogs-group: /aws/ecs/grpc-services
         awslogs-region: us-east-1
-        awslogs-stream-prefix: informix-access-layer  
+        awslogs-stream-prefix: informix-access-layer
     env_file:
-      - ia_env.ini  
+      - ia_env.ini
   anticorruption-layer:
-    image: anticorruption-layer:latest
+    image: anticorruption-layer:7833a5d5848cfbf9d76360724eccd6491ed66f6e
     container_name: anticorruption-layer
     hostname: anticorruption-layer
     restart: always
     ports:
-      - "0:40020" 
+      - "0:40020"
     links:
-      - informix-access-layer      
+      - informix-access-layer
     logging:
       driver: awslogs
       options:
@@ -52,23 +52,23 @@ services:
       - GRPC_RDB_SERVER_HOST=informix-access-layer
       - GRPC_RDB_SERVER_PORT=9090
       - GRPC_CHALLENGE_DOMAIN_SERVER_HOST=domain-challenge
-      - GRPC_CHALLENGE_DOMAIN_SERVER_PORT=8888 
+      - GRPC_CHALLENGE_DOMAIN_SERVER_PORT=8888
       - ENV=local
     depends_on:
-      - informix-access-layer         
-  domain-challenge: 
-    image: domain-challenge:latest
+      - informix-access-layer
+  domain-challenge:
+    image: domain-challenge:6474db0d0c33a6fcfc9d21fe678a83dc6d8b798b
     container_name: domain-challenge
     hostname: domain-challenge
     restart: always
     ports:
-      - "0:8888"  
+      - "0:8888"
     links:
       - anticorruption-layer
-      - informix-access-layer  
-      - dynamo-access-layer 
+      - informix-access-layer
+      - dynamo-access-layer
     environment:
-      - ENV=local               
+      - ENV=local
     logging:
       driver: awslogs
       options:
@@ -76,8 +76,8 @@ services:
         awslogs-region: us-east-1
         awslogs-stream-prefix: domain-challenge
     env_file:
-      - dc_env.ini   
+      - dc_env.ini
     depends_on:
-      - dynamo-access-layer  
-      - informix-access-layer 
-      - anticorruption-layer    
+      - dynamo-access-layer
+      - informix-access-layer
+      - anticorruption-layer
