@@ -39,8 +39,7 @@ services:
     ports:
       - "0:9099" 
     links:
-      - informix-access-layer  
-      - domain-challenge        
+      - informix-access-layer      
     logging:
       driver: awslogs
       options:
