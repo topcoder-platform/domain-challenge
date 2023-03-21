@@ -343,13 +343,15 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             await legacyPhaseDomain.updateProjectPhase({
               projectPhaseId: phase.projectPhaseId,
               phaseStatusId: newStatus,
-              fixedStartTime: moment(phase.fixedStartTime).format(
-                "yyyy-MM-DD HH:mm:ss"
-              )
-                ? moment(v5Equivalent.scheduledStartDate).format(
-                    "yyyy-MM-DD HH:mm:ss"
-                  )
-                : undefined,
+              ...(phaseOrder === 0 ? {
+                fixedStartTime: moment(phase.fixedStartTime).format(
+                  "yyyy-MM-DD HH:mm:ss"
+                )
+                  ? moment(v5Equivalent.scheduledStartDate).format(
+                      "yyyy-MM-DD HH:mm:ss"
+                    )
+                  : undefined,
+              } : {}),
               scheduledStartTime: moment(
                 v5Equivalent.scheduledStartDate
               ).format("yyyy-MM-DD HH:mm:ss"),
@@ -357,14 +359,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
                 "yyyy-MM-DD HH:mm:ss"
               ),
               duration: v5Equivalent.duration * 1000,
-              ...(isBeingActivated &&
-              newStatus == constants.PhaseStatusTypes.Open
-                ? {
-                    actualStartTime: moment().format("yyyy-MM-DD HH:mm:ss"),
-                    actualEndTime: moment(v5Equivalent.scheduledEndDate).format(
-                      "yyyy-MM-DD HH:mm:ss"
-                    )
-                } : {}),
             });
           } else {
             console.log(`number of ${phaseName} does not match`);
