@@ -6,7 +6,7 @@ jobs:
     - image: cimg/aws:2023.01
     environment:
       CODEARTIFACT_ENV: PROD
-      ECR_ENV: DEV
+      ECR_ENV: QA
       SERVICE_NAME: "domain-challenge"
       OUT_DIR: "buildscripts"
     steps:
@@ -48,4 +48,5 @@ workflows:
         filters:
           branches:
             only:
+            - fix/update-pre-release
             - main

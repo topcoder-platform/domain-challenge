@@ -33,7 +33,7 @@ export const ChallengeSchema = {
     },
     {
       name: "billing",
-      type: DataType.DATA_TYPE_STRING,
+      type: DataType.DATA_TYPE_MAP,
     },
     {
       name: "description",
@@ -53,7 +53,7 @@ export const ChallengeSchema = {
     },
     {
       name: "task",
-      type: DataType.DATA_TYPE_STRING,
+      type: DataType.DATA_TYPE_MAP,
     },
     {
       name: "timelineTemplateId",
@@ -69,7 +69,7 @@ export const ChallengeSchema = {
     },
     {
       name: "prizeSets",
-      type: DataType.DATA_TYPE_STRING_SET,
+      type: DataType.DATA_TYPE_LIST,
     },
     {
       name: "tags",
@@ -125,7 +125,7 @@ export const ChallengeSchema = {
     },
     {
       name: "overview",
-      type: DataType.DATA_TYPE_STRING,
+      type: DataType.DATA_TYPE_MAP,
     },
   ],
   indices: {
