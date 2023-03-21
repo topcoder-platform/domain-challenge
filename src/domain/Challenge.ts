@@ -359,8 +359,12 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
               duration: v5Equivalent.duration * 1000,
               ...(isBeingActivated &&
               newStatus == constants.PhaseStatusTypes.Open
-                ? { actualStartTime: moment().format("yyyy-MM-DD HH:mm:ss") }
-                : {}),
+                ? {
+                    actualStartTime: moment().format("yyyy-MM-DD HH:mm:ss"),
+                    actualEndTime: moment(v5Equivalent.scheduledEndDate).format(
+                      "yyyy-MM-DD HH:mm:ss"
+                    )
+                } : {}),
             });
           } else {
             console.log(`number of ${phaseName} does not match`);
