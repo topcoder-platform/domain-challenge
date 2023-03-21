@@ -967,7 +967,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const createdByUserId = 22838965; // TODO: Extract from interceptors
     const updatedByUserId = 22838965; // TODO: Extract from interceptors
 
-    if (!input?.legacyId) {
+    if (!input?.legacyId && input?.status && input?.status !== ChallengeStatuses.New) {
       const { track, subTrack, isTask, technologies } =
         legacyMapper.mapTrackAndType(
           input.trackId as string,
