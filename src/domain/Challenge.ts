@@ -968,6 +968,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const updatedByUserId = 22838965; // TODO: Extract from interceptors
 
     if (!input?.legacyId && input?.status && input?.status !== ChallengeStatuses.New) {
+      console.log(`Legacy ID does not exist. Creating challenge in legacy...`);
       const { track, subTrack, isTask, technologies } =
         legacyMapper.mapTrackAndType(
           input.trackId as string,
@@ -1006,6 +1007,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       input.legacyId = legacyChallengeId as number;
     }
 
+    console.log(`Updating challenge in legacy...`);
     if (input?.legacyId) {
       const legacyId = input.legacyId;
       const legacyChallenge = await legacyChallengeDomain.getLegacyChallenge({
@@ -1254,6 +1256,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         }
       }
     }
+    console.log("Challenge updated successfully in legacy");
 
     // toEntity parses the below properties thus we should now stringify them again
     // for (const key of ["phases",
@@ -1264,7 +1267,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     //   "prizeSets"]) {
     //     _.set(input, key, JSON.stringify(_.get(input, key)))
     //   }
-    //   console.log('------ before save --------');
+    console.log('------ before save --------');
 
     //   console.log(input);
     console.log(_.omit(input, ["id"]));
