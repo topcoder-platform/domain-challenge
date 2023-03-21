@@ -75,7 +75,7 @@ jobs:
           docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}:${CIRCLE_SHA1}
 
   deploy-dev:
-    <<: *deploy_defaults
+    <<: *defaults
     environment:
       DEPLOY_ENV: "DEV"
       LOGICAL_ENV: "dev"
