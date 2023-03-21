@@ -32,7 +32,7 @@ services:
     env_file:
       - ia_env.ini
   anticorruption-layer:
-    image: anticorruption-layer:14cf7e0d9b6a98027550dba43a427d54b607c7aa
+    image: anticorruption-layer:latest
     container_name: anticorruption-layer
     hostname: anticorruption-layer
     restart: always
@@ -53,11 +53,10 @@ services:
       - GRPC_RDB_SERVER_PORT=9090
       - GRPC_CHALLENGE_DOMAIN_SERVER_HOST=domain-challenge
       - GRPC_CHALLENGE_DOMAIN_SERVER_PORT=8888
-      - ENV=local
     depends_on:
       - informix-access-layer
   domain-challenge:
-    image: domain-challenge:f581bae365b9302cddc97b0e5dd147b22f443b69
+    image: domain-challenge:latest
     container_name: domain-challenge
     hostname: domain-challenge
     restart: always
@@ -67,8 +66,6 @@ services:
       - anticorruption-layer
       - informix-access-layer
       - dynamo-access-layer
-    environment:
-      - ENV=local
     logging:
       driver: awslogs
       options:
