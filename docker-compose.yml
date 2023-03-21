@@ -1,7 +1,7 @@
 version: "3"
 services:
   dynamo-access-layer:
-    image: dynamo-access-layer:de77b2c82be50d851701139201a7d50f46f909d8
+    image: dynamo-access-layer:latest
     container_name: dynamo-access-layer
     hostname: dynamo-access-layer
     restart: always  
@@ -17,7 +17,7 @@ services:
       - GRPC_SERVER_HOST=0.0.0.0
       - GRPC_SERVER_PORT=50052             
   informix-access-layer:
-    image: informix-access-layer:3970668f68bdde0c86aca79e5e4fefc51f2e10cc
+    image: informix-access-layer:latest
     container_name: informix-access-layer
     hostname: informix-access-layer
     restart: always
