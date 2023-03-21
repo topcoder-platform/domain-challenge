@@ -19,7 +19,6 @@ install_deploysuite: &install_deploysuite
     cp ./../buildscript/awsconfiguration.sh .
 
 deploy_steps: &deploy_steps
-  - attach_workspace: *workspace_attach
   - setup_remote_docker
   - run: *install_deploy_dependency
   - run: *install_deploysuite
