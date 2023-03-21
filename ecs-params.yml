@@ -13,4 +13,4 @@ task_definition:
       mem_limit: 1G            
     domain-challenge:
       cpu_shares: 100
-      mem_limit: 6GB
+      mem_limit: 1GB
