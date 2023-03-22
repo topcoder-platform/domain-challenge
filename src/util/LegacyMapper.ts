@@ -130,10 +130,10 @@ class LegacyMapper {
       3: "1",
       4: "0",
       7: "1.0",
-      9: "Off", // Turn Auto Pilot Off
+      9: "On", // Turn Auto Pilot Off
       78: "Development", // Forum Type - value doesn't matter
-      10: "Off", // Turn status notification off
-      11: "Off", // Turn timeline notification off
+      10: "On", // Turn status notification off
+      11: "On", // Turn timeline notification off
       12: "Yes", // Public -> Yes (make it dynamic)
       13: "Yes", // Rated -> Yes (make it dynamic)
       14: "Open", // Eligibility -> Open (value doesn't matter)
