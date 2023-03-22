@@ -1,5 +1,7 @@
 #!/bin/bash
 set -eo pipefail
+ENV=$1
+ENV=`echo "$ENV" | tr '[:upper:]' '[:lower:]'`
 
 dynamo_access_layer_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/dynamo-access-layer:de77b2c82be50d851701139201a7d50f46f909d8
 informix_access_layer_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/informix-access-layer:338938a5b74110ba72f28831c670cffae96bf3c4
@@ -13,5 +15,9 @@ sed -i='' "s|informix-access-layer:latest|$informix_access_layer_TAG|" docker-co
 sed -i='' "s|anticorruption-layer:latest|$anticorruption_layer_TAG|" docker-compose.yml
 
 sed -i='' "s|domain-challenge:latest|$domain_challenge_TAG|" docker-compose.yml
+    
+if [[ "$ENV" == prod ]]; then
+    sed -i='' "s|grpcserver.topcoder-dev.com|grpcserver.topcoder.com|" docker-compose.yml
+fi
 
 
