@@ -206,6 +206,7 @@ class LegacyMapper {
       (constraint: { name: string; value: number }) => constraint.name === "Number of Submissions"
     );
 
+
     return {
       1: phase.name === "Review" ? this.mapScorecard(subTrack) : undefined, // Scorecard ID
       2: phase.name === "Registration" ? '1' : undefined, // Registration Number
@@ -277,16 +278,20 @@ class LegacyMapper {
     }
   }
 
+  // prettier-ignore
   private mapScorecard(subTrack: string): string {
-    let scorecard = 30002133; // DEV Challenge
+    const isNonProd = process.env.ENV != "prod";
 
-    if (subTrack === V4_SUBTRACKS.FIRST_2_FINISH) scorecard = 30002160;
-    if (subTrack === V4_SUBTRACKS.MARATHON_MATCH) scorecard = 30002133; // needs to be corrected
-    // prettier-ignore
-    if (subTrack === V4_SUBTRACKS.DEVELOP_MARATHON_MATCH) scorecard = 30002160;
-    if (subTrack === V4_SUBTRACKS.BUG_HUNT) scorecard = 30002133;
-    if (subTrack === V4_SUBTRACKS.DESIGN_FIRST_2_FINISH) scorecard = 30001040;
-    if (subTrack === V4_SUBTRACKS.WEB_DESIGNS) scorecard = 30001101;
+    // TODO: Update scorecard ids for all subtracks and check for dev environment
+
+    let scorecard = isNonProd ? 30001610 : 30002133; // DEV Challenge
+
+    if (subTrack === V4_SUBTRACKS.FIRST_2_FINISH) scorecard = isNonProd ? 30002160 : 30002160;
+    if (subTrack === V4_SUBTRACKS.MARATHON_MATCH) scorecard = isNonProd ? 30001610 : 30002133; // needs to be corrected
+    if (subTrack === V4_SUBTRACKS.DEVELOP_MARATHON_MATCH) scorecard = isNonProd ? 30001610 :30002160;
+    if (subTrack === V4_SUBTRACKS.BUG_HUNT) scorecard = isNonProd ? 30001610 :30002133;
+    if (subTrack === V4_SUBTRACKS.DESIGN_FIRST_2_FINISH) scorecard = isNonProd ? 30001610 :30001040;
+    if (subTrack === V4_SUBTRACKS.WEB_DESIGNS) scorecard = isNonProd ? 30001610 :30001101;
 
     return scorecard.toString();
   }
