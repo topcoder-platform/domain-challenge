@@ -184,13 +184,13 @@ class LegacyMapper {
   public mapPhases(subTrack: string, phases: Challenge_Phase[]) {
     return phases.map((phase: Challenge_Phase, index: number) => ({
       phaseTypeId: this.mapPhaseNameToPhaseTypeId(phase.name),
-      phaseStatusId: phase.isOpen ? 2 : 1, // Set Open if phase is open, otherwise mark it Scheduled [1: Scheduled, 2: Open, 3: Closed]
-      fixedStartTime: phase.name === "Registration" ? DateUtil.formatDateForIfx(phase.scheduledStartDate!) : undefined, // Registration Phase needs a fixedStartTime
+      phaseStatusId: phase.isOpen ? 2 : phase.actualEndDate ? 3 : 1,
+      fixedStartTime: !phase.predecessor ? undefined : DateUtil.formatDateForIfx(phase.scheduledStartDate!),
       scheduledStartTime: DateUtil.formatDateForIfx(phase.scheduledStartDate!),
       scheduledEndTime: DateUtil.formatDateForIfx(phase.scheduledEndDate!),
-      actualStartTime: !phase.actualStartDate ? undefined: DateUtil.formatDateForIfx(phase.actualStartDate) ,
-      actualEndTime: !phase.actualEndDate ? undefined: DateUtil.formatDateForIfx(phase.actualEndDate) ,
-      duration: phase.duration,
+      actualStartTime: !phase.actualStartDate ? undefined : DateUtil.formatDateForIfx(phase.actualStartDate),
+      actualEndTime: !phase.actualEndDate ? undefined : DateUtil.formatDateForIfx(phase.actualEndDate),
+      duration: phase.duration * 1000,
       phaseCriteria: this.mapPhaseCriteria(subTrack, phase),
     }));
   }
@@ -211,7 +211,7 @@ class LegacyMapper {
       1: this.mapScorecard(subTrack, phase.name), // Scorecard ID
       2: phase.name === "Registration" ? '1' : undefined, // Registration Number
       3: phase.name === "Submission" ? submissionPhaseConstraint?.value.toString() ?? // if we have a submission phase constraint use it
-          reviewPhaseConstraint?.value != null ? '1' : undefined // otherwise if we have a review phase constraint use 1
+        reviewPhaseConstraint?.value != null ? '1' : undefined // otherwise if we have a review phase constraint use 1
         : undefined,
       4: undefined, // View Response During Appeals
       5: undefined, // Manual Screening
@@ -279,7 +279,7 @@ class LegacyMapper {
   }
 
   // prettier-ignore
-  private mapScorecard(subTrack: string, phase: string): string|undefined {
+  private mapScorecard(subTrack: string, phase: string): string | undefined {
     const isNonProd = process.env.ENV != "prod";
 
     // TODO: Update scorecard ids for all subtracks and check for dev environment
@@ -288,7 +288,7 @@ class LegacyMapper {
 
     // F2F
     if (subTrack === V4_SUBTRACKS.FIRST_2_FINISH) scorecard = isNonProd ? 30002160 : 30002160; // missing dev scorecard
-    if (subTrack === V4_SUBTRACKS.DESIGN_FIRST_2_FINISH) scorecard = isNonProd ? 30001610 :30001101; // missing dev scorecard
+    if (subTrack === V4_SUBTRACKS.DESIGN_FIRST_2_FINISH) scorecard = isNonProd ? 30001610 : 30001101; // missing dev scorecard
 
     // QA
     if (subTrack === V4_SUBTRACKS.BUG_HUNT) {
@@ -297,7 +297,7 @@ class LegacyMapper {
     }
 
     // DS
-    if (subTrack === V4_SUBTRACKS.DEVELOP_MARATHON_MATCH) scorecard = isNonProd ? 30001610 :30002133; // missing dev scorecard
+    if (subTrack === V4_SUBTRACKS.DEVELOP_MARATHON_MATCH) scorecard = isNonProd ? 30001610 : 30002133; // missing dev scorecard
     if (subTrack === V4_SUBTRACKS.MARATHON_MATCH) scorecard = isNonProd ? 30001610 : 30002133; // missing dev scorecard
 
     // DESIGN
