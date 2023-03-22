@@ -1,6 +1,7 @@
 import _ from "lodash";
 import { PrizeSetTypes } from "../common/Constants";
 import { V4_SUBTRACKS, V5_TO_V4 } from "../common/ConversionMap";
+import { Challenge_Phase } from "../models/domain-layer/challenge/challenge";
 import { legacyChallengeStatusesMap } from "./constants";
 import DateUtil from "./DateUtil";
 
@@ -27,21 +28,7 @@ class LegacyMapper {
             type: PrizeSetTypes.ChallengePrizes,
           })
         ) ?? [],
-      phases: input.phases.map((phase: any, index: number) => ({
-        phaseTypeId: this.mapPhaseNameToPhaseTypeId(phase.name),
-        phaseStatusId: 1,
-        fixedStartTime:
-          index == 0
-            ? DateUtil.formatDateForIfx(phase.scheduledStartDate)
-            : undefined, // Registration Phase needs a fixedStartTime
-        scheduledStartTime: DateUtil.formatDateForIfx(phase.scheduledStartDate),
-        scheduledEndTime: DateUtil.formatDateForIfx(phase.scheduledEndDate),
-        // TODO: Confirm this is correct
-        // actualStartTime: DateUtil.formatDateForIfx(phase.actualStartDate),
-        // actualEndTime: DateUtil.formatDateForIfx(phase.actualEndDate),
-        duration: phase.duration,
-        phaseCriteria: this.mapPhaseCriteria(phase),
-      })),
+      phases: this.mapPhases(input.phases),
       reviewType: input.legacy?.reviewType ?? "INTERNAL",
       confidentialityType: input.legacy?.confidentialityType ?? "public",
       billingProject: input.billing?.billingAccountId!,
@@ -193,27 +180,38 @@ class LegacyMapper {
     };
   }
 
-  private mapPhaseCriteria(phase: any) {
+  // prettier-ignore
+  public mapPhases(phases: Challenge_Phase[]) {
+    return phases.map((phase: Challenge_Phase, index: number) => ({
+      phaseTypeId: this.mapPhaseNameToPhaseTypeId(phase.name),
+      phaseStatusId: phase.isOpen ? 2 : 1, // Set Open if phase is open, otherwise mark it Scheduled [1: Scheduled, 2: Open, 3: Closed]
+      fixedStartTime: phase.name === "Registration" ? DateUtil.formatDateForIfx(phase.scheduledStartDate!) : undefined, // Registration Phase needs a fixedStartTime
+      scheduledStartTime: DateUtil.formatDateForIfx(phase.scheduledStartDate!),
+      scheduledEndTime: DateUtil.formatDateForIfx(phase.scheduledEndDate!),
+      actualStartTime: !phase.actualStartDate ? undefined: DateUtil.formatDateForIfx(phase.actualStartDate) ,
+      actualEndTime: !phase.actualEndDate ? undefined: DateUtil.formatDateForIfx(phase.actualEndDate) ,
+      duration: phase.duration,
+      phaseCriteria: this.mapPhaseCriteria(phase),
+    }));
+  }
+
+  // prettier-ignore
+  private mapPhaseCriteria(phase: Challenge_Phase) {
     const reviewPhaseConstraint = phase.constraints?.find(
       (constraint: { name: string; value: number }) =>
         constraint.name === "Number of Reviewers"
     );
 
     const submissionPhaseConstraint = phase.constraints?.find(
-      (constraint: { name: string; value: number }) =>
-        constraint.name === "Number of Submissions"
+      (constraint: { name: string; value: number }) => constraint.name === "Number of Submissions"
     );
 
     return {
       1: phase.name === "Review" ? 30001610 : undefined, // Scorecard ID
       2: phase.name === "Registration" ? 1 : undefined, // Registration Number
-      3:
-        phase.name === "Submission"
-          ? submissionPhaseConstraint?.value ??
-            reviewPhaseConstraint?.value != null
-            ? 1
-            : undefined
-          : undefined, // Submission Number
+      3: phase.name === "Submission" ? submissionPhaseConstraint?.value ?? // if we have a submission phase constraint use it
+          reviewPhaseConstraint?.value != null ? 1 : undefined // otherwise if we have a review phase constraint use 1
+        : undefined,
       4: undefined, // View Response During Appeals
       5: undefined, // Manual Screening
       6:

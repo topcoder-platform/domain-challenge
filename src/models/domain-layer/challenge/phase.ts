@@ -66,24 +66,45 @@ export const Phase = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.id = reader.string();
-          break;
+          continue;
         case 2:
+          if (tag != 18) {
+            break;
+          }
+
           message.name = reader.string();
-          break;
+          continue;
         case 3:
+          if (tag != 26) {
+            break;
+          }
+
           message.description = reader.string();
-          break;
+          continue;
         case 4:
+          if (tag != 32) {
+            break;
+          }
+
           message.isOpen = reader.bool();
-          break;
+          continue;
         case 5:
+          if (tag != 40) {
+            break;
+          }
+
           message.duration = longToNumber(reader.int64() as Long);
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -143,12 +164,17 @@ export const PhaseList = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.items.push(Phase.decode(reader, reader.uint32()));
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -207,21 +233,38 @@ export const CreatePhaseInput = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.name = reader.string();
-          break;
+          continue;
         case 2:
+          if (tag != 18) {
+            break;
+          }
+
           message.description = reader.string();
-          break;
+          continue;
         case 3:
+          if (tag != 24) {
+            break;
+          }
+
           message.isOpen = reader.bool();
-          break;
+          continue;
         case 4:
+          if (tag != 32) {
+            break;
+          }
+
           message.duration = longToNumber(reader.int64() as Long);
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -281,15 +324,24 @@ export const UpdatePhaseInput = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.filterCriteria.push(ScanCriteria.decode(reader, reader.uint32()));
-          break;
+          continue;
         case 2:
+          if (tag != 18) {
+            break;
+          }
+
           message.updateInput = UpdatePhaseInput_UpdateInput.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -358,21 +410,38 @@ export const UpdatePhaseInput_UpdateInput = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 2:
+          if (tag != 18) {
+            break;
+          }
+
           message.name = reader.string();
-          break;
+          continue;
         case 3:
+          if (tag != 26) {
+            break;
+          }
+
           message.description = reader.string();
-          break;
+          continue;
         case 4:
+          if (tag != 32) {
+            break;
+          }
+
           message.isOpen = reader.bool();
-          break;
+          continue;
         case 5:
+          if (tag != 40) {
+            break;
+          }
+
           message.duration = longToNumber(reader.int64() as Long);
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },

@@ -65,24 +65,45 @@ export const ChallengeTimelineTemplate = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.id = reader.string();
-          break;
+          continue;
         case 2:
+          if (tag != 18) {
+            break;
+          }
+
           message.trackId = reader.string();
-          break;
+          continue;
         case 3:
+          if (tag != 26) {
+            break;
+          }
+
           message.typeId = reader.string();
-          break;
+          continue;
         case 4:
+          if (tag != 34) {
+            break;
+          }
+
           message.timelineTemplateId = reader.string();
-          break;
+          continue;
         case 5:
+          if (tag != 40) {
+            break;
+          }
+
           message.isDefault = reader.bool();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -142,12 +163,17 @@ export const ChallengeTimelineTemplateList = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.items.push(ChallengeTimelineTemplate.decode(reader, reader.uint32()));
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -210,21 +236,38 @@ export const CreateChallengeTimelineTemplateInput = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.trackId = reader.string();
-          break;
+          continue;
         case 2:
+          if (tag != 18) {
+            break;
+          }
+
           message.typeId = reader.string();
-          break;
+          continue;
         case 3:
+          if (tag != 26) {
+            break;
+          }
+
           message.timelineTemplateId = reader.string();
-          break;
+          continue;
         case 4:
+          if (tag != 32) {
+            break;
+          }
+
           message.isDefault = reader.bool();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -288,15 +331,24 @@ export const UpdateChallengeTimelineTemplateInput = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.filterCriteria.push(ScanCriteria.decode(reader, reader.uint32()));
-          break;
+          continue;
         case 2:
+          if (tag != 18) {
+            break;
+          }
+
           message.updateInput = UpdateChallengeTimelineTemplateInput_UpdateInput.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -375,21 +427,38 @@ export const UpdateChallengeTimelineTemplateInput_UpdateInput = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 2:
+          if (tag != 18) {
+            break;
+          }
+
           message.trackId = reader.string();
-          break;
+          continue;
         case 3:
+          if (tag != 26) {
+            break;
+          }
+
           message.typeId = reader.string();
-          break;
+          continue;
         case 4:
+          if (tag != 34) {
+            break;
+          }
+
           message.timelineTemplateId = reader.string();
-          break;
+          continue;
         case 5:
+          if (tag != 40) {
+            break;
+          }
+
           message.isDefault = reader.bool();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
