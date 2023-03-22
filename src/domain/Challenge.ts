@@ -340,15 +340,17 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             await legacyPhaseDomain.updateProjectPhase({
               projectPhaseId: phase.projectPhaseId,
               phaseStatusId: newStatus,
-              ...(phaseOrder === 0 ? {
-                fixedStartTime: moment(phase.fixedStartTime).format(
-                  "yyyy-MM-DD HH:mm:ss"
-                )
-                  ? moment(v5Equivalent.scheduledStartDate).format(
+              ...(phaseOrder === 0
+                ? {
+                    fixedStartTime: moment(phase.fixedStartTime).format(
                       "yyyy-MM-DD HH:mm:ss"
                     )
-                  : undefined,
-              } : {}),
+                      ? moment(v5Equivalent.scheduledStartDate).format(
+                          "yyyy-MM-DD HH:mm:ss"
+                        )
+                      : undefined,
+                  }
+                : {}),
               scheduledStartTime: moment(
                 v5Equivalent.scheduledStartDate
               ).format("yyyy-MM-DD HH:mm:ss"),
@@ -962,7 +964,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const createdByUserId = 22838965; // TODO: Extract from interceptors
     const updatedByUserId = 22838965; // TODO: Extract from interceptors
 
-    if (!input?.legacyId && input?.status && input?.status !== ChallengeStatuses.New) {
+    if (
+      !input?.legacyId &&
+      input?.status &&
+      input?.status !== ChallengeStatuses.New
+    ) {
       console.log(`Legacy ID does not exist. Creating challenge in legacy...`);
       const { track, subTrack, isTask, technologies } =
         legacyMapper.mapTrackAndType(
@@ -1262,7 +1268,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     //   "prizeSets"]) {
     //     _.set(input, key, JSON.stringify(_.get(input, key)))
     //   }
-    console.log('------ before save --------');
+    console.log("------ before save --------");
 
     //   console.log(input);
     console.log(_.omit(input, ["id"]));

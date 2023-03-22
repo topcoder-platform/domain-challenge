@@ -28,7 +28,7 @@ class LegacyMapper {
             type: PrizeSetTypes.ChallengePrizes,
           })
         ) ?? [],
-      phases: this.mapPhases(input.phases),
+      phases: this.mapPhases(input.legacy.subTrack, input.phases),
       reviewType: input.legacy?.reviewType ?? "INTERNAL",
       confidentialityType: input.legacy?.confidentialityType ?? "public",
       billingProject: input.billing?.billingAccountId!,
@@ -181,7 +181,7 @@ class LegacyMapper {
   }
 
   // prettier-ignore
-  public mapPhases(phases: Challenge_Phase[]) {
+  public mapPhases(subTrack: string, phases: Challenge_Phase[]) {
     return phases.map((phase: Challenge_Phase, index: number) => ({
       phaseTypeId: this.mapPhaseNameToPhaseTypeId(phase.name),
       phaseStatusId: phase.isOpen ? 2 : 1, // Set Open if phase is open, otherwise mark it Scheduled [1: Scheduled, 2: Open, 3: Closed]
@@ -191,12 +191,12 @@ class LegacyMapper {
       actualStartTime: !phase.actualStartDate ? undefined: DateUtil.formatDateForIfx(phase.actualStartDate) ,
       actualEndTime: !phase.actualEndDate ? undefined: DateUtil.formatDateForIfx(phase.actualEndDate) ,
       duration: phase.duration,
-      phaseCriteria: this.mapPhaseCriteria(phase),
+      phaseCriteria: this.mapPhaseCriteria(subTrack, phase),
     }));
   }
 
   // prettier-ignore
-  private mapPhaseCriteria(phase: Challenge_Phase) {
+  private mapPhaseCriteria(subTrack: string, phase: Challenge_Phase): { [key: number]: string | undefined } {
     const reviewPhaseConstraint = phase.constraints?.find(
       (constraint: { name: string; value: number }) =>
         constraint.name === "Number of Reviewers"
@@ -207,16 +207,16 @@ class LegacyMapper {
     );
 
     return {
-      1: phase.name === "Review" ? 30001610 : undefined, // Scorecard ID
-      2: phase.name === "Registration" ? 1 : undefined, // Registration Number
-      3: phase.name === "Submission" ? submissionPhaseConstraint?.value ?? // if we have a submission phase constraint use it
-          reviewPhaseConstraint?.value != null ? 1 : undefined // otherwise if we have a review phase constraint use 1
+      1: phase.name === "Review" ? this.mapScorecard(subTrack) : undefined, // Scorecard ID
+      2: phase.name === "Registration" ? '1' : undefined, // Registration Number
+      3: phase.name === "Submission" ? submissionPhaseConstraint?.value.toString() ?? // if we have a submission phase constraint use it
+          reviewPhaseConstraint?.value != null ? '1' : undefined // otherwise if we have a review phase constraint use 1
         : undefined,
       4: undefined, // View Response During Appeals
       5: undefined, // Manual Screening
       6:
-        phase.name === "Review" ? reviewPhaseConstraint?.value ?? 2 : undefined, // Reviewer Number
-      7: undefined, // View Reviews During Review
+        phase.name === "Review" ? reviewPhaseConstraint?.value.toString() ?? '2' : undefined, // Reviewer Number
+      '7': undefined, // View Reviews During Review
     };
   }
 
@@ -275,6 +275,20 @@ class LegacyMapper {
     if (name == "Iterative Review") {
       return 18;
     }
+  }
+
+  private mapScorecard(subTrack: string): string {
+    let scorecard = 30002133; // DEV Challenge
+
+    if (subTrack === V4_SUBTRACKS.FIRST_2_FINISH) scorecard = 30002160;
+    if (subTrack === V4_SUBTRACKS.MARATHON_MATCH) scorecard = 30002133; // needs to be corrected
+    // prettier-ignore
+    if (subTrack === V4_SUBTRACKS.DEVELOP_MARATHON_MATCH) scorecard = 30002160;
+    if (subTrack === V4_SUBTRACKS.BUG_HUNT) scorecard = 30002133;
+    if (subTrack === V4_SUBTRACKS.DESIGN_FIRST_2_FINISH) scorecard = 30001040;
+    if (subTrack === V4_SUBTRACKS.WEB_DESIGNS) scorecard = 30001101;
+
+    return scorecard.toString();
   }
 }
 
