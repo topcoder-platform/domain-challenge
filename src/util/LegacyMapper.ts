@@ -36,8 +36,9 @@ class LegacyMapper {
             : undefined, // Registration Phase needs a fixedStartTime
         scheduledStartTime: DateUtil.formatDateForIfx(phase.scheduledStartDate),
         scheduledEndTime: DateUtil.formatDateForIfx(phase.scheduledEndDate),
-        actualStartTime: DateUtil.formatDateForIfx(phase.actualStartDate),
-        actualEndTime: DateUtil.formatDateForIfx(phase.actualEndDate),
+        // TODO: Confirm this is correct
+        // actualStartTime: DateUtil.formatDateForIfx(phase.actualStartDate),
+        // actualEndTime: DateUtil.formatDateForIfx(phase.actualEndDate),
         duration: phase.duration,
         phaseCriteria: this.mapPhaseCriteria(phase),
       })),
