@@ -87,7 +87,7 @@ jobs:
       APPNAME: "domain-challenge"
     steps: *deploy_steps
 
-   deploy-prod:
+  deploy-prod:
     <<: *defaults
     environment:
       DEPLOY_ENV: "PROD"
