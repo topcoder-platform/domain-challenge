@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { PrizeSetTypes } from "../common/Constants";
-import { V5_TO_V4 } from "../common/ConversionMap";
+import { V4_SUBTRACKS, V5_TO_V4 } from "../common/ConversionMap";
 import { legacyChallengeStatusesMap } from "./constants";
 import DateUtil from "./DateUtil";
 
@@ -61,16 +61,57 @@ class LegacyMapper {
     projectStudioSpecId: number | undefined;
     projectMmSpecId: number | undefined;
   } {
-    subTrack = subTrack.replace(" ", "").toLowerCase();
+    let projectCategoryId = 39; // V4_SUBTRACKS.CODE
 
-    let projectCategoryId = 39; // code
-    if (subTrack === "first2finish") {
-      projectCategoryId = 38;
-    } else if (subTrack === "marathonmatch") {
-      projectCategoryId = 37;
-    } else if (subTrack === "bughunt") {
-      projectCategoryId = 9;
-    }
+    if (subTrack === V4_SUBTRACKS.FIRST_2_FINISH) projectCategoryId = 38;
+    if (subTrack === V4_SUBTRACKS.MARATHON_MATCH) projectCategoryId = 37;
+    // prettier-ignore
+    if (subTrack === V4_SUBTRACKS.DEVELOP_MARATHON_MATCH) projectCategoryId = 37;
+    if (subTrack === V4_SUBTRACKS.BUG_HUNT) projectCategoryId = 9;
+    if (subTrack === V4_SUBTRACKS.DESIGN_FIRST_2_FINISH) projectCategoryId = 40;
+    if (subTrack === V4_SUBTRACKS.WEB_DESIGNS) projectCategoryId = 17;
+    /*
+      project_category_id,project_type_id,name
+      1,1,Design
+      2,1,Development
+      3,1,Security
+      4,1,Process
+      5,1,Testing Competition
+      6,2,Specification
+      7,2,Architecture
+      8,2,Component Production
+      9,2,Bug Hunt
+      10,2,Deployment
+      11,2,Security
+      12,2,Process
+      13,2,Test Suites
+      14,2,Assembly Competition
+      15,2,Legacy
+      16,3,Banners/Icons
+      17,3,Web Design
+      18,3,Wireframes
+      19,2,UI Prototype Competition
+      20,3,Logo Design
+      21,3,Print/Presentation
+      23,2,Conceptualization
+      24,2,RIA Build Competition
+      25,2,RIA Component Competition
+      26,2,Test Scenarios
+      27,2,Spec Review
+      28,4,Generic Scorecards
+      29,2,Copilot Posting
+      35,2,Content Creation
+      30,3,Widget or Mobile Screen Design
+      31,3,Front-End Flash
+      32,3,Application Front-End Design
+      34,3,Studio Other
+      22,3,Idea Generation
+      36,2,Reporting
+      37,2,Marathon Match
+      38,2,First2Finish
+      39,2,Code
+      40,3,Design First2Finish
+    */
 
     return {
       projectCategoryId,
