@@ -112,11 +112,11 @@ workflows:
         filters:
           branches:
             only:
-            - dev
+            - deploy/dev
     - "deploy-prod":
         context: "org-global"
         filters:
           branches:
             only:
-            - master            
+            - deploy/prod            
 
