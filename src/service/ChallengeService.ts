@@ -33,8 +33,8 @@ class ChallengeServerImpl implements ChallengeServer {
     call: ServerUnaryCall<CreateChallengeInput, Challenge>,
     callback: sendUnaryData<Challenge>
   ): Promise<void> => {
-    const { request: createChallengeInput } = call;
-    Domain.create(createChallengeInput)
+    const { request: createChallengeInput, metadata } = call;
+    Domain.create(createChallengeInput, metadata)
       .then((challenge) => callback(null, challenge))
       .catch((error) => callback(error, null));
   };

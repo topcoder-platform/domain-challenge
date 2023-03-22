@@ -61,7 +61,7 @@ import { ScanCriteria } from "../models/common/common";
 import constants from "../util/constants";
 import legacyMapper from "../util/LegacyMapper";
 import { CreateResult, Operator } from "@topcoder-framework/lib-common";
-import { StatusBuilder } from "@grpc/grpc-js";
+import { Metadata, StatusBuilder } from "@grpc/grpc-js";
 import { Status } from "@grpc/grpc-js/build/src/constants";
 import ChallengeScheduler from "../util/ChallengeScheduler";
 
@@ -151,7 +151,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     return Challenge.fromJSON(item);
   }
 
-  public async create(input: CreateChallengeInput): Promise<Challenge> {
+  public async create(
+    input: CreateChallengeInput,
+    metadata: Metadata | undefined
+  ): Promise<Challenge> {
     input.name = xss(input.name);
 
     if (Array.isArray(input.discussions)) {
@@ -196,7 +199,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         // prettier-ignore
         const legacyChallengeCreateInput = LegacyCreateChallengeInput.fromPartial(legacyMapper.mapChallengeDraftUpdateInput(input));
         // prettier-ignore
-        const legacyChallengeCreateResponse = await legacyChallengeDomain.create(legacyChallengeCreateInput);
+        const legacyChallengeCreateResponse = await legacyChallengeDomain.create(legacyChallengeCreateInput, metadata);
         if (legacyChallengeCreateResponse.kind?.$case === "integerId") {
           legacyChallengeId = legacyChallengeCreateResponse.kind.integerId;
         }
@@ -240,7 +243,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         }) ?? [],
     };
 
-    return super.create(challenge);
+    return super.create(challenge, metadata);
   }
 
   async syncChallengePhases(

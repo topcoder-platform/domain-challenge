@@ -25,7 +25,7 @@ import {
   UpdateType,
   Value as PartiQLValue,
 } from "../dal/models/nosql/parti_ql";
-import { StatusBuilder } from "@grpc/grpc-js";
+import { Metadata, StatusBuilder } from "@grpc/grpc-js";
 import { Status } from "@grpc/grpc-js/build/src/constants";
 
 export type ValueType =
@@ -150,7 +150,12 @@ abstract class CoreOperations<
     };
   }
 
-  protected async create(entity: I & T): Promise<T> {
+  protected async create(entity: I & T, metadata?: Metadata): Promise<T> {
+    let handle = null;
+    if (metadata?.get("handle") != null) {
+      handle = metadata?.get("handle")?.toString();
+    }
+
     const queryRequest: QueryRequest = {
       kind: {
         $case: "query",
@@ -159,7 +164,11 @@ abstract class CoreOperations<
             $case: "insert",
             insert: {
               table: this.entityName,
-              attributes: entity,
+              attributes: {
+                ...entity,
+                createdBy: handle != null ? handle : undefined,
+                updatedBy: handle != null ? handle : undefined,
+              },
             },
           },
         },
