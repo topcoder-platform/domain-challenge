@@ -151,11 +151,6 @@ abstract class CoreOperations<
   }
 
   protected async create(entity: I & T, metadata?: Metadata): Promise<T> {
-    let handle = null;
-    if (metadata?.get("handle") != null) {
-      handle = metadata?.get("handle")?.toString();
-    }
-
     const queryRequest: QueryRequest = {
       kind: {
         $case: "query",
@@ -164,11 +159,7 @@ abstract class CoreOperations<
             $case: "insert",
             insert: {
               table: this.entityName,
-              attributes: {
-                ...entity,
-                createdBy: handle != null ? handle : undefined,
-                updatedBy: handle != null ? handle : undefined,
-              },
+              attributes: entity,
             },
           },
         },

@@ -153,9 +153,12 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
   public async create(
     input: CreateChallengeInput,
-    metadata: Metadata | undefined
+    metadata: Metadata
   ): Promise<Challenge> {
     input.name = xss(input.name);
+
+    // prettier-ignore
+    const handle = metadata?.get("handle").length > 0 ? metadata?.get("handle")?.[0].toString() : "tcwebservice";
 
     if (Array.isArray(input.discussions)) {
       for (const discussion of input.discussions) {
@@ -217,7 +220,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const challenge: Challenge = {
       id: IdGenerator.generateUUID(),
       created: now,
-      createdBy: "tcwebservice", // TODO: extract from JWT
+      createdBy: handle, // TODO: extract from JWT
       updated: now,
       updatedBy: "tcwebservice", // TODO: extract from JWT
       winners: [],
