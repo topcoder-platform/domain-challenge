@@ -184,11 +184,11 @@ class LegacyMapper {
     return phases.map((phase: Challenge_Phase, index: number) => ({
       phaseTypeId: this.mapPhaseNameToPhaseTypeId(phase.name),
       phaseStatusId: phase.isOpen ? 2 : phase.actualEndDate ? 3 : 1,
-      fixedStartTime: !phase.predecessor ? undefined : phase.scheduledStartDate!,
-      scheduledStartTime: phase.scheduledStartDate!,
-      scheduledEndTime: phase.scheduledEndDate!,
-      actualStartTime: !phase.actualStartDate ? undefined : phase.actualStartDate,
-      actualEndTime: !phase.actualEndDate ? undefined : phase.actualEndDate,
+      fixedStartTime: _.isUndefined(phase.predecessor) ? phase.scheduledStartDate : undefined,
+      scheduledStartTime: phase.scheduledStartDate,
+      scheduledEndTime: phase.scheduledEndDate,
+      actualStartTime: phase.actualStartDate,
+      actualEndTime: phase.actualEndDate,
       duration: phase.duration * 1000,
       phaseCriteria: this.mapPhaseCriteria(subTrack, phase),
     }));
