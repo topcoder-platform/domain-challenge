@@ -3,7 +3,6 @@ import { PrizeSetTypes } from "../common/Constants";
 import { V4_SUBTRACKS, V5_TO_V4 } from "../common/ConversionMap";
 import { Challenge_Phase } from "../models/domain-layer/challenge/challenge";
 import { legacyChallengeStatusesMap } from "./constants";
-import DateUtil from "./DateUtil";
 
 class LegacyMapper {
   // To be used on challenge:update calls that change state from New -> Draft
@@ -185,11 +184,11 @@ class LegacyMapper {
     return phases.map((phase: Challenge_Phase, index: number) => ({
       phaseTypeId: this.mapPhaseNameToPhaseTypeId(phase.name),
       phaseStatusId: phase.isOpen ? 2 : phase.actualEndDate ? 3 : 1,
-      fixedStartTime: !phase.predecessor ? undefined : DateUtil.formatDateForIfx(phase.scheduledStartDate!),
-      scheduledStartTime: DateUtil.formatDateForIfx(phase.scheduledStartDate!),
-      scheduledEndTime: DateUtil.formatDateForIfx(phase.scheduledEndDate!),
-      actualStartTime: !phase.actualStartDate ? undefined : DateUtil.formatDateForIfx(phase.actualStartDate),
-      actualEndTime: !phase.actualEndDate ? undefined : DateUtil.formatDateForIfx(phase.actualEndDate),
+      fixedStartTime: !phase.predecessor ? undefined : phase.scheduledStartDate!,
+      scheduledStartTime: phase.scheduledStartDate!,
+      scheduledEndTime: phase.scheduledEndDate!,
+      actualStartTime: !phase.actualStartDate ? undefined : phase.actualStartDate,
+      actualEndTime: !phase.actualEndDate ? undefined : phase.actualEndDate,
       duration: phase.duration * 1000,
       phaseCriteria: this.mapPhaseCriteria(subTrack, phase),
     }));
