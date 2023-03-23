@@ -44,3 +44,24 @@ export const ChallengeStatuses = {
   New: "New",
   Active: "Active",
 };
+
+export const PhaseTypeIds = {
+  Registration: 1,
+  Submission: 2,
+  Screening: 3,
+  Review: 4,
+  Appeals: 5,
+  AppealsResponse: 6,
+  Aggregation: 7,
+  AggregationReview: 8,
+  FinalFix: 9,
+  FinalReview: 10,
+  Approval: 11,
+  PostMortem: 12,
+  SpecificationSubmission: 13,
+  SpecificationReview: 14,
+  CheckpointSubmission: 15,
+  CheckpointScreening: 16,
+  CheckpointReview: 17,
+  IterativeReview: 18,
+};
