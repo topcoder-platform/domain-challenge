@@ -194,7 +194,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     };
 
     let legacyChallengeId: number | null = null;
-    if (input.status === "Draft") {
+    if (input.status === "Draft" && !isTask) {
       try {
         // prettier-ignore
         const legacyChallengeCreateInput = LegacyCreateChallengeInput.fromPartial(legacyMapper.mapChallengeDraftUpdateInput(input));
@@ -965,7 +965,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const createdByUserId = 22838965; // TODO: Extract from interceptors
     const updatedByUserId = 22838965; // TODO: Extract from interceptors
 
-    if (!input?.legacyId && input?.status && input?.status !== ChallengeStatuses.New) {
+    if (!input?.legacyId && input?.status && input?.status !== ChallengeStatuses.New && !input?.legacy?.pureV5Task) {
       console.log(`Legacy ID does not exist. Creating challenge in legacy...`);
       const { track, subTrack, isTask, technologies } =
         legacyMapper.mapTrackAndType(
@@ -973,36 +973,38 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           input.typeId as string,
           input.tags
         );
+      
+      if (!isTask) {
+        input.legacy = {
+          ...input.legacy,
+          track,
+          subTrack,
+          pureV5Task: isTask,
+          forumId: 0,
+          directProjectId: input.legacy!.directProjectId,
+          reviewType: input.legacy!.reviewType,
+          confidentialityType: input.legacy!.confidentialityType,
+        };
 
-      input.legacy = {
-        ...input.legacy,
-        track,
-        subTrack,
-        pureV5Task: isTask,
-        forumId: 0,
-        directProjectId: input.legacy!.directProjectId,
-        reviewType: input.legacy!.reviewType,
-        confidentialityType: input.legacy!.confidentialityType,
-      };
+        let legacyChallengeId: number | null = null;
 
-      let legacyChallengeId: number | null = null;
-
-      try {
-        // prettier-ignore
-        const legacyChallengeCreateInput = LegacyCreateChallengeInput.fromPartial(legacyMapper.mapChallengeDraftUpdateInput(input));
-        // prettier-ignore
-        const legacyChallengeCreateResponse = await legacyChallengeDomain.create(legacyChallengeCreateInput);
-        if (legacyChallengeCreateResponse.kind?.$case === "integerId") {
-          legacyChallengeId = legacyChallengeCreateResponse.kind.integerId;
+        try {
+          // prettier-ignore
+          const legacyChallengeCreateInput = LegacyCreateChallengeInput.fromPartial(legacyMapper.mapChallengeDraftUpdateInput(input));
+          // prettier-ignore
+          const legacyChallengeCreateResponse = await legacyChallengeDomain.create(legacyChallengeCreateInput);
+          if (legacyChallengeCreateResponse.kind?.$case === "integerId") {
+            legacyChallengeId = legacyChallengeCreateResponse.kind.integerId;
+          }
+        } catch (err) {
+          console.log("err", err);
+          throw new StatusBuilder()
+            .withCode(Status.INTERNAL)
+            .withDetails("Failed to create legacy challenge")
+            .build();
         }
-      } catch (err) {
-        console.log("err", err);
-        throw new StatusBuilder()
-          .withCode(Status.INTERNAL)
-          .withDetails("Failed to create legacy challenge")
-          .build();
+        input.legacyId = legacyChallengeId as number;
       }
-      input.legacyId = legacyChallengeId as number;
     }
 
     console.log(`Updating challenge in legacy...`);
