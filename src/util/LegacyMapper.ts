@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { PrizeSetTypes } from "../common/Constants";
+import { PhaseTypeIds, PrizeSetTypes } from "../common/Constants";
 import { V4_SUBTRACKS, V5_TO_V4 } from "../common/ConversionMap";
 import { Challenge_Phase } from "../models/domain-layer/challenge/challenge";
 import { legacyChallengeStatusesMap } from "./constants";
@@ -207,7 +207,7 @@ class LegacyMapper {
 
 
     return {
-      1: this.mapScorecard(subTrack, phase.name), // Scorecard ID
+      1: this.mapScorecard(subTrack, this.mapPhaseNameToPhaseTypeId(phase.name)), // Scorecard ID
       2: phase.name === "Registration" ? '1' : undefined, // Registration Number
       3: phase.name === "Submission" ? submissionPhaseConstraint?.value.toString() ?? // if we have a submission phase constraint use it
         reviewPhaseConstraint?.value != null ? '1' : undefined // otherwise if we have a review phase constraint use 1
@@ -278,38 +278,59 @@ class LegacyMapper {
   }
 
   // prettier-ignore
-  private mapScorecard(subTrack: string, phase: string): string | undefined {
+  private mapScorecard(subTrack: string, phaseTypeId: number | undefined): string | undefined {
     const isNonProd = process.env.ENV != "prod";
 
     // TODO: Update scorecard ids for all subtracks and check for dev environment
 
     let scorecard = undefined;
 
-    // F2F
-    if (subTrack === V4_SUBTRACKS.FIRST_2_FINISH) scorecard = isNonProd ? 30002160 : 30002160; // missing dev scorecard
-    if (subTrack === V4_SUBTRACKS.DESIGN_FIRST_2_FINISH) scorecard = isNonProd ? 30001610 : 30001101; // missing dev scorecard
-
-    // QA
-    if (subTrack === V4_SUBTRACKS.BUG_HUNT) {
-      if (phase === "Review") scorecard = isNonProd ? 30001610 : 30001220; // missing dev scorecard
-      if (phase === "Specification Review") scorecard = isNonProd ? 30001610 : 30001120; // missing dev scorecard
+    if (
+      subTrack === V4_SUBTRACKS.FIRST_2_FINISH &&
+      phaseTypeId === PhaseTypeIds.IterativeReview
+    ) {
+      scorecard = isNonProd ? 30002160 : 30002160;
+    } else if (
+      subTrack === V4_SUBTRACKS.DESIGN_FIRST_2_FINISH &&
+      phaseTypeId === PhaseTypeIds.Review
+    ) {
+      scorecard = isNonProd ? 30001610 : 30001101;
+    } else if (subTrack === V4_SUBTRACKS.BUG_HUNT) {
+      if (phaseTypeId === PhaseTypeIds.Review) {
+        scorecard = isNonProd ? 30001610 : 30001220;
+      } else if (phaseTypeId === PhaseTypeIds.SpecificationReview) {
+        scorecard = isNonProd ? 30001610 : 30001120;
+      }
+    } else if (
+      subTrack === V4_SUBTRACKS.DEVELOP_MARATHON_MATCH &&
+      phaseTypeId === PhaseTypeIds.Review
+    ) {
+      scorecard = isNonProd ? 30001610 : 30002133;
+    } else if (
+      subTrack === V4_SUBTRACKS.MARATHON_MATCH &&
+      phaseTypeId === PhaseTypeIds.Review
+    ) {
+      scorecard = isNonProd ? 30001610 : 30002133;
+    } else if (subTrack === V4_SUBTRACKS.WEB_DESIGNS) {
+      if (phaseTypeId === PhaseTypeIds.SpecificationReview) {
+        scorecard = isNonProd ? 30001610 : 30001040;
+      } else if (phaseTypeId === PhaseTypeIds.CheckpointScreening) {
+        scorecard = isNonProd ? 30001610 : 30001364;
+      } else if (phaseTypeId === PhaseTypeIds.CheckpointReview) {
+        scorecard = isNonProd ? 30001610 : 30001004;
+      } else if (phaseTypeId === PhaseTypeIds.Screening) {
+        scorecard = isNonProd ? 30001610 : 30001363;
+      } else if (phaseTypeId === PhaseTypeIds.Review) {
+        scorecard = isNonProd ? 30001610 : 30001031;
+      } else if (phaseTypeId === PhaseTypeIds.Approval) {
+        scorecard = isNonProd ? 30001610 : 30000720;
+      }
+    } else if (
+      subTrack === V4_SUBTRACKS.CODE &&
+      phaseTypeId === PhaseTypeIds.Review
+    ) {
+      scorecard = isNonProd ? 30002133 : 30002133;
     }
-
-    // DS
-    if (subTrack === V4_SUBTRACKS.DEVELOP_MARATHON_MATCH) scorecard = isNonProd ? 30001610 : 30002133; // missing dev scorecard
-    if (subTrack === V4_SUBTRACKS.MARATHON_MATCH) scorecard = isNonProd ? 30001610 : 30002133; // missing dev scorecard
-
-    // DESIGN
-    if (subTrack === V4_SUBTRACKS.WEB_DESIGNS) {
-      if (phase === "Specification Review") scorecard = isNonProd ? 30001610 : 30001040; // missing dev scorecard
-      if (phase === "Checkpoint Screening") scorecard = isNonProd ? 30001610 : 30001364; // missing dev scorecard
-      if (phase === "Checkpoint Review") scorecard = isNonProd ? 30001610 : 30001004; // missing dev scorecard
-      if (phase === "Screening") scorecard = isNonProd ? 30001610 : 30001363; // missing dev scorecard
-      if (phase === "Review") scorecard = isNonProd ? 30001610 : 30001031; // missing dev scorecard
-      if (phase === "Approval") scorecard = isNonProd ? 30001610 : 30000720; // missing dev scorecard
-    }
-
-    if (subTrack === V4_SUBTRACKS.CODE) scorecard = isNonProd ? 30002133 : 30002133; // missing dev scorecard
 
     return scorecard ? scorecard.toString() : undefined;
   }
