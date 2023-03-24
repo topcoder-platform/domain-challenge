@@ -43,6 +43,7 @@ export const ResourceInfoIds = {
 export const ChallengeStatuses = {
   New: "New",
   Active: "Active",
+  Draft: "Draft",
 };
 
 export const PhaseTypeIds = {

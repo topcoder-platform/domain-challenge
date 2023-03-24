@@ -1,12 +1,12 @@
 import _ from "lodash";
 import { PhaseTypeIds, PrizeSetTypes } from "../common/Constants";
 import { V4_SUBTRACKS, V5_TO_V4 } from "../common/ConversionMap";
-import { Challenge_Phase } from "../models/domain-layer/challenge/challenge";
+import { Challenge_Phase, CreateChallengeInput } from "../models/domain-layer/challenge/challenge";
 import { legacyChallengeStatusesMap } from "./constants";
 
 class LegacyMapper {
   // To be used on challenge:update calls that change state from New -> Draft
-  public mapChallengeDraftUpdateInput = (input: any) => {
+  public mapChallengeDraftUpdateInput = (input: CreateChallengeInput) => {
     const prizeSets = this.mapPrizeSets(input.prizeSets);
     const projectInfo = this.mapProjectInfo(input, prizeSets);
 
@@ -14,20 +14,18 @@ class LegacyMapper {
       name: input.name,
       projectStatusId: legacyChallengeStatusesMap.Draft,
       ...this.mapTrackAndTypeToCategoryStudioSpecAndMmSpec(
-        input.legacy.track,
-        input.legacy.subTrack
+        input.legacy!.track!,
+        input.legacy!.subTrack!
       ),
       tcDirectProjectId: input.legacy?.directProjectId!,
       winnerPrizes:
-        prizeSets[PrizeSetTypes.ChallengePrizes]?.map(
-          (amount: number, index: number) => ({
-            amount,
-            place: index + 1,
-            numSubmissions: 1,
-            type: PrizeSetTypes.ChallengePrizes,
-          })
-        ) ?? [],
-      phases: this.mapPhases(input.legacy.subTrack, input.phases),
+        prizeSets[PrizeSetTypes.ChallengePrizes]?.map((amount: number, index: number) => ({
+          amount,
+          place: index + 1,
+          numSubmissions: 1,
+          type: PrizeSetTypes.ChallengePrizes,
+        })) ?? [],
+      phases: this.mapPhases(input.legacy!.subTrack!, input.phases),
       reviewType: input.legacy?.reviewType ?? "INTERNAL",
       confidentialityType: input.legacy?.confidentialityType ?? "public",
       billingProject: input.billing?.billingAccountId!,
@@ -56,48 +54,6 @@ class LegacyMapper {
     if (subTrack === V4_SUBTRACKS.BUG_HUNT) projectCategoryId = 9;
     if (subTrack === V4_SUBTRACKS.DESIGN_FIRST_2_FINISH) projectCategoryId = 40;
     if (subTrack === V4_SUBTRACKS.WEB_DESIGNS) projectCategoryId = 17;
-    /*
-      project_category_id,project_type_id,name
-      1,1,Design
-      2,1,Development
-      3,1,Security
-      4,1,Process
-      5,1,Testing Competition
-      6,2,Specification
-      7,2,Architecture
-      8,2,Component Production
-      9,2,Bug Hunt
-      10,2,Deployment
-      11,2,Security
-      12,2,Process
-      13,2,Test Suites
-      14,2,Assembly Competition
-      15,2,Legacy
-      16,3,Banners/Icons
-      17,3,Web Design
-      18,3,Wireframes
-      19,2,UI Prototype Competition
-      20,3,Logo Design
-      21,3,Print/Presentation
-      23,2,Conceptualization
-      24,2,RIA Build Competition
-      25,2,RIA Component Competition
-      26,2,Test Scenarios
-      27,2,Spec Review
-      28,4,Generic Scorecards
-      29,2,Copilot Posting
-      35,2,Content Creation
-      30,3,Widget or Mobile Screen Design
-      31,3,Front-End Flash
-      32,3,Application Front-End Design
-      34,3,Studio Other
-      22,3,Idea Generation
-      36,2,Reporting
-      37,2,Marathon Match
-      38,2,First2Finish
-      39,2,Code
-      40,3,Design First2Finish
-    */
 
     return {
       projectCategoryId,
@@ -106,9 +62,7 @@ class LegacyMapper {
     };
   }
 
-  private mapPrizeSets(
-    prizeSets: { type: string; prizes: { value: number }[] }[]
-  ) {
+  private mapPrizeSets(prizeSets: { type: string; prizes: { value: number }[] }[]) {
     return prizeSets.reduce((acc: { [key: string]: number[] }, prize) => {
       acc[prize.type] = prize.prizes.map((p) => p.value).sort((a, b) => b - a);
 
@@ -116,10 +70,7 @@ class LegacyMapper {
     }, {});
   }
 
-  private mapProjectInfo(
-    input: any,
-    prizeSets: any
-  ): { [key: number]: string | undefined } {
+  private mapProjectInfo(input: any, prizeSets: any): { [key: number]: string | undefined } {
     const firstPlacePrize =
       prizeSets[PrizeSetTypes.ChallengePrizes]?.length >= 1
         ? prizeSets[PrizeSetTypes.ChallengePrizes][0]?.toString()
