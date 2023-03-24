@@ -122,7 +122,7 @@ class LegacyMapper {
         ? prizeSets[PrizeSetTypes.ChallengePrizes][0]?.toString()
         : undefined;
 
-    return {
+    const map = {
       3: "1",
       4: "0",
       7: "1.0",
@@ -173,6 +173,10 @@ class LegacyMapper {
       88: input.metadata.find((m) => m.name == "effortHoursEstimate")?.value ?? undefined, // Effort Hours Estimate
       89: input.metadata.find((m) => m.name == "offshoreEfforts")?.value ?? undefined, // Estimate Efforts Days Offshore (extract from metadata)
       90: input.metadata.find((m) => m.name == "onsiteEfforts")?.value ?? undefined, // Estimate Efforts Days Onsite (extract from metadata)
+    };
+
+    return Object.fromEntries(Object.entries(map).filter(([_, v]) => v !== undefined)) as {
+      [key: number]: string;
     };
   }
 
@@ -234,7 +238,7 @@ class LegacyMapper {
     );
 
 
-    return {
+    const map = {
       1: this.mapScorecard(subTrack, this.mapPhaseNameToPhaseTypeId(phase.name)), // Scorecard ID
       2: phase.name === "Registration" ? '1' : undefined, // Registration Number
       3: phase.name === "Submission" ? submissionPhaseConstraint?.value.toString() ?? // if we have a submission phase constraint use it
@@ -246,6 +250,8 @@ class LegacyMapper {
         phase.name === "Review" ? reviewPhaseConstraint?.value.toString() ?? '2' : undefined, // Reviewer Number
       '7': undefined, // View Reviews During Review
     };
+
+    return Object.fromEntries(Object.entries(map).filter(([_, v]) => v !== undefined)) as { [key: number]: string };
   }
 
   private mapPhaseNameToPhaseTypeId(name: string) {
