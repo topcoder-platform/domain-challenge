@@ -1,8 +1,16 @@
 import _ from "lodash";
-import { PhaseTypeIds, PrizeSetTypes } from "../common/Constants";
+import { ChallengeStatuses, PhaseTypeIds, PrizeSetTypes } from "../common/Constants";
 import { V4_SUBTRACKS, V5_TO_V4 } from "../common/ConversionMap";
-import { Challenge_Phase, CreateChallengeInput } from "../models/domain-layer/challenge/challenge";
+import {
+  Challenge_Phase,
+  CreateChallengeInput,
+  UpdateChallengeInput_UpdateInput,
+} from "../models/domain-layer/challenge/challenge";
 import { legacyChallengeStatusesMap } from "./constants";
+import {
+  UpdateChallengeInput as LegacyChallengeUpdateInput,
+  Phase as LegacyPhase,
+} from "@topcoder-framework/domain-acl";
 
 class LegacyMapper {
   // To be used on challenge:update calls that change state from New -> Draft
@@ -28,6 +36,40 @@ class LegacyMapper {
       phases: this.mapPhases(input.legacy!.subTrack!, input.phases),
       reviewType: input.legacy?.reviewType ?? "INTERNAL",
       confidentialityType: input.legacy?.confidentialityType ?? "public",
+      billingProject: input.billing?.billingAccountId!,
+      projectInfo,
+    };
+  };
+
+  public mapChallengeUpdateInput = (
+    legacyId: number,
+    input: UpdateChallengeInput_UpdateInput
+  ): LegacyChallengeUpdateInput => {
+    // prettier-ignore
+    const prizeSets = input.prizeSetUpdate != null ? this.mapPrizeSets(input.prizeSetUpdate.prizeSets) : null;
+    const projectInfo = this.mapProjectInfoForUpdate(input, prizeSets);
+
+    return {
+      projectId: legacyId,
+      name: input.name,
+      projectStatusId: this.mapProjectStatus(input.status),
+      prizeUpdate:
+        prizeSets == null
+          ? undefined
+          : {
+              winnerPrizes: prizeSets[PrizeSetTypes.ChallengePrizes]?.map(
+                (amount: number, index: number) => ({
+                  amount,
+                  place: index + 1,
+                  numSubmissions: 1,
+                  type: PrizeSetTypes.ChallengePrizes,
+                })
+              ),
+            },
+      // prettier-ignore
+      phaseUpdate: input.phaseUpdate != null ? { phases: this.mapPhases(input.legacy!.subTrack!, input.phaseUpdate.phases) } : undefined,
+      groupUpdate: input.groupUpdate != null ? { groups: input.groupUpdate.groups } : undefined,
+      termUpdate: input.termUpdate != null ? { terms: input.termUpdate.terms } : undefined,
       billingProject: input.billing?.billingAccountId!,
       projectInfo,
     };
@@ -70,7 +112,10 @@ class LegacyMapper {
     }, {});
   }
 
-  private mapProjectInfo(input: any, prizeSets: any): { [key: number]: string | undefined } {
+  private mapProjectInfo(
+    input: CreateChallengeInput,
+    prizeSets: any
+  ): { [key: number]: string | undefined } {
     const firstPlacePrize =
       prizeSets[PrizeSetTypes.ChallengePrizes]?.length >= 1
         ? prizeSets[PrizeSetTypes.ChallengePrizes][0]?.toString()
@@ -124,9 +169,38 @@ class LegacyMapper {
       52: "false", // Allow Stock Art
       57: "0.5", // Contest Fee Percentage
       59: "false", // Review Feedback Flag
-      88: "0", // Effort Hours Estimate
-      89: "0", // Estimate Efforts Days Offshore (extract from metadata)
-      90: "0", // Estimate Efforts Days Onsite (extract from metadata)
+      88: input.metadata.find((m) => m.name == "effortHoursEstimate")?.value ?? undefined, // Effort Hours Estimate
+      89: input.metadata.find((m) => m.name == "offshoreEfforts")?.value ?? undefined, // Estimate Efforts Days Offshore (extract from metadata)
+      90: input.metadata.find((m) => m.name == "onsiteEfforts")?.value ?? undefined, // Estimate Efforts Days Onsite (extract from metadata)
+    };
+  }
+
+  private mapProjectInfoForUpdate(
+    input: UpdateChallengeInput_UpdateInput,
+    prizeSets: any
+  ): { [key: number]: string } {
+    let effortsEstimate = {};
+
+    const metadata = input.metadataUpdate != null ? input.metadataUpdate.metadata : undefined;
+    if (metadata != null) {
+      effortsEstimate = {
+        88: metadata.find((m) => m.name == "effortHoursEstimate")?.value.toString() ?? undefined, // Effort Hours Estimate
+        89: metadata.find((m) => m.name == "offshoreEfforts")?.value.toString() ?? undefined, // Estimate Efforts Days Offshore (extract from metadata)
+        90: metadata.find((m) => m.name == "onsiteEfforts")?.value.toString() ?? undefined, // Estimate Efforts Days Onsite (extract from metadata)
+      };
+    }
+
+    let projectInfo = {};
+
+    if (input.name != null) {
+      projectInfo = {
+        6: input.name,
+      };
+    }
+
+    return {
+      ...projectInfo,
+      ...effortsEstimate,
     };
   }
 
@@ -142,7 +216,7 @@ class LegacyMapper {
       actualEndTime: phase.actualEndDate,
       duration: phase.duration * 1000,
       phaseCriteria: this.mapPhaseCriteria(subTrack, phase),
-    }));
+    }) as LegacyPhase);
   }
 
   // prettier-ignore
@@ -284,6 +358,20 @@ class LegacyMapper {
     }
 
     return scorecard ? scorecard.toString() : undefined;
+  }
+
+  private mapProjectStatus(status: string | undefined): number | undefined {
+    if (status == null) return undefined;
+
+    if (status === ChallengeStatuses.Draft) {
+      return legacyChallengeStatusesMap.Draft;
+    }
+    if (status === ChallengeStatuses.Active) {
+      return legacyChallengeStatusesMap.Active;
+    }
+    if (status.toLowerCase().indexOf("cancel") !== -1) {
+      return legacyChallengeStatusesMap.Cancelled;
+    }
   }
 }
 

@@ -2061,7 +2061,7 @@ function createBaseChallenge_Overview(): Challenge_Overview {
 export const Challenge_Overview = {
   encode(message: Challenge_Overview, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.totalPrizes !== 0) {
-      writer.uint32(8).int32(message.totalPrizes);
+      writer.uint32(13).float(message.totalPrizes);
     }
     return writer;
   },
@@ -2074,11 +2074,11 @@ export const Challenge_Overview = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag != 8) {
+          if (tag != 13) {
             break;
           }
 
-          message.totalPrizes = reader.int32();
+          message.totalPrizes = reader.float();
           continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
@@ -2095,7 +2095,7 @@ export const Challenge_Overview = {
 
   toJSON(message: Challenge_Overview): unknown {
     const obj: any = {};
-    message.totalPrizes !== undefined && (obj.totalPrizes = Math.round(message.totalPrizes));
+    message.totalPrizes !== undefined && (obj.totalPrizes = message.totalPrizes);
     return obj;
   },
 

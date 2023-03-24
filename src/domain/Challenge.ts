@@ -255,8 +255,18 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       // End Anti-Corruption Layer
       console.log(`Legacy ID: ${legacyId} was created. Creating challenge...`);
     } else if (challenge.status !== ChallengeStatuses.New) {
-      // updateChallengeInput = LegacyMapper.mapChallengeDraftUpdateInput(input);
-      // challenge.legacy = acl.updateChallenge(updateChallengeInput);
+      console.log("Challenge Input", JSON.stringify(input, null, 2));
+      const updateChallengeInput = legacyMapper.mapChallengeUpdateInput(
+        challenge.legacy.legacyId,
+        input
+      );
+      const { updatedCount } = await legacyChallengeDomain.update(updateChallengeInput, metadata);
+      if (updatedCount === 0) {
+        throw new StatusBuilder()
+          .withCode(Status.ABORTED)
+          .withDetails("Failed to update challenge")
+          .build();
+      }
     }
 
     return super.update(
