@@ -1,15 +1,3 @@
-const {
-  V5_TERMS_API_URL,
-  V5_RESOURCES_API_URL,
-  COPILOT_ROLE_ID,
-  COPILOT_PAYMENT_TYPE,
-  V5_GROUPS_API_URL,
-  V5_TERMS_NDA_ID,
-  LEGACY_TERMS_NDA_ID,
-  LEGACY_TERMS_STANDARD_ID,
-  LEGACY_SUBMITTER_ROLE_ID,
-  V5_TERMS_STANDARD_ID,
-} = process.env;
 import { ChallengeDomain as LegacyChallengeDomain } from "@topcoder-framework/domain-acl";
 import { DomainHelper } from "@topcoder-framework/lib-common";
 import xss from "xss";
@@ -217,10 +205,12 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   ): Promise<ChallengeList> {
     let legacyId: number | null = null;
 
-    const { items } = await this.scan(scanCriteria, undefined);
-    let challenge = items[0];
+    console.log(input);
 
-    if (input.status === ChallengeStatuses.Draft && challenge?.legacy.pureV5Task !== true) {
+    const { items } = await this.scan(scanCriteria, undefined);
+    let challenge = items[0] as Challenge;
+
+    if (input.status === ChallengeStatuses.Draft && challenge.legacy!.pureV5Task !== true) {
       if (items.length === 0 || items[0] == null) {
         throw new StatusBuilder()
           .withCode(Status.NOT_FOUND)
@@ -255,12 +245,15 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       // End Anti-Corruption Layer
       console.log(`Legacy ID: ${legacyId} was created. Creating challenge...`);
     } else if (challenge.status !== ChallengeStatuses.New) {
-      console.log("Challenge Input", JSON.stringify(input, null, 2));
       const updateChallengeInput = legacyMapper.mapChallengeUpdateInput(
-        challenge.legacy.legacyId,
+        challenge.legacyId!,
+        challenge.legacy?.subTrack!,
         input
       );
+      updateChallengeInput.billingProject = challenge.billing?.billingAccountId!;
+      console.log("UpdateChallengeInput", JSON.stringify(updateChallengeInput, null, 2));
       const { updatedCount } = await legacyChallengeDomain.update(updateChallengeInput, metadata);
+      console.log("Update complete");
       if (updatedCount === 0) {
         throw new StatusBuilder()
           .withCode(Status.ABORTED)

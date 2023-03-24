@@ -43,6 +43,7 @@ class LegacyMapper {
 
   public mapChallengeUpdateInput = (
     legacyId: number,
+    subTrack: string,
     input: UpdateChallengeInput_UpdateInput
   ): LegacyChallengeUpdateInput => {
     // prettier-ignore
@@ -67,7 +68,7 @@ class LegacyMapper {
               ),
             },
       // prettier-ignore
-      phaseUpdate: input.phaseUpdate != null ? { phases: this.mapPhases(input.legacy!.subTrack!, input.phaseUpdate.phases) } : undefined,
+      phaseUpdate: input.phaseUpdate != null ? { phases: this.mapPhases(subTrack, input.phaseUpdate.phases) } : undefined,
       groupUpdate: input.groupUpdate != null ? { groups: input.groupUpdate.groups } : undefined,
       termUpdate: input.termUpdate != null ? { terms: input.termUpdate.terms } : undefined,
       billingProject: input.billing?.billingAccountId!,
@@ -206,17 +207,19 @@ class LegacyMapper {
 
   // prettier-ignore
   public mapPhases(subTrack: string, phases: Challenge_Phase[]) {
-    return phases.map((phase: Challenge_Phase, index: number) => ({
-      phaseTypeId: this.mapPhaseNameToPhaseTypeId(phase.name),
-      phaseStatusId: phase.isOpen ? 2 : phase.actualEndDate ? 3 : 1,
-      fixedStartTime: _.isUndefined(phase.predecessor) ? phase.scheduledStartDate : undefined,
-      scheduledStartTime: phase.scheduledStartDate,
-      scheduledEndTime: phase.scheduledEndDate,
-      actualStartTime: phase.actualStartDate,
-      actualEndTime: phase.actualEndDate,
-      duration: phase.duration * 1000,
-      phaseCriteria: this.mapPhaseCriteria(subTrack, phase),
-    }) as LegacyPhase);
+    return phases.map((phase: Challenge_Phase, index: number) => {
+      return LegacyPhase.fromJSON({
+        phaseTypeId: this.mapPhaseNameToPhaseTypeId(phase.name),
+        phaseStatusId: phase.isOpen ? 2 : phase.actualEndDate ? 3 : 1,
+        fixedStartTime: _.isUndefined(phase.predecessor) ? phase.scheduledStartDate : undefined,
+        scheduledStartTime: phase.scheduledStartDate,
+        scheduledEndTime: phase.scheduledEndDate,
+        actualStartTime: phase.actualStartDate,
+        actualEndTime: phase.actualEndDate,
+        duration: phase.duration * 1000,
+        phaseCriteria: this.mapPhaseCriteria(subTrack, phase),
+      })
+    });
   }
 
   // prettier-ignore

@@ -24,8 +24,8 @@ export interface Challenge {
   prizeSets: Challenge_PrizeSet[];
   tags: string[];
   projectId?: number | undefined;
-  startDate?: number | undefined;
-  endDate?: number | undefined;
+  startDate?: string | undefined;
+  endDate?: string | undefined;
   status: string;
   attachments: string[];
   groups: string[];
@@ -156,8 +156,8 @@ export interface CreateChallengeInput {
   prizeSets: Challenge_PrizeSet[];
   tags: string[];
   projectId?: number | undefined;
-  startDate?: number | undefined;
-  endDate?: number | undefined;
+  startDate?: string | undefined;
+  endDate?: string | undefined;
   status: string;
   attachments: string[];
   groups: string[];
@@ -191,8 +191,8 @@ export interface UpdateChallengeInput_UpdateInput {
   attachmentUpdate?: UpdateChallengeInput_UpdateInput_AttachmentsUpdate | undefined;
   groupUpdate?: UpdateChallengeInput_UpdateInput_GroupsUpdate | undefined;
   projectId?: number | undefined;
-  startDate?: number | undefined;
-  endDate?: number | undefined;
+  startDate?: string | undefined;
+  endDate?: string | undefined;
   status?: string | undefined;
   overview?: Challenge_Overview | undefined;
 }
@@ -381,10 +381,10 @@ export const Challenge = {
       writer.uint32(152).int32(message.projectId);
     }
     if (message.startDate !== undefined) {
-      writer.uint32(160).int64(message.startDate);
+      writer.uint32(162).string(message.startDate);
     }
     if (message.endDate !== undefined) {
-      writer.uint32(168).int64(message.endDate);
+      writer.uint32(170).string(message.endDate);
     }
     if (message.status !== "") {
       writer.uint32(178).string(message.status);
@@ -560,18 +560,18 @@ export const Challenge = {
           message.projectId = reader.int32();
           continue;
         case 20:
-          if (tag != 160) {
+          if (tag != 162) {
             break;
           }
 
-          message.startDate = longToNumber(reader.int64() as Long);
+          message.startDate = reader.string();
           continue;
         case 21:
-          if (tag != 168) {
+          if (tag != 170) {
             break;
           }
 
-          message.endDate = longToNumber(reader.int64() as Long);
+          message.endDate = reader.string();
           continue;
         case 22:
           if (tag != 178) {
@@ -675,8 +675,8 @@ export const Challenge = {
         : [],
       tags: Array.isArray(object?.tags) ? object.tags.map((e: any) => String(e)) : [],
       projectId: isSet(object.projectId) ? Number(object.projectId) : undefined,
-      startDate: isSet(object.startDate) ? Number(object.startDate) : undefined,
-      endDate: isSet(object.endDate) ? Number(object.endDate) : undefined,
+      startDate: isSet(object.startDate) ? String(object.startDate) : undefined,
+      endDate: isSet(object.endDate) ? String(object.endDate) : undefined,
       status: isSet(object.status) ? String(object.status) : "",
       attachments: Array.isArray(object?.attachments) ? object.attachments.map((e: any) => String(e)) : [],
       groups: Array.isArray(object?.groups) ? object.groups.map((e: any) => String(e)) : [],
@@ -738,8 +738,8 @@ export const Challenge = {
       obj.tags = [];
     }
     message.projectId !== undefined && (obj.projectId = Math.round(message.projectId));
-    message.startDate !== undefined && (obj.startDate = Math.round(message.startDate));
-    message.endDate !== undefined && (obj.endDate = Math.round(message.endDate));
+    message.startDate !== undefined && (obj.startDate = message.startDate);
+    message.endDate !== undefined && (obj.endDate = message.endDate);
     message.status !== undefined && (obj.status = message.status);
     if (message.attachments) {
       obj.attachments = message.attachments.map((e) => e);
@@ -1443,7 +1443,7 @@ function createBaseChallenge_Phase(): Challenge_Phase {
 export const Challenge_Phase = {
   encode(message: Challenge_Phase, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.duration !== 0) {
-      writer.uint32(8).int32(message.duration);
+      writer.uint32(8).int64(message.duration);
     }
     if (message.scheduledStartDate !== undefined) {
       Timestamp.encode(toTimestamp(message.scheduledStartDate), writer.uint32(18).fork()).ldelim();
@@ -1493,7 +1493,7 @@ export const Challenge_Phase = {
             break;
           }
 
-          message.duration = reader.int32();
+          message.duration = longToNumber(reader.int64() as Long);
           continue;
         case 2:
           if (tag != 18) {
@@ -2252,10 +2252,10 @@ export const CreateChallengeInput = {
       writer.uint32(136).int32(message.projectId);
     }
     if (message.startDate !== undefined) {
-      writer.uint32(144).int64(message.startDate);
+      writer.uint32(146).string(message.startDate);
     }
     if (message.endDate !== undefined) {
-      writer.uint32(152).int64(message.endDate);
+      writer.uint32(154).string(message.endDate);
     }
     if (message.status !== "") {
       writer.uint32(162).string(message.status);
@@ -2399,18 +2399,18 @@ export const CreateChallengeInput = {
           message.projectId = reader.int32();
           continue;
         case 18:
-          if (tag != 144) {
+          if (tag != 146) {
             break;
           }
 
-          message.startDate = longToNumber(reader.int64() as Long);
+          message.startDate = reader.string();
           continue;
         case 19:
-          if (tag != 152) {
+          if (tag != 154) {
             break;
           }
 
-          message.endDate = longToNumber(reader.int64() as Long);
+          message.endDate = reader.string();
           continue;
         case 20:
           if (tag != 162) {
@@ -2470,8 +2470,8 @@ export const CreateChallengeInput = {
         : [],
       tags: Array.isArray(object?.tags) ? object.tags.map((e: any) => String(e)) : [],
       projectId: isSet(object.projectId) ? Number(object.projectId) : undefined,
-      startDate: isSet(object.startDate) ? Number(object.startDate) : undefined,
-      endDate: isSet(object.endDate) ? Number(object.endDate) : undefined,
+      startDate: isSet(object.startDate) ? String(object.startDate) : undefined,
+      endDate: isSet(object.endDate) ? String(object.endDate) : undefined,
       status: isSet(object.status) ? String(object.status) : "",
       attachments: Array.isArray(object?.attachments) ? object.attachments.map((e: any) => String(e)) : [],
       groups: Array.isArray(object?.groups) ? object.groups.map((e: any) => String(e)) : [],
@@ -2525,8 +2525,8 @@ export const CreateChallengeInput = {
       obj.tags = [];
     }
     message.projectId !== undefined && (obj.projectId = Math.round(message.projectId));
-    message.startDate !== undefined && (obj.startDate = Math.round(message.startDate));
-    message.endDate !== undefined && (obj.endDate = Math.round(message.endDate));
+    message.startDate !== undefined && (obj.startDate = message.startDate);
+    message.endDate !== undefined && (obj.endDate = message.endDate);
     message.status !== undefined && (obj.status = message.status);
     if (message.attachments) {
       obj.attachments = message.attachments.map((e) => e);
@@ -2769,10 +2769,10 @@ export const UpdateChallengeInput_UpdateInput = {
       writer.uint32(168).int32(message.projectId);
     }
     if (message.startDate !== undefined) {
-      writer.uint32(176).int64(message.startDate);
+      writer.uint32(178).string(message.startDate);
     }
     if (message.endDate !== undefined) {
-      writer.uint32(184).int64(message.endDate);
+      writer.uint32(186).string(message.endDate);
     }
     if (message.status !== undefined) {
       writer.uint32(194).string(message.status);
@@ -2938,18 +2938,18 @@ export const UpdateChallengeInput_UpdateInput = {
           message.projectId = reader.int32();
           continue;
         case 22:
-          if (tag != 176) {
+          if (tag != 178) {
             break;
           }
 
-          message.startDate = longToNumber(reader.int64() as Long);
+          message.startDate = reader.string();
           continue;
         case 23:
-          if (tag != 184) {
+          if (tag != 186) {
             break;
           }
 
-          message.endDate = longToNumber(reader.int64() as Long);
+          message.endDate = reader.string();
           continue;
         case 24:
           if (tag != 194) {
@@ -3017,8 +3017,8 @@ export const UpdateChallengeInput_UpdateInput = {
         ? UpdateChallengeInput_UpdateInput_GroupsUpdate.fromJSON(object.groupUpdate)
         : undefined,
       projectId: isSet(object.projectId) ? Number(object.projectId) : undefined,
-      startDate: isSet(object.startDate) ? Number(object.startDate) : undefined,
-      endDate: isSet(object.endDate) ? Number(object.endDate) : undefined,
+      startDate: isSet(object.startDate) ? String(object.startDate) : undefined,
+      endDate: isSet(object.endDate) ? String(object.endDate) : undefined,
       status: isSet(object.status) ? String(object.status) : undefined,
       overview: isSet(object.overview) ? Challenge_Overview.fromJSON(object.overview) : undefined,
     };
@@ -3068,8 +3068,8 @@ export const UpdateChallengeInput_UpdateInput = {
       ? UpdateChallengeInput_UpdateInput_GroupsUpdate.toJSON(message.groupUpdate)
       : undefined);
     message.projectId !== undefined && (obj.projectId = Math.round(message.projectId));
-    message.startDate !== undefined && (obj.startDate = Math.round(message.startDate));
-    message.endDate !== undefined && (obj.endDate = Math.round(message.endDate));
+    message.startDate !== undefined && (obj.startDate = message.startDate);
+    message.endDate !== undefined && (obj.endDate = message.endDate);
     message.status !== undefined && (obj.status = message.status);
     message.overview !== undefined &&
       (obj.overview = message.overview ? Challenge_Overview.toJSON(message.overview) : undefined);
