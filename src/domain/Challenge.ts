@@ -251,7 +251,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         input
       );
       updateChallengeInput.billingProject = challenge.billing?.billingAccountId!;
-      console.log("UpdateChallengeInput", JSON.stringify(updateChallengeInput, null, 2));
       const { updatedCount } = await legacyChallengeDomain.update(updateChallengeInput, metadata);
       console.log("Update complete");
       if (updatedCount === 0) {
