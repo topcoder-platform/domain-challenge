@@ -222,7 +222,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     if (input.status === ChallengeStatuses.Draft || input.status === ChallengeStatuses.Active) {
       const { items } = await this.scan(scanCriteria, undefined);
 
-      if (items.length === 0) {
+      if (items.length === 0 || items[0] == null) {
         throw new StatusBuilder()
           .withCode(Status.NOT_FOUND)
           .withDetails("Challenge not found")
@@ -237,23 +237,23 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
         // prettier-ignore
         const createChallengeInput: CreateChallengeInput = {
-        name: input.name ?? challenge.name,
-        typeId: input.typeId ?? challenge.typeId,
-        trackId: input.trackId ?? challenge.trackId,
-        metadata: input.metadataUpdate != null ? input.metadataUpdate.metadata : challenge.metadata,
-        phases: input.phaseUpdate != null ? input.phaseUpdate.phases : challenge.phases,
-        events: input.eventUpdate != null ? input.eventUpdate.events : challenge.events,
-        terms: input.termUpdate != null ? input.termUpdate.terms : challenge.terms,
-        prizeSets: input.prizeSetUpdate != null ? input.prizeSetUpdate.prizeSets : challenge.prizeSets,
-        tags: input.tagUpdate != null ? input.tagUpdate.tags : challenge.tags,
-        status: input.status ?? challenge.status,
-        attachments: input.attachmentUpdate != null ? input.attachmentUpdate.attachments : challenge.attachments,
-        groups: input.groupUpdate != null ? input.groupUpdate.groups : challenge.groups,
-        discussions: input.discussionUpdate != null ? input.discussionUpdate.discussions : challenge.discussions,
+        name: input.name ?? challenge!.name,
+        typeId: input.typeId ?? challenge!.typeId,
+        trackId: input.trackId ?? challenge!.trackId,
+        metadata: input.metadataUpdate != null ? input.metadataUpdate.metadata : challenge!.metadata,
+        phases: input.phaseUpdate != null ? input.phaseUpdate.phases : challenge!.phases,
+        events: input.eventUpdate != null ? input.eventUpdate.events : challenge!.events,
+        terms: input.termUpdate != null ? input.termUpdate.terms : challenge!.terms,
+        prizeSets: input.prizeSetUpdate != null ? input.prizeSetUpdate.prizeSets : challenge!.prizeSets,
+        tags: input.tagUpdate != null ? input.tagUpdate.tags : challenge!.tags,
+        status: input.status ?? challenge!.status,
+        attachments: input.attachmentUpdate != null ? input.attachmentUpdate.attachments : challenge!.attachments,
+        groups: input.groupUpdate != null ? input.groupUpdate.groups : challenge!.groups,
+        discussions: input.discussionUpdate != null ? input.discussionUpdate.discussions : challenge!.discussions,
       };
 
         // prettier-ignore
-        const { legacy, legacyChallengeId } = await this.createLegacyChallenge(createChallengeInput, input.legacy, input.status, challenge.trackId, challenge.typeId, challenge.tags, metadata);
+        const { legacy, legacyChallengeId } = await this.createLegacyChallenge(createChallengeInput, input.legacy, input.status, challenge!.trackId, challenge!.typeId, challenge!.tags, metadata);
 
         input.legacy = legacy;
         legacyId = legacyChallengeId;
