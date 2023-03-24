@@ -48,4 +48,5 @@ workflows:
         filters:
           branches:
             only:
+            - fix/float-numbers-in-prizes
             - feature/dev
