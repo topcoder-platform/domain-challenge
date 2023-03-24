@@ -314,47 +314,47 @@ class LegacyMapper {
       subTrack === V4_SUBTRACKS.FIRST_2_FINISH &&
       phaseTypeId === PhaseTypeIds.IterativeReview
     ) {
-      scorecard = isNonProd ? 30002160 : 30002160;
+      scorecard = isNonProd ? 30001600 : 30002160;
     } else if (
       subTrack === V4_SUBTRACKS.DESIGN_FIRST_2_FINISH &&
       phaseTypeId === PhaseTypeIds.Review
     ) {
-      scorecard = isNonProd ? 30001610 : 30001101;
+      scorecard = isNonProd ? 30000190 : 30001101;
     } else if (subTrack === V4_SUBTRACKS.BUG_HUNT) {
       if (phaseTypeId === PhaseTypeIds.Review) {
-        scorecard = isNonProd ? 30001610 : 30001220;
+        scorecard = isNonProd ? 30000640 : 30001220;
       } else if (phaseTypeId === PhaseTypeIds.SpecificationReview) {
-        scorecard = isNonProd ? 30001610 : 30001120;
+        scorecard = isNonProd ? 30000040 : 30001120;
       }
     } else if (
       subTrack === V4_SUBTRACKS.DEVELOP_MARATHON_MATCH &&
       phaseTypeId === PhaseTypeIds.Review
     ) {
-      scorecard = isNonProd ? 30001610 : 30002133;
+      scorecard = isNonProd ? 30001561 : 30002133;
     } else if (
       subTrack === V4_SUBTRACKS.MARATHON_MATCH &&
       phaseTypeId === PhaseTypeIds.Review
     ) {
-      scorecard = isNonProd ? 30001610 : 30002133;
+      scorecard = isNonProd ? 30001561 : 30002133;
     } else if (subTrack === V4_SUBTRACKS.WEB_DESIGNS) {
       if (phaseTypeId === PhaseTypeIds.SpecificationReview) {
-        scorecard = isNonProd ? 30001610 : 30001040;
+        scorecard = isNonProd ? 30001040 : 30001040;
       } else if (phaseTypeId === PhaseTypeIds.CheckpointScreening) {
-        scorecard = isNonProd ? 30001610 : 30001364;
+        scorecard = isNonProd ? 30001042 : 30001364;
       } else if (phaseTypeId === PhaseTypeIds.CheckpointReview) {
-        scorecard = isNonProd ? 30001610 : 30001004;
+        scorecard = isNonProd ? 30001004 : 30001004;
       } else if (phaseTypeId === PhaseTypeIds.Screening) {
-        scorecard = isNonProd ? 30001610 : 30001363;
+        scorecard = isNonProd ? 30001010 : 30001363;
       } else if (phaseTypeId === PhaseTypeIds.Review) {
-        scorecard = isNonProd ? 30001610 : 30001031;
+        scorecard = isNonProd ? 30001031 : 30001031;
       } else if (phaseTypeId === PhaseTypeIds.Approval) {
-        scorecard = isNonProd ? 30001610 : 30000720;
+        scorecard = isNonProd ? 30000720 : 30000720;
       }
     } else if (
       subTrack === V4_SUBTRACKS.CODE &&
       phaseTypeId === PhaseTypeIds.Review
     ) {
-      scorecard = isNonProd ? 30002133 : 30002133;
+      scorecard = isNonProd ? 30001561 : 30002133;
     }
 
     return scorecard ? scorecard.toString() : undefined;
