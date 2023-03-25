@@ -205,58 +205,58 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   ): Promise<ChallengeList> {
     let legacyId: number | null = null;
 
-    console.log(JSON.stringify(input.phaseUpdate, null, 2));
-
     const { items } = await this.scan(scanCriteria, undefined);
     let challenge = items[0] as Challenge;
 
-    if (input.status === ChallengeStatuses.Draft && challenge.legacy!.pureV5Task !== true) {
-      if (items.length === 0 || items[0] == null) {
-        throw new StatusBuilder()
-          .withCode(Status.NOT_FOUND)
-          .withDetails("Challenge not found")
-          .build();
-      }
-      // Begin Anti-Corruption Layer
+    if (challenge.legacy!.pureV5Task !== true) {
+      if (input.status === ChallengeStatuses.Draft) {
+        if (items.length === 0 || items[0] == null) {
+          throw new StatusBuilder()
+            .withCode(Status.NOT_FOUND)
+            .withDetails("Challenge not found")
+            .build();
+        }
+        // Begin Anti-Corruption Layer
 
-      // prettier-ignore
-      const createChallengeInput: CreateChallengeInput = {
-        name: input.name ?? challenge!.name,
-        typeId: input.typeId ?? challenge!.typeId,
-        trackId: input.trackId ?? challenge!.trackId,
-        metadata: input.metadataUpdate != null ? input.metadataUpdate.metadata : challenge!.metadata,
-        phases: input.phaseUpdate != null ? input.phaseUpdate.phases : challenge!.phases,
-        events: input.eventUpdate != null ? input.eventUpdate.events : challenge!.events,
-        terms: input.termUpdate != null ? input.termUpdate.terms : challenge!.terms,
-        prizeSets: input.prizeSetUpdate != null ? input.prizeSetUpdate.prizeSets : challenge!.prizeSets,
-        tags: input.tagUpdate != null ? input.tagUpdate.tags : challenge!.tags,
-        status: input.status ?? challenge!.status,
-        attachments: input.attachmentUpdate != null ? input.attachmentUpdate.attachments : challenge!.attachments,
-        groups: input.groupUpdate != null ? input.groupUpdate.groups : challenge!.groups,
-        discussions: input.discussionUpdate != null ? input.discussionUpdate.discussions : challenge!.discussions,
-      };
+        // prettier-ignore
+        const createChallengeInput: CreateChallengeInput = {
+          name: input.name ?? challenge!.name,
+          typeId: input.typeId ?? challenge!.typeId,
+          trackId: input.trackId ?? challenge!.trackId,
+          metadata: input.metadataUpdate != null ? input.metadataUpdate.metadata : challenge!.metadata,
+          phases: input.phaseUpdate != null ? input.phaseUpdate.phases : challenge!.phases,
+          events: input.eventUpdate != null ? input.eventUpdate.events : challenge!.events,
+          terms: input.termUpdate != null ? input.termUpdate.terms : challenge!.terms,
+          prizeSets: input.prizeSetUpdate != null ? input.prizeSetUpdate.prizeSets : challenge!.prizeSets,
+          tags: input.tagUpdate != null ? input.tagUpdate.tags : challenge!.tags,
+          status: input.status ?? challenge!.status,
+          attachments: input.attachmentUpdate != null ? input.attachmentUpdate.attachments : challenge!.attachments,
+          groups: input.groupUpdate != null ? input.groupUpdate.groups : challenge!.groups,
+          discussions: input.discussionUpdate != null ? input.discussionUpdate.discussions : challenge!.discussions,
+        };
 
-      // prettier-ignore
-      const { legacy, legacyChallengeId } = await this.createLegacyChallenge(createChallengeInput, input.legacy, input.status, challenge!.trackId, challenge!.typeId, challenge!.tags, metadata);
+        // prettier-ignore
+        const { legacy, legacyChallengeId } = await this.createLegacyChallenge(createChallengeInput, input.legacy, input.status, challenge!.trackId, challenge!.typeId, challenge!.tags, metadata);
 
-      input.legacy = legacy;
-      legacyId = legacyChallengeId;
+        input.legacy = legacy;
+        legacyId = legacyChallengeId;
 
-      // End Anti-Corruption Layer
-      console.log(`Legacy ID: ${legacyId} was created. Creating challenge...`);
-    } else if (challenge.status !== ChallengeStatuses.New) {
-      const updateChallengeInput = legacyMapper.mapChallengeUpdateInput(
-        challenge.legacyId!,
-        challenge.legacy?.subTrack!,
-        input
-      );
-      const { updatedCount } = await legacyChallengeDomain.update(updateChallengeInput, metadata);
+        // End Anti-Corruption Layer
+        console.log(`Legacy ID: ${legacyId} was created. Creating challenge...`);
+      } else if (challenge.status !== ChallengeStatuses.New) {
+        const updateChallengeInput = legacyMapper.mapChallengeUpdateInput(
+          challenge.legacyId!,
+          challenge.legacy?.subTrack!,
+          input
+        );
+        const { updatedCount } = await legacyChallengeDomain.update(updateChallengeInput, metadata);
 
-      if (updatedCount === 0) {
-        throw new StatusBuilder()
-          .withCode(Status.ABORTED)
-          .withDetails("Failed to update challenge")
-          .build();
+        if (updatedCount === 0) {
+          throw new StatusBuilder()
+            .withCode(Status.ABORTED)
+            .withDetails("Failed to update challenge")
+            .build();
+        }
       }
     }
 
