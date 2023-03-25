@@ -247,7 +247,7 @@ class LegacyMapper {
       4: undefined, // View Response During Appeals
       5: undefined, // Manual Screening
       6:
-        phase.name === "Review" ? reviewPhaseConstraint?.value.toString() ?? '2' : undefined, // Reviewer Number
+        phase.name === "Review" ? reviewPhaseConstraint?.value.toString() ?? '2' : phase.name === "Iterative Review" ? '1' : undefined, // Reviewer Number
       '7': undefined, // View Reviews During Review
     };
 
