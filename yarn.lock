@@ -853,35 +853,35 @@
   resolved "https://registry.yarnpkg.com/@tootallnate/once/-/once-1.1.2.tgz#ccb91445360179a04e7fe6aff78c00ffc1eeaf82"
   integrity sha512-RbzJvlNzmRq5c3O09UipeuXno4tA1FE6ikOjxZK0tuxVv3412l64l5t1W5pj4+rJq9vpkm/kwiR07aZXnsKPxw==
 
-"@topcoder-framework/client-relational@^0.10.4":
-  version "0.10.4"
-  resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com:443/npm/topcoder-framework/@topcoder-framework/client-relational/-/client-relational-0.10.4.tgz#d1de3e437cfa24f6290995674723b8732ca3186a"
-  integrity sha512-KyHn82p36ewVvv5cY6jlpypW8WAYj1HaYOCf1QkAEDAxxP3j6PJw2jdZSLKlPVKC/XdfmmKvXyI/xAhYP5pDfw==
+"@topcoder-framework/client-relational@^0.10.7":
+  version "0.10.7"
+  resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com:443/npm/topcoder-framework/@topcoder-framework/client-relational/-/client-relational-0.10.7.tgz#f695c8b4c2cacee8f05cdf38a222243ef14db66e"
+  integrity sha512-jiGLoyNwoYv8ucx1pDUMRPfJwBgRCpd6qiG35xnXxxd//rI3bKB8BhmKMaI7m/pD8YTNFwSXTAGom/8d8Fdd+w==
   dependencies:
     "@grpc/grpc-js" "^1.8.0"
-    "@topcoder-framework/lib-common" "^0.10.4"
-    topcoder-interface "github:topcoder-platform/plat-interface-definition#v0.0.38"
+    "@topcoder-framework/lib-common" "^0.10.7"
+    topcoder-interface "github:topcoder-platform/plat-interface-definition#v0.0.40"
     tslib "^2.4.1"
 
-"@topcoder-framework/domain-acl@^0.10.4":
-  version "0.10.4"
-  resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com:443/npm/topcoder-framework/@topcoder-framework/domain-acl/-/domain-acl-0.10.4.tgz#bd451ccc4a462d5ac6f8d6c783937af240856454"
-  integrity sha512-7mCpeXx8KjhIW+s3CgN1yAZXubDfSNrnX/Z9uR+4ntZhZ0SSTPgG0ENi8kTar2KpAB/CtevRIsgdG8lROFLyrA==
+"@topcoder-framework/domain-acl@^0.10.7":
+  version "0.10.7"
+  resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com:443/npm/topcoder-framework/@topcoder-framework/domain-acl/-/domain-acl-0.10.7.tgz#97860706b30aee55ea9959c80655742658ebaabc"
+  integrity sha512-2Rsi0A3j/zhq+cJsr2bC3JhCxmjyg82j6+czVObiw6uAXbW+mptH26qL4lzFbc4czHxCxneLwRwQ5NUdZs47pg==
   dependencies:
     "@grpc/grpc-js" "^1.8.7"
-    "@topcoder-framework/client-relational" "^0.10.4"
-    "@topcoder-framework/lib-common" "^0.10.4"
-    topcoder-interface "github:topcoder-platform/plat-interface-definition#v0.0.38"
+    "@topcoder-framework/client-relational" "^0.10.7"
+    "@topcoder-framework/lib-common" "^0.10.7"
+    topcoder-interface "github:topcoder-platform/plat-interface-definition#v0.0.40"
     tslib "^2.4.1"
 
-"@topcoder-framework/lib-common@^0.10.4":
-  version "0.10.4"
-  resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com:443/npm/topcoder-framework/@topcoder-framework/lib-common/-/lib-common-0.10.4.tgz#634218fe814e71cfb94a88f07d38a82db99321ed"
-  integrity sha512-lQMSGTHKRTYQw633Xs/yqp2l9IjgbMm1evjTcjsZx7EtC1UXg0NRteVXMR0nz6vlXnN4mzjYiodKpwCOQ5+U5A==
+"@topcoder-framework/lib-common@^0.10.7":
+  version "0.10.7"
+  resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com:443/npm/topcoder-framework/@topcoder-framework/lib-common/-/lib-common-0.10.7.tgz#d9c4d352ffab84b7059a3e2c02f424004dda6b24"
+  integrity sha512-1Jf297qa9MXPI0k6Oyuxk+jbRsWhjAm/t+pzDNyYTtbZs/yuw3wVHUB9kRfUV1FImp4K1qcWi+0zq/C4fBU2qQ==
   dependencies:
     "@grpc/grpc-js" "^1.8.0"
     rimraf "^3.0.2"
-    topcoder-interface "github:topcoder-platform/plat-interface-definition#v0.0.38"
+    topcoder-interface "github:topcoder-platform/plat-interface-definition#v0.0.40"
     tslib "^2.4.1"
 
 "@tsconfig/node10@^1.0.7":
@@ -2426,9 +2426,9 @@ to-regex-range@^5.0.1:
   dependencies:
     is-number "^7.0.0"
 
-"topcoder-interface@github:topcoder-platform/plat-interface-definition#v0.0.38":
+"topcoder-interface@github:topcoder-platform/plat-interface-definition#v0.0.40":
   version "1.0.0"
-  resolved "https://codeload.github.com/topcoder-platform/plat-interface-definition/tar.gz/88b638dee7dbba9f4746755b5e9faafa7a50f287"
+  resolved "https://codeload.github.com/topcoder-platform/plat-interface-definition/tar.gz/e599e8dde0c437f9c4d46ed1fb7bdc7b000506c3"
 
 tough-cookie@~2.5.0:
   version "2.5.0"

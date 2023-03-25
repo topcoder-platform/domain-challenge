@@ -250,9 +250,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         challenge.legacy?.subTrack!,
         input
       );
-      updateChallengeInput.billingProject = challenge.billing?.billingAccountId!;
       const { updatedCount } = await legacyChallengeDomain.update(updateChallengeInput, metadata);
-      console.log("Update complete");
+
       if (updatedCount === 0) {
         throw new StatusBuilder()
           .withCode(Status.ABORTED)

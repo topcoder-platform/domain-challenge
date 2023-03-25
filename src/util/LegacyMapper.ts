@@ -52,7 +52,6 @@ class LegacyMapper {
 
     return {
       projectId: legacyId,
-      name: input.name,
       projectStatusId: this.mapProjectStatus(input.status),
       prizeUpdate:
         prizeSets == null
