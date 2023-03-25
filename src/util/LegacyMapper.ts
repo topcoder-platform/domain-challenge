@@ -36,7 +36,6 @@ class LegacyMapper {
       phases: this.mapPhases(input.legacy!.subTrack!, input.phases),
       reviewType: input.legacy?.reviewType ?? "INTERNAL",
       confidentialityType: input.legacy?.confidentialityType ?? "public",
-      billingProject: input.billing?.billingAccountId!,
       projectInfo,
     };
   };
@@ -70,7 +69,6 @@ class LegacyMapper {
       phaseUpdate: input.phaseUpdate != null ? { phases: this.mapPhases(subTrack, input.phaseUpdate.phases) } : undefined,
       groupUpdate: input.groupUpdate != null ? { groups: input.groupUpdate.groups } : undefined,
       termUpdate: input.termUpdate != null ? { terms: input.termUpdate.terms } : undefined,
-      billingProject: input.billing?.billingAccountId!,
       projectInfo,
     };
   };
@@ -194,12 +192,15 @@ class LegacyMapper {
       };
     }
 
-    let projectInfo = {};
+    let projectInfo: { [key: number]: string } = {};
 
     if (input.name != null) {
       projectInfo = {
         6: input.name,
       };
+    }
+    if (input.billing?.billingAccountId != null) {
+      projectInfo[32] = input.billing?.billingAccountId!.toString();
     }
 
     return {

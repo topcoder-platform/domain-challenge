@@ -205,7 +205,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   ): Promise<ChallengeList> {
     let legacyId: number | null = null;
 
-    console.log(input);
+    console.log(JSON.stringify(input.phaseUpdate, null, 2));
 
     const { items } = await this.scan(scanCriteria, undefined);
     let challenge = items[0] as Challenge;
