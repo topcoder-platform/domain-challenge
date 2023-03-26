@@ -223,6 +223,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           name: input.name ?? challenge!.name,
           typeId: input.typeId ?? challenge!.typeId,
           trackId: input.trackId ?? challenge!.trackId,
+          billing: challenge.billing,
           metadata: input.metadataUpdate != null ? input.metadataUpdate.metadata : challenge!.metadata,
           phases: input.phaseUpdate != null ? input.phaseUpdate.phases : challenge!.phases,
           events: input.eventUpdate != null ? input.eventUpdate.events : challenge!.events,
