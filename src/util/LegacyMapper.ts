@@ -339,7 +339,7 @@ class LegacyMapper {
       subTrack === V4_SUBTRACKS.FIRST_2_FINISH &&
       phaseTypeId === PhaseTypeIds.IterativeReview
     ) {
-      scorecard = isNonProd ? 30002160 : 30002160;
+      scorecard = isNonProd ? 30001551 : 30002160;
     } else if (
       subTrack === V4_SUBTRACKS.DESIGN_FIRST_2_FINISH &&
       phaseTypeId === PhaseTypeIds.Review
