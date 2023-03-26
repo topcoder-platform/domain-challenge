@@ -86,7 +86,12 @@ class ChallengeServerImpl implements ChallengeServer {
   delete: handleUnaryCall<LookupCriteria, ChallengeList> = async (
     call: ServerUnaryCall<LookupCriteria, ChallengeList>,
     callback: sendUnaryData<ChallengeList>
-  ): Promise<void> => {};
+  ): Promise<void> => {
+    const { request: criteria } = call;
+    Domain.delete(criteria)
+      .then((challengeList) => callback(null, challengeList))
+      .catch((error) => callback(error, null));
+  };
 }
 
 export { ChallengeServerImpl as ChallengeServer, ChallengeService };
