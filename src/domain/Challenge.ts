@@ -69,7 +69,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
   private async createLegacyChallenge(
     input: CreateChallengeInput,
-    legacy: Challenge_Legacy | undefined,
     status: string,
     trackId: string,
     typeId: string,
@@ -78,32 +77,22 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   ) {
     let legacyChallengeId: number | null = null;
 
-    if (legacy == null || legacy.pureV5Task !== true) {
+    if (input.legacy == null || input.legacy.pureV5Task !== true) {
       const { track, subTrack, isTask, technologies } = legacyMapper.mapTrackAndType(
         trackId,
         typeId,
         tags
       );
 
-      if (input.legacy == null) {
-        input.legacy = {
-          track,
-          subTrack,
-          directProjectId: 0,
-          reviewType: "INTERNAL",
-          confidentialityType: "private",
-        };
-      }
-
-      legacy = {
-        ...legacy,
+      input.legacy = {
+        ...input.legacy,
         track,
         subTrack,
         pureV5Task: isTask,
         forumId: 0,
-        directProjectId: legacy == null ? 0 : legacy.directProjectId,
-        reviewType: legacy == null ? "INTERNAL" : legacy.reviewType,
-        confidentialityType: legacy == null ? "private" : legacy.confidentialityType,
+        directProjectId: input.legacy == null ? 0 : input.legacy.directProjectId, // v5 API can set directProjectId
+        reviewType: input.legacy == null ? "INTERNAL" : input.legacy.reviewType, // v5 API can set reviewType
+        confidentialityType: input.legacy == null ? "private" : input.legacy.confidentialityType, // v5 API can set confidentialityType
       };
 
       if (status === ChallengeStatuses.Draft) {
@@ -127,7 +116,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     }
 
     return {
-      legacy,
+      legacy: input.legacy,
       legacyChallengeId,
     };
   }
@@ -151,7 +140,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     // Begin Anti-Corruption Layer
 
     // prettier-ignore
-    const { legacy, legacyChallengeId } = await this.createLegacyChallenge(input, input.legacy, input.status, input.trackId, input.typeId, input.tags, metadata);
+    const { legacy, legacyChallengeId } = await this.createLegacyChallenge(input, input.status, input.trackId, input.typeId, input.tags, metadata);
 
     // End Anti-Corruption Layer
 
@@ -237,7 +226,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         };
 
         // prettier-ignore
-        const { legacy, legacyChallengeId } = await this.createLegacyChallenge(createChallengeInput, input.legacy, input.status, challenge!.trackId, challenge!.typeId, challenge!.tags, metadata);
+        const { legacy, legacyChallengeId } = await this.createLegacyChallenge(createChallengeInput, input.status, challenge!.trackId, challenge!.typeId, challenge!.tags, metadata);
 
         input.legacy = legacy;
         legacyId = legacyChallengeId;
