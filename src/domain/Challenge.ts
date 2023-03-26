@@ -149,8 +149,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     if (input.prizeSets) {
       for (const { type, prizes } of input.prizeSets) {
         if (type === "placement") {
-          for (const { value } of prizes) {
-            placementPrizes += value;
+          for (const { amountInCents } of prizes) {
+            placementPrizes += amountInCents!;
           }
         }
       }
@@ -173,9 +173,21 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       updatedBy: "tcwebservice", // TODO: extract from JWT
       winners: [],
       overview: {
-        totalPrizes: placementPrizes,
+        totalPrizes: placementPrizes / 100,
+        totalPrizesInCents: placementPrizes,
       },
       ...input,
+      prizeSets: (input.prizeSets ?? []).map((prizeSet) => {
+        return {
+          ...prizeSet,
+          prizes: (prizeSet.prizes ?? []).map((prize) => {
+            return {
+              ...prize,
+              value: prize.amountInCents! / 100,
+            };
+          }),
+        };
+      }),
       legacy,
       legacyId: legacyChallengeId != null ? legacyChallengeId : undefined,
       description: xss(input.description ?? ""),
@@ -203,11 +215,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     input: UpdateChallengeInput_UpdateInput,
     metadata: Metadata
   ): Promise<ChallengeList> {
-    let legacyId: number | null = null;
-
     const { items } = await this.scan(scanCriteria, undefined);
     let challenge = items[0] as Challenge;
 
+    // Begin Anti-Corruption Layer
+    let legacyId: number | null = null;
     if (challenge.legacy!.pureV5Task !== true) {
       if (input.status === ChallengeStatuses.Draft) {
         if (items.length === 0 || items[0] == null) {
@@ -216,8 +228,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             .withDetails("Challenge not found")
             .build();
         }
-        // Begin Anti-Corruption Layer
-
         // prettier-ignore
         const createChallengeInput: CreateChallengeInput = {
           name: input.name ?? challenge!.name,
@@ -240,9 +250,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
         input.legacy = legacy;
         legacyId = legacyChallengeId;
-
-        // End Anti-Corruption Layer
-        console.log(`Legacy ID: ${legacyId} was created. Creating challenge...`);
       } else if (challenge.status !== ChallengeStatuses.New) {
         const updateChallengeInput = legacyMapper.mapChallengeUpdateInput(
           challenge.legacyId!,
@@ -259,6 +266,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         }
       }
     }
+    // End Anti-Corruption Layer
 
     return super.update(
       scanCriteria,
@@ -280,7 +288,17 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         phases: input.phaseUpdate != null ? input.phaseUpdate.phases : undefined,
         events: input.eventUpdate != null ? input.eventUpdate.events : undefined,
         terms: input.termUpdate != null ? input.termUpdate.terms : undefined,
-        prizeSets: input.prizeSetUpdate != null ? input.prizeSetUpdate.prizeSets : undefined,
+        prizeSets: input.prizeSetUpdate != null ? input.prizeSetUpdate.prizeSets.map((prizeSet) => {
+          return {
+            ...prizeSet,
+            prizes: (prizeSet.prizes ?? []).map((prize) => {
+              return {
+                ...prize,
+                value: prize.amountInCents! / 100,
+              };
+            }),
+          };
+        }) : undefined,
         tags: input.tagUpdate != null ? input.tagUpdate.tags : undefined,
         status: input.status != null ? input.status : undefined,
         attachments: input.attachmentUpdate != null ? input.attachmentUpdate.attachments : undefined,
@@ -288,7 +306,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         projectId: input.projectId != null ? input.projectId : undefined,
         startDate: input.startDate != null ? input.startDate : undefined,
         endDate: input.endDate != null ? input.endDate : undefined,
-        overview: input.overview != null ? input.overview : undefined,
+        overview: input.overview != null ? {
+          totalPrizes: input.overview.totalPrizesInCents! / 100,
+          totalPrizesInCents: input.overview.totalPrizesInCents,
+        } : undefined,
         legacyId: legacyId != null ? legacyId : undefined,
       },
       metadata
@@ -350,10 +371,21 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       if (!_.isEmpty(copilotPayments)) {
         prizeSets.push(...copilotPayments);
       }
-      data.prizeSets = prizeSets;
+      data.prizeSets = prizeSets.map((prizeSet) => {
+        return {
+          ...prizeSet,
+          prizes: prizeSet.prizes.map((prize) => ({
+            ...prize,
+            value: prize.amountInCents! / 100,
+          })),
+        };
+      });
     }
     if (!_.isUndefined(input.overview)) {
-      data.overview = input.overview;
+      data.overview = {
+        ...input.overview,
+        totalPrizes: input.overview.totalPrizesInCents! / 100,
+      };
     }
     if (!_.isUndefined(input.winners)) {
       data.winners = input.winners.winners;

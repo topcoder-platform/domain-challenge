@@ -3,18 +3,23 @@ import { ChallengeStatuses, PhaseTypeIds, PrizeSetTypes } from "../common/Consta
 import { V4_SUBTRACKS, V5_TO_V4 } from "../common/ConversionMap";
 import {
   Challenge_Phase,
+  Challenge_PrizeSet,
   CreateChallengeInput,
   UpdateChallengeInput_UpdateInput,
 } from "../models/domain-layer/challenge/challenge";
 import { legacyChallengeStatusesMap } from "./constants";
 import {
+  CreateChallengeInput as LegacyChallengeCreateInput,
   UpdateChallengeInput as LegacyChallengeUpdateInput,
   Phase as LegacyPhase,
+  Prize,
 } from "@topcoder-framework/domain-acl";
 
 class LegacyMapper {
   // To be used on challenge:update calls that change state from New -> Draft
-  public mapChallengeDraftUpdateInput = (input: CreateChallengeInput) => {
+  public mapChallengeDraftUpdateInput = (
+    input: CreateChallengeInput
+  ): LegacyChallengeCreateInput => {
     const prizeSets = this.mapPrizeSets(input.prizeSets);
     const projectInfo = this.mapProjectInfo(input, prizeSets);
 
@@ -25,14 +30,9 @@ class LegacyMapper {
         input.legacy!.track!,
         input.legacy!.subTrack!
       ),
+      groups: [],
       tcDirectProjectId: input.legacy?.directProjectId!,
-      winnerPrizes:
-        prizeSets[PrizeSetTypes.ChallengePrizes]?.map((amount: number, index: number) => ({
-          amount,
-          place: index + 1,
-          numSubmissions: 1,
-          type: PrizeSetTypes.ChallengePrizes,
-        })) ?? [],
+      winnerPrizes: this.mapWinnerPrizes(prizeSets),
       phases: this.mapPhases(input.legacy!.subTrack!, input.phases),
       reviewType: input.legacy?.reviewType ?? "INTERNAL",
       confidentialityType: input.legacy?.confidentialityType ?? "public",
@@ -56,18 +56,11 @@ class LegacyMapper {
         prizeSets == null
           ? undefined
           : {
-              winnerPrizes: prizeSets[PrizeSetTypes.ChallengePrizes]?.map(
-                (amount: number, index: number) => ({
-                  amount,
-                  place: index + 1,
-                  numSubmissions: 1,
-                  type: PrizeSetTypes.ChallengePrizes,
-                })
-              ),
+              winnerPrizes: this.mapWinnerPrizes(prizeSets),
             },
       // prettier-ignore
       phaseUpdate: input.phaseUpdate != null ? { phases: this.mapPhases(subTrack, input.phaseUpdate.phases) } : undefined,
-      groupUpdate: input.groupUpdate != null ? { groups: input.groupUpdate.groups } : undefined,
+      groupUpdate: input.groupUpdate != null ? { groups: [] } : undefined,
       termUpdate: input.termUpdate != null ? { terms: input.termUpdate.terms } : undefined,
       projectInfo,
     };
@@ -102,18 +95,33 @@ class LegacyMapper {
     };
   }
 
-  private mapPrizeSets(prizeSets: { type: string; prizes: { value: number }[] }[]) {
+  private mapPrizeSets(prizeSets: Challenge_PrizeSet[]) {
     return prizeSets.reduce((acc: { [key: string]: number[] }, prize) => {
-      acc[prize.type] = prize.prizes.map((p) => p.value).sort((a, b) => b - a);
-
+      acc[prize.type] = prize.prizes.map((p) => p.amountInCents!).sort((a, b) => b - a);
       return acc;
     }, {});
   }
 
-  private mapProjectInfo(
-    input: CreateChallengeInput,
-    prizeSets: any
-  ): { [key: number]: string | undefined } {
+  private mapWinnerPrizes(prizeSets: { [key: string]: number[] }): Prize[] {
+    // prettier-ignore
+    const prizeSetTypes = [PrizeSetTypes.ChallengePrizes, PrizeSetTypes.CheckPoint, PrizeSetTypes.CopilotPayment, PrizeSetTypes.ReviewerPayment];
+
+    return prizeSetTypes.reduce((acc: Prize[], type: string) => {
+      if (prizeSets[type] != null) {
+        acc.push(
+          ...prizeSets[type].map((amountInCents: number, index: number) => ({
+            amountInCents,
+            place: index + 1,
+            numSubmissions: 1,
+            type,
+          }))
+        );
+      }
+      return acc;
+    }, []);
+  }
+
+  private mapProjectInfo(input: CreateChallengeInput, prizeSets: any): { [key: number]: string } {
     const firstPlacePrize =
       prizeSets[PrizeSetTypes.ChallengePrizes]?.length >= 1
         ? prizeSets[PrizeSetTypes.ChallengePrizes][0]?.toString()
@@ -130,7 +138,7 @@ class LegacyMapper {
       12: "Yes", // Public -> Yes (make it dynamic)
       13: "Yes", // Rated -> Yes (make it dynamic)
       14: "Open", // Eligibility -> Open (value doesn't matter)
-      16: firstPlacePrize?.toString(),
+      16: firstPlacePrize != null ? (firstPlacePrize / 100).toString() : undefined,
       26: "Off", // No Digital Run
       30: "0", // No DR Points
       6: input.name,
@@ -139,7 +147,7 @@ class LegacyMapper {
       // Review Cost
       33:
         prizeSets[PrizeSetTypes.ReviewerPayment]?.length == 1
-          ? prizeSets[PrizeSetTypes.ReviewerPayment][0]?.toString()
+          ? (prizeSets[PrizeSetTypes.ReviewerPayment][0] / 100).toString()
           : undefined,
       // Confidentiality Type
       34: input.legacy?.confidentialityType ?? "public",
@@ -148,11 +156,11 @@ class LegacyMapper {
       // Spec Review Cost
       35: undefined,
       // First Place Prize
-      36: firstPlacePrize?.toString(),
+      36: firstPlacePrize != null ? (firstPlacePrize / 100).toString() : undefined,
       // Second Place Prize
       37:
         prizeSets[PrizeSetTypes.ChallengePrizes]?.length >= 2
-          ? prizeSets[PrizeSetTypes.ChallengePrizes][1]?.toString()
+          ? (prizeSets[PrizeSetTypes.ChallengePrizes][1] / 100).toString()
           : undefined,
       // Reliability Bonus Cost
       38: undefined,

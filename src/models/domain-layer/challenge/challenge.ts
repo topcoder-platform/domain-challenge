@@ -126,12 +126,14 @@ export interface Challenge_PrizeSet {
 }
 
 export interface Challenge_PrizeSet_Prize {
-  value: number;
+  amountInCents?: number | undefined;
+  value?: number | undefined;
   type: string;
 }
 
 export interface Challenge_Overview {
-  totalPrizes: number;
+  totalPrizesInCents?: number | undefined;
+  totalPrizes?: number | undefined;
 }
 
 export interface ChallengeList {
@@ -1984,16 +1986,19 @@ export const Challenge_PrizeSet = {
 };
 
 function createBaseChallenge_PrizeSet_Prize(): Challenge_PrizeSet_Prize {
-  return { value: 0, type: "" };
+  return { amountInCents: undefined, value: undefined, type: "" };
 }
 
 export const Challenge_PrizeSet_Prize = {
   encode(message: Challenge_PrizeSet_Prize, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.value !== 0) {
-      writer.uint32(13).float(message.value);
+    if (message.amountInCents !== undefined) {
+      writer.uint32(8).int64(message.amountInCents);
+    }
+    if (message.value !== undefined) {
+      writer.uint32(21).float(message.value);
     }
     if (message.type !== "") {
-      writer.uint32(18).string(message.type);
+      writer.uint32(26).string(message.type);
     }
     return writer;
   },
@@ -2006,14 +2011,21 @@ export const Challenge_PrizeSet_Prize = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag != 13) {
+          if (tag != 8) {
+            break;
+          }
+
+          message.amountInCents = longToNumber(reader.int64() as Long);
+          continue;
+        case 2:
+          if (tag != 21) {
             break;
           }
 
           message.value = reader.float();
           continue;
-        case 2:
-          if (tag != 18) {
+        case 3:
+          if (tag != 26) {
             break;
           }
 
@@ -2030,13 +2042,15 @@ export const Challenge_PrizeSet_Prize = {
 
   fromJSON(object: any): Challenge_PrizeSet_Prize {
     return {
-      value: isSet(object.value) ? Number(object.value) : 0,
+      amountInCents: isSet(object.amountInCents) ? Number(object.amountInCents) : undefined,
+      value: isSet(object.value) ? Number(object.value) : undefined,
       type: isSet(object.type) ? String(object.type) : "",
     };
   },
 
   toJSON(message: Challenge_PrizeSet_Prize): unknown {
     const obj: any = {};
+    message.amountInCents !== undefined && (obj.amountInCents = Math.round(message.amountInCents));
     message.value !== undefined && (obj.value = message.value);
     message.type !== undefined && (obj.type = message.type);
     return obj;
@@ -2048,20 +2062,24 @@ export const Challenge_PrizeSet_Prize = {
 
   fromPartial<I extends Exact<DeepPartial<Challenge_PrizeSet_Prize>, I>>(object: I): Challenge_PrizeSet_Prize {
     const message = createBaseChallenge_PrizeSet_Prize();
-    message.value = object.value ?? 0;
+    message.amountInCents = object.amountInCents ?? undefined;
+    message.value = object.value ?? undefined;
     message.type = object.type ?? "";
     return message;
   },
 };
 
 function createBaseChallenge_Overview(): Challenge_Overview {
-  return { totalPrizes: 0 };
+  return { totalPrizesInCents: undefined, totalPrizes: undefined };
 }
 
 export const Challenge_Overview = {
   encode(message: Challenge_Overview, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.totalPrizes !== 0) {
-      writer.uint32(13).float(message.totalPrizes);
+    if (message.totalPrizesInCents !== undefined) {
+      writer.uint32(8).int64(message.totalPrizesInCents);
+    }
+    if (message.totalPrizes !== undefined) {
+      writer.uint32(21).float(message.totalPrizes);
     }
     return writer;
   },
@@ -2074,7 +2092,14 @@ export const Challenge_Overview = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag != 13) {
+          if (tag != 8) {
+            break;
+          }
+
+          message.totalPrizesInCents = longToNumber(reader.int64() as Long);
+          continue;
+        case 2:
+          if (tag != 21) {
             break;
           }
 
@@ -2090,11 +2115,15 @@ export const Challenge_Overview = {
   },
 
   fromJSON(object: any): Challenge_Overview {
-    return { totalPrizes: isSet(object.totalPrizes) ? Number(object.totalPrizes) : 0 };
+    return {
+      totalPrizesInCents: isSet(object.totalPrizesInCents) ? Number(object.totalPrizesInCents) : undefined,
+      totalPrizes: isSet(object.totalPrizes) ? Number(object.totalPrizes) : undefined,
+    };
   },
 
   toJSON(message: Challenge_Overview): unknown {
     const obj: any = {};
+    message.totalPrizesInCents !== undefined && (obj.totalPrizesInCents = Math.round(message.totalPrizesInCents));
     message.totalPrizes !== undefined && (obj.totalPrizes = message.totalPrizes);
     return obj;
   },
@@ -2105,7 +2134,8 @@ export const Challenge_Overview = {
 
   fromPartial<I extends Exact<DeepPartial<Challenge_Overview>, I>>(object: I): Challenge_Overview {
     const message = createBaseChallenge_Overview();
-    message.totalPrizes = object.totalPrizes ?? 0;
+    message.totalPrizesInCents = object.totalPrizesInCents ?? undefined;
+    message.totalPrizes = object.totalPrizes ?? undefined;
     return message;
   },
 };
