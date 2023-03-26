@@ -1,15 +1,6 @@
-import {
-  UntypedHandleCall,
-  handleUnaryCall,
-  ServerUnaryCall,
-  sendUnaryData,
-} from "@grpc/grpc-js";
+import { handleUnaryCall, sendUnaryData, ServerUnaryCall, UntypedHandleCall } from "@grpc/grpc-js";
 
-import {
-  LookupCriteria,
-  ScanRequest,
-  ScanResult,
-} from "../models/common/common";
+import { LookupCriteria, ScanRequest, ScanResult } from "../models/common/common";
 
 import {
   ChallengeServer,
@@ -17,9 +8,9 @@ import {
 } from "../models/domain-layer/challenge/services/challenge";
 
 import {
-  CreateChallengeInput,
   Challenge,
   ChallengeList,
+  CreateChallengeInput,
   UpdateChallengeInput,
   UpdateChallengeInputForACL,
 } from "../models/domain-layer/challenge/challenge";
@@ -33,8 +24,8 @@ class ChallengeServerImpl implements ChallengeServer {
     call: ServerUnaryCall<CreateChallengeInput, Challenge>,
     callback: sendUnaryData<Challenge>
   ): Promise<void> => {
-    const { request: createChallengeInput } = call;
-    Domain.create(createChallengeInput)
+    const { request: createChallengeInput, metadata } = call;
+    Domain.create(createChallengeInput, metadata)
       .then((challenge) => callback(null, challenge))
       .catch((error) => callback(error, null));
   };
@@ -43,11 +34,9 @@ class ChallengeServerImpl implements ChallengeServer {
     call: ServerUnaryCall<LookupCriteria, Challenge>,
     callback: sendUnaryData<Challenge>
   ): Promise<void> => {
-    const { request: lookupCriteria } = call;
-
-    const challenge = await Domain.lookup(lookupCriteria);
-
-    callback(null, challenge);
+    Domain.lookup(call.request)
+      .then((challenge) => callback(null, challenge))
+      .catch((error) => callback(error, null));
   };
 
   scan: handleUnaryCall<ScanRequest, ScanResult> = async (
@@ -58,23 +47,25 @@ class ChallengeServerImpl implements ChallengeServer {
       request: { criteria, nextToken: inputNextToken },
     } = call;
 
-    const { items, nextToken } = await Domain.scan(criteria, inputNextToken);
-
-    callback(null, { items, nextToken });
+    Domain.scan(criteria, inputNextToken)
+      .then(({ items, nextToken }) => callback(null, { items, nextToken }))
+      .catch((error) => callback(error, null));
   };
 
   update: handleUnaryCall<UpdateChallengeInput, ChallengeList> = async (
     call: ServerUnaryCall<UpdateChallengeInput, ChallengeList>,
     callback: sendUnaryData<ChallengeList>
   ): Promise<void> => {
-    try {
-      const { updateInput, filterCriteria } = call.request;
-      if (!updateInput) return callback(null, { items: [] });
-      const result = await Domain.update(filterCriteria, updateInput);
-      callback(null, result);
-    } catch (error: any) {
-      callback(error, null);
-    }
+    const {
+      request: { filterCriteria, updateInput },
+    } = call;
+
+    Domain.update(filterCriteria, updateInput!, call.metadata)
+      .then((challengeList) => callback(null, challengeList))
+      .catch((error) => {
+        console.error(error);
+        callback(error, null);
+      });
   };
 
   updateForAcl: handleUnaryCall<UpdateChallengeInputForACL, Empty> = async (
@@ -95,7 +86,12 @@ class ChallengeServerImpl implements ChallengeServer {
   delete: handleUnaryCall<LookupCriteria, ChallengeList> = async (
     call: ServerUnaryCall<LookupCriteria, ChallengeList>,
     callback: sendUnaryData<ChallengeList>
-  ): Promise<void> => {};
+  ): Promise<void> => {
+    const { request: lookupCriteria } = call;
+    Domain.delete(lookupCriteria)
+      .then((challengeList) => callback(null, challengeList))
+      .catch((error) => callback(error, null));
+  };
 }
 
 export { ChallengeServerImpl as ChallengeServer, ChallengeService };

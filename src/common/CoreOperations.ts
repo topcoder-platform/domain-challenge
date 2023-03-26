@@ -2,11 +2,7 @@
 import { noSqlClient } from "../dal/client/nosql";
 
 // TODO: Import from @topcoder-framework/lib-common
-import {
-  LookupCriteria,
-  ScanCriteria,
-  ScanResult,
-} from "../models/common/common";
+import { LookupCriteria, ScanCriteria, ScanResult } from "../models/common/common";
 
 // TODO: Import from @topcoder-framework/lib-common
 import { Value } from "../models/google/protobuf/struct";
@@ -25,7 +21,7 @@ import {
   UpdateType,
   Value as PartiQLValue,
 } from "../dal/models/nosql/parti_ql";
-import { StatusBuilder } from "@grpc/grpc-js";
+import { Metadata, StatusBuilder } from "@grpc/grpc-js";
 import { Status } from "@grpc/grpc-js/build/src/constants";
 
 export type ValueType =
@@ -44,24 +40,20 @@ export type DynamoTableIndex = {
   };
 };
 
-abstract class CoreOperations<
-  T extends { [key: string]: any },
-  I extends { [key: string]: any }
-> {
+abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key: string]: any }> {
   public constructor(
     private entityName: string,
     private entityAttributes: Attribute[],
     private entityIndexList: DynamoTableIndex
   ) {}
 
-  private attributesKeyTypeMap: { [key: string]: DataType } =
-    this.entityAttributes.reduce(
-      (map, attribute) => ({
-        ...map,
-        [attribute.name]: attribute.type,
-      }),
-      {}
-    );
+  private attributesKeyTypeMap: { [key: string]: DataType } = this.entityAttributes.reduce(
+    (map, attribute) => ({
+      ...map,
+      [attribute.name]: attribute.type,
+    }),
+    {}
+  );
 
   public async lookup(lookupCriteria: LookupCriteria): Promise<T> {
     const selectQuery: SelectQuery = {
@@ -150,7 +142,7 @@ abstract class CoreOperations<
     };
   }
 
-  protected async create(entity: I & T): Promise<T> {
+  protected async create(entity: I & T, metadata?: Metadata): Promise<T> {
     const queryRequest: QueryRequest = {
       kind: {
         $case: "query",
@@ -177,7 +169,8 @@ abstract class CoreOperations<
 
   public async update(
     scanCriteria: ScanCriteria[],
-    entity: unknown
+    entity: unknown,
+    metadata?: Metadata
   ): Promise<{ items: T[] }> {
     if (typeof entity != "object" || entity == null) {
       throw new Error("Expected key-value pairs to update");
@@ -193,12 +186,14 @@ abstract class CoreOperations<
             update: {
               table: this.entityName,
               // TODO: Write a convenience method in @topcoder-framework/lib-common to support additional update operations like LIST_APPEND, SET_ADD, SET_REMOVE, etc
-              updates: Object.entries(entity).map(([key, value]) => ({
-                action: UpdateAction.UPDATE_ACTION_SET,
-                type: UpdateType.UPDATE_TYPE_VALUE,
-                attribute: key,
-                value: this.toValue(key, value),
-              })),
+              updates: Object.entries(entity)
+                .filter(([key, value]) => value !== undefined)
+                .map(([key, value]) => ({
+                  action: UpdateAction.UPDATE_ACTION_SET,
+                  type: UpdateType.UPDATE_TYPE_VALUE,
+                  attribute: key,
+                  value: this.toValue(key, value),
+                })),
               filters,
               returnValue: ReturnValue.RETURN_VALUE_ALL_NEW,
             },
@@ -330,9 +325,7 @@ abstract class CoreOperations<
         break;
 
       default:
-        throw new Error(
-          "Lookups are only supported for string, number & boolean value"
-        );
+        throw new Error("Lookups are only supported for string, number & boolean value");
     }
 
     return value;

@@ -1,8 +1,7 @@
-import { uuid } from "uuidv4";
-
+import { v4 as uuidv4 } from "uuid";
 class IdGenerator {
   public generateUUID(): string {
-    return uuid();
+    return uuidv4();
   }
 }
 

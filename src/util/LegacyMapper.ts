@@ -1,12 +1,27 @@
 import _ from "lodash";
-import { PrizeSetTypes } from "../common/Constants";
-import { V5_TO_V4 } from "../common/ConversionMap";
+import { ChallengeStatuses, PhaseTypeIds, PrizeSetTypes } from "../common/Constants";
+import { V4_SUBTRACKS, V5_TO_V4 } from "../common/ConversionMap";
+import {
+  Challenge_Phase,
+  Challenge_PrizeSet,
+  CreateChallengeInput,
+  UpdateChallengeInput_UpdateInput,
+} from "../models/domain-layer/challenge/challenge";
 import { legacyChallengeStatusesMap } from "./constants";
-import DateUtil from "./DateUtil";
+import {
+  CreateChallengeInput as LegacyChallengeCreateInput,
+  UpdateChallengeInput as LegacyChallengeUpdateInput,
+  Phase as LegacyPhase,
+  Prize,
+} from "@topcoder-framework/domain-acl";
+import { getRequest } from "../api/v5Api";
+import m2mToken from "../helpers/MachineToMachineToken";
 
 class LegacyMapper {
   // To be used on challenge:update calls that change state from New -> Draft
-  public mapChallengeDraftUpdateInput = (input: any) => {
+  public mapChallengeDraftUpdateInput = async (
+    input: CreateChallengeInput
+  ): Promise<LegacyChallengeCreateInput> => {
     const prizeSets = this.mapPrizeSets(input.prizeSets);
     const projectInfo = this.mapProjectInfo(input, prizeSets);
 
@@ -14,37 +29,42 @@ class LegacyMapper {
       name: input.name,
       projectStatusId: legacyChallengeStatusesMap.Draft,
       ...this.mapTrackAndTypeToCategoryStudioSpecAndMmSpec(
-        input.legacy.track,
-        input.legacy.subTrack
+        input.legacy!.track!,
+        input.legacy!.subTrack!
       ),
+      groups: await this.mapGroupIds(input.groups),
       tcDirectProjectId: input.legacy?.directProjectId!,
-      winnerPrizes:
-        prizeSets[PrizeSetTypes.ChallengePrizes]?.map(
-          (amount: number, index: number) => ({
-            amount,
-            place: index + 1,
-            numSubmissions: 1,
-            type: PrizeSetTypes.ChallengePrizes,
-          })
-        ) ?? [],
-      phases: input.phases.map((phase: any, index: number) => ({
-        phaseTypeId: this.mapPhaseNameToPhaseTypeId(phase.name),
-        phaseStatusId: 1,
-        fixedStartTime:
-          index == 0
-            ? DateUtil.formatDateForIfx(phase.scheduledStartDate)
-            : undefined, // Registration Phase needs a fixedStartTime
-        scheduledStartTime: DateUtil.formatDateForIfx(phase.scheduledStartDate),
-        scheduledEndTime: DateUtil.formatDateForIfx(phase.scheduledEndDate),
-        // TODO: Confirm this is correct
-        // actualStartTime: DateUtil.formatDateForIfx(phase.actualStartDate),
-        // actualEndTime: DateUtil.formatDateForIfx(phase.actualEndDate),
-        duration: phase.duration,
-        phaseCriteria: this.mapPhaseCriteria(phase),
-      })),
+      winnerPrizes: this.mapWinnerPrizes(prizeSets),
+      phases: this.mapPhases(input.legacy!.subTrack!, input.phases),
       reviewType: input.legacy?.reviewType ?? "INTERNAL",
       confidentialityType: input.legacy?.confidentialityType ?? "public",
-      billingProject: input.billing?.billingAccountId!,
+      projectInfo,
+    };
+  };
+
+  public mapChallengeUpdateInput = async (
+    legacyId: number,
+    subTrack: string,
+    input: UpdateChallengeInput_UpdateInput
+  ): Promise<LegacyChallengeUpdateInput> => {
+    // prettier-ignore
+    const prizeSets = input.prizeSetUpdate != null ? this.mapPrizeSets(input.prizeSetUpdate.prizeSets) : null;
+    const projectInfo = this.mapProjectInfoForUpdate(input, prizeSets);
+
+    return {
+      projectId: legacyId,
+      projectStatusId: this.mapProjectStatus(input.status),
+      prizeUpdate:
+        prizeSets == null
+          ? undefined
+          : {
+              winnerPrizes: this.mapWinnerPrizes(prizeSets),
+            },
+      // prettier-ignore
+      phaseUpdate: input.phaseUpdate != null ? { phases: this.mapPhases(subTrack, input.phaseUpdate.phases) } : undefined,
+      // prettier-ignore
+      groupUpdate: input.groupUpdate != null ? { groups: await this.mapGroupIds(input.groupUpdate.groups) } : undefined,
+      termUpdate: input.termUpdate != null ? { terms: input.termUpdate.terms } : undefined,
       projectInfo,
     };
   };
@@ -61,16 +81,15 @@ class LegacyMapper {
     projectStudioSpecId: number | undefined;
     projectMmSpecId: number | undefined;
   } {
-    subTrack = subTrack.replace(" ", "").toLowerCase();
+    let projectCategoryId = 39; // V4_SUBTRACKS.CODE
 
-    let projectCategoryId = 39; // code
-    if (subTrack === "first2finish") {
-      projectCategoryId = 38;
-    } else if (subTrack === "marathonmatch") {
-      projectCategoryId = 37;
-    } else if (subTrack === "bughunt") {
-      projectCategoryId = 9;
-    }
+    if (subTrack === V4_SUBTRACKS.FIRST_2_FINISH) projectCategoryId = 38;
+    if (subTrack === V4_SUBTRACKS.MARATHON_MATCH) projectCategoryId = 37;
+    // prettier-ignore
+    if (subTrack === V4_SUBTRACKS.DEVELOP_MARATHON_MATCH) projectCategoryId = 37;
+    if (subTrack === V4_SUBTRACKS.BUG_HUNT) projectCategoryId = 9;
+    if (subTrack === V4_SUBTRACKS.DESIGN_FIRST_2_FINISH) projectCategoryId = 40;
+    if (subTrack === V4_SUBTRACKS.WEB_DESIGNS) projectCategoryId = 17;
 
     return {
       projectCategoryId,
@@ -79,37 +98,52 @@ class LegacyMapper {
     };
   }
 
-  private mapPrizeSets(
-    prizeSets: { type: string; prizes: { value: number }[] }[]
-  ) {
+  private mapPrizeSets(prizeSets: Challenge_PrizeSet[]) {
     return prizeSets.reduce((acc: { [key: string]: number[] }, prize) => {
-      acc[prize.type] = prize.prizes.map((p) => p.value).sort((a, b) => b - a);
-
+      acc[prize.type] = (acc[prize.type] ?? [])
+        .concat(prize.prizes.map((p) => p.amountInCents!))
+        .sort((a, b) => b - a);
       return acc;
     }, {});
   }
 
-  private mapProjectInfo(
-    input: any,
-    prizeSets: any
-  ): { [key: number]: string | undefined } {
+  private mapWinnerPrizes(prizeSets: { [key: string]: number[] }): Prize[] {
+    // prettier-ignore
+    const prizeSetTypes = [PrizeSetTypes.ChallengePrizes, PrizeSetTypes.CheckPoint, PrizeSetTypes.CopilotPayment, PrizeSetTypes.ReviewerPayment];
+
+    return prizeSetTypes.reduce((acc: Prize[], type: string) => {
+      if (prizeSets[type] != null) {
+        acc.push(
+          ...prizeSets[type].map((amountInCents: number, index: number) => ({
+            amountInCents,
+            place: index + 1,
+            numSubmissions: 1,
+            type,
+          }))
+        );
+      }
+      return acc;
+    }, []);
+  }
+
+  private mapProjectInfo(input: CreateChallengeInput, prizeSets: any): { [key: number]: string } {
     const firstPlacePrize =
       prizeSets[PrizeSetTypes.ChallengePrizes]?.length >= 1
         ? prizeSets[PrizeSetTypes.ChallengePrizes][0]?.toString()
         : undefined;
 
-    return {
+    const map = {
       3: "1",
       4: "0",
       7: "1.0",
-      9: "Off", // Turn Auto Pilot Off
+      9: "On", // Turn Auto Pilot Off
       78: "Development", // Forum Type - value doesn't matter
-      10: "Off", // Turn status notification off
-      11: "Off", // Turn timeline notification off
+      10: "On", // Turn status notification off
+      11: "On", // Turn timeline notification off
       12: "Yes", // Public -> Yes (make it dynamic)
       13: "Yes", // Rated -> Yes (make it dynamic)
       14: "Open", // Eligibility -> Open (value doesn't matter)
-      16: firstPlacePrize?.toString(),
+      16: firstPlacePrize != null ? (firstPlacePrize / 100).toString() : undefined,
       26: "Off", // No Digital Run
       30: "0", // No DR Points
       6: input.name,
@@ -118,7 +152,7 @@ class LegacyMapper {
       // Review Cost
       33:
         prizeSets[PrizeSetTypes.ReviewerPayment]?.length == 1
-          ? prizeSets[PrizeSetTypes.ReviewerPayment][0]?.toString()
+          ? (prizeSets[PrizeSetTypes.ReviewerPayment][0] / 100).toString()
           : undefined,
       // Confidentiality Type
       34: input.legacy?.confidentialityType ?? "public",
@@ -127,11 +161,11 @@ class LegacyMapper {
       // Spec Review Cost
       35: undefined,
       // First Place Prize
-      36: firstPlacePrize?.toString(),
+      36: firstPlacePrize != null ? (firstPlacePrize / 100).toString() : undefined,
       // Second Place Prize
       37:
         prizeSets[PrizeSetTypes.ChallengePrizes]?.length >= 2
-          ? prizeSets[PrizeSetTypes.ChallengePrizes][1]?.toString()
+          ? (prizeSets[PrizeSetTypes.ChallengePrizes][1] / 100).toString()
           : undefined,
       // Reliability Bonus Cost
       38: undefined,
@@ -139,46 +173,101 @@ class LegacyMapper {
       39: undefined,
       41: "true", // Approval Required
       43: "true", // Send Winner Emails
-      44: "false", // Post-mortem required (set to false - new Autopilot will handle this)
+      44:
+        input.metadata.find((m) => m.name == "postMortemRequired")?.value == "false"
+          ? "false"
+          : "true" ?? "true", // Post-mortem required (set to false - new Autopilot will handle this)
       45: "false", // Reliability bonus eligible
       46: "true", // Member Payments Eligible
       48: "true", // Track Late Deliverables
       52: "false", // Allow Stock Art
       57: "0.5", // Contest Fee Percentage
       59: "false", // Review Feedback Flag
-      88: "0", // Effort Hours Estimate
-      89: "0", // Estimate Efforts Days Offshore (extract from metadata)
-      90: "0", // Estimate Efforts Days Onsite (extract from metadata)
+      88: input.metadata.find((m) => m.name == "effortHoursEstimate")?.value ?? undefined, // Effort Hours Estimate
+      89: input.metadata.find((m) => m.name == "offshoreEfforts")?.value ?? undefined, // Estimate Efforts Days Offshore (extract from metadata)
+      90: input.metadata.find((m) => m.name == "onsiteEfforts")?.value ?? undefined, // Estimate Efforts Days Onsite (extract from metadata)
+    };
+
+    return Object.fromEntries(Object.entries(map).filter(([_, v]) => v !== undefined)) as {
+      [key: number]: string;
     };
   }
 
-  private mapPhaseCriteria(phase: any) {
+  private mapProjectInfoForUpdate(
+    input: UpdateChallengeInput_UpdateInput,
+    prizeSets: any
+  ): { [key: number]: string } {
+    let effortsEstimate = {};
+
+    const metadata = input.metadataUpdate != null ? input.metadataUpdate.metadata : undefined;
+    if (metadata != null) {
+      effortsEstimate = {
+        88: metadata.find((m) => m.name == "effortHoursEstimate")?.value.toString() ?? undefined, // Effort Hours Estimate
+        89: metadata.find((m) => m.name == "offshoreEfforts")?.value.toString() ?? undefined, // Estimate Efforts Days Offshore (extract from metadata)
+        90: metadata.find((m) => m.name == "onsiteEfforts")?.value.toString() ?? undefined, // Estimate Efforts Days Onsite (extract from metadata)
+      };
+    }
+
+    let projectInfo: { [key: number]: string } = {};
+
+    if (input.name != null) {
+      projectInfo = {
+        6: input.name,
+      };
+    }
+    if (input.billing?.billingAccountId != null) {
+      projectInfo[32] = input.billing?.billingAccountId!.toString();
+    }
+
+    return {
+      ...projectInfo,
+      ...effortsEstimate,
+    };
+  }
+
+  // prettier-ignore
+  public mapPhases(subTrack: string, phases: Challenge_Phase[]) {
+    return phases.map((phase: Challenge_Phase, index: number) => {
+      return LegacyPhase.fromJSON({
+        phaseTypeId: this.mapPhaseNameToPhaseTypeId(phase.name),
+        phaseStatusId: phase.isOpen ? 2 : phase.actualEndDate ? 3 : 1,
+        fixedStartTime: _.isUndefined(phase.predecessor) ? phase.scheduledStartDate : undefined,
+        scheduledStartTime: phase.scheduledStartDate,
+        scheduledEndTime: phase.scheduledEndDate,
+        actualStartTime: phase.actualStartDate,
+        actualEndTime: phase.actualEndDate,
+        duration: phase.duration * 1000,
+        phaseCriteria: this.mapPhaseCriteria(subTrack, phase),
+      })
+    });
+  }
+
+  // prettier-ignore
+  private mapPhaseCriteria(subTrack: string, phase: Challenge_Phase): { [key: number]: string | undefined } {
     const reviewPhaseConstraint = phase.constraints?.find(
       (constraint: { name: string; value: number }) =>
         constraint.name === "Number of Reviewers"
     );
 
     const submissionPhaseConstraint = phase.constraints?.find(
-      (constraint: { name: string; value: number }) =>
-        constraint.name === "Number of Submissions"
+      (constraint: { name: string; value: number }) => constraint.name === "Number of Submissions"
     );
 
-    return {
-      1: phase.name === "Review" ? 30001610 : undefined, // Scorecard ID
-      2: phase.name === "Registration" ? 1 : undefined, // Registration Number
-      3:
-        phase.name === "Submission"
-          ? submissionPhaseConstraint?.value ??
-            reviewPhaseConstraint?.value != null
-            ? 1
-            : undefined
-          : undefined, // Submission Number
+
+    const map = {
+      1: this.mapScorecard(subTrack, this.mapPhaseNameToPhaseTypeId(phase.name)), // Scorecard ID
+      2: phase.name === "Registration" ? '1' : undefined, // Registration Number
+      3: phase.name === "Submission" ? submissionPhaseConstraint?.value.toString() ?? // if we have a submission phase constraint use it
+        reviewPhaseConstraint?.value != null ? '1' : undefined // otherwise if we have a review phase constraint use 1
+        : undefined,
       4: undefined, // View Response During Appeals
       5: undefined, // Manual Screening
       6:
-        phase.name === "Review" ? reviewPhaseConstraint?.value ?? 2 : undefined, // Reviewer Number
-      7: undefined, // View Reviews During Review
+        phase.name === "Review" ? reviewPhaseConstraint?.value.toString() ?? '2' : phase.name === "Iterative Review" ? '1' : undefined, // Reviewer Number
+      '7': undefined, // View Reviews During Review
     };
+
+    return Object.fromEntries(Object.entries(map).filter(([_, v]) => v !== undefined)) as { [key: number]: string };
   }
 
   private mapPhaseNameToPhaseTypeId(name: string) {
@@ -236,6 +325,92 @@ class LegacyMapper {
     if (name == "Iterative Review") {
       return 18;
     }
+  }
+
+  // prettier-ignore
+  private mapScorecard(subTrack: string, phaseTypeId: number | undefined): string | undefined {
+    const isNonProd = process.env.ENV != "prod";
+
+    // TODO: Update scorecard ids for all subtracks and check for dev environment
+
+    let scorecard = undefined;
+
+    if (
+      subTrack === V4_SUBTRACKS.FIRST_2_FINISH &&
+      phaseTypeId === PhaseTypeIds.IterativeReview
+    ) {
+      scorecard = isNonProd ? 30001551 : 30002160;
+    } else if (
+      subTrack === V4_SUBTRACKS.DESIGN_FIRST_2_FINISH &&
+      phaseTypeId === PhaseTypeIds.Review
+    ) {
+      scorecard = isNonProd ? 30001610 : 30001101;
+    } else if (subTrack === V4_SUBTRACKS.BUG_HUNT) {
+      if (phaseTypeId === PhaseTypeIds.Review) {
+        scorecard = isNonProd ? 30001610 : 30001220;
+      } else if (phaseTypeId === PhaseTypeIds.SpecificationReview) {
+        scorecard = isNonProd ? 30001610 : 30001120;
+      }
+    } else if (
+      subTrack === V4_SUBTRACKS.DEVELOP_MARATHON_MATCH &&
+      phaseTypeId === PhaseTypeIds.Review
+    ) {
+      scorecard = isNonProd ? 30001610 : 30002133;
+    } else if (
+      subTrack === V4_SUBTRACKS.MARATHON_MATCH &&
+      phaseTypeId === PhaseTypeIds.Review
+    ) {
+      scorecard = isNonProd ? 30001610 : 30002133;
+    } else if (subTrack === V4_SUBTRACKS.WEB_DESIGNS) {
+      if (phaseTypeId === PhaseTypeIds.SpecificationReview) {
+        scorecard = isNonProd ? 30001610 : 30001040;
+      } else if (phaseTypeId === PhaseTypeIds.CheckpointScreening) {
+        scorecard = isNonProd ? 30001610 : 30001364;
+      } else if (phaseTypeId === PhaseTypeIds.CheckpointReview) {
+        scorecard = isNonProd ? 30001610 : 30001004;
+      } else if (phaseTypeId === PhaseTypeIds.Screening) {
+        scorecard = isNonProd ? 30001610 : 30001363;
+      } else if (phaseTypeId === PhaseTypeIds.Review) {
+        scorecard = isNonProd ? 30001610 : 30001031;
+      } else if (phaseTypeId === PhaseTypeIds.Approval) {
+        scorecard = isNonProd ? 30001610 : 30000720;
+      }
+    } else if (
+      subTrack === V4_SUBTRACKS.CODE &&
+      phaseTypeId === PhaseTypeIds.Review
+    ) {
+      scorecard = isNonProd ? 30002133 : 30002133;
+    }
+
+    return scorecard ? scorecard.toString() : undefined;
+  }
+
+  private mapProjectStatus(status: string | undefined): number | undefined {
+    if (status == null) return undefined;
+
+    if (status === ChallengeStatuses.Draft) {
+      return legacyChallengeStatusesMap.Draft;
+    }
+    if (status === ChallengeStatuses.Active) {
+      return legacyChallengeStatusesMap.Active;
+    }
+    if (status.toLowerCase().indexOf("cancel") !== -1) {
+      return legacyChallengeStatusesMap.Cancelled;
+    }
+  }
+
+  private async mapGroupIds(groups: string[]): Promise<number[]> {
+    const oldGroupIds: number[] = [];
+
+    const token = await m2mToken.getM2MToken();
+    for (const groupId of groups) {
+      const group = await getRequest(`${process.env.TOPCODER_API_URL}/groups/${groupId}`, token);
+      if (group != null && !group.oldId) {
+        oldGroupIds.push(group.oldId);
+      }
+    }
+
+    return oldGroupIds;
   }
 }
 
