@@ -14,12 +14,14 @@ import {
   Phase as LegacyPhase,
   Prize,
 } from "@topcoder-framework/domain-acl";
+import { getRequest } from "../api/v5Api";
+import m2mToken from "../helpers/MachineToMachineToken";
 
 class LegacyMapper {
   // To be used on challenge:update calls that change state from New -> Draft
-  public mapChallengeDraftUpdateInput = (
+  public mapChallengeDraftUpdateInput = async (
     input: CreateChallengeInput
-  ): LegacyChallengeCreateInput => {
+  ): Promise<LegacyChallengeCreateInput> => {
     const prizeSets = this.mapPrizeSets(input.prizeSets);
     const projectInfo = this.mapProjectInfo(input, prizeSets);
 
@@ -30,7 +32,7 @@ class LegacyMapper {
         input.legacy!.track!,
         input.legacy!.subTrack!
       ),
-      groups: [],
+      groups: await this.mapGroupIds(input.groups),
       tcDirectProjectId: input.legacy?.directProjectId!,
       winnerPrizes: this.mapWinnerPrizes(prizeSets),
       phases: this.mapPhases(input.legacy!.subTrack!, input.phases),
@@ -40,11 +42,11 @@ class LegacyMapper {
     };
   };
 
-  public mapChallengeUpdateInput = (
+  public mapChallengeUpdateInput = async (
     legacyId: number,
     subTrack: string,
     input: UpdateChallengeInput_UpdateInput
-  ): LegacyChallengeUpdateInput => {
+  ): Promise<LegacyChallengeUpdateInput> => {
     // prettier-ignore
     const prizeSets = input.prizeSetUpdate != null ? this.mapPrizeSets(input.prizeSetUpdate.prizeSets) : null;
     const projectInfo = this.mapProjectInfoForUpdate(input, prizeSets);
@@ -60,7 +62,8 @@ class LegacyMapper {
             },
       // prettier-ignore
       phaseUpdate: input.phaseUpdate != null ? { phases: this.mapPhases(subTrack, input.phaseUpdate.phases) } : undefined,
-      groupUpdate: input.groupUpdate != null ? { groups: [] } : undefined,
+      // prettier-ignore
+      groupUpdate: input.groupUpdate != null ? { groups: await this.mapGroupIds(input.groupUpdate.groups) } : undefined,
       termUpdate: input.termUpdate != null ? { terms: input.termUpdate.terms } : undefined,
       projectInfo,
     };
@@ -389,6 +392,20 @@ class LegacyMapper {
     if (status.toLowerCase().indexOf("cancel") !== -1) {
       return legacyChallengeStatusesMap.Cancelled;
     }
+  }
+
+  private async mapGroupIds(groups: string[]): Promise<number[]> {
+    const oldGroupIds: number[] = [];
+
+    const token = await m2mToken.getM2MToken();
+    for (const groupId of groups) {
+      const group = await getRequest(`${process.env.TOPCODER_API_URL}/groups/${groupId}`, token);
+      if (group != null && !group.oldId) {
+        oldGroupIds.push(group.oldId);
+      }
+    }
+
+    return oldGroupIds;
   }
 }
 

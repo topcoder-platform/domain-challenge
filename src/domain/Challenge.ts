@@ -109,7 +109,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       if (status === ChallengeStatuses.Draft) {
         try {
           // prettier-ignore
-          const legacyChallengeCreateInput = LegacyCreateChallengeInput.fromPartial(legacyMapper.mapChallengeDraftUpdateInput(input));
+          const legacyChallengeCreateInput = LegacyCreateChallengeInput.fromPartial(await legacyMapper.mapChallengeDraftUpdateInput(input));
           // prettier-ignore
           const legacyChallengeCreateResponse = await legacyChallengeDomain.create(legacyChallengeCreateInput, metadata);
 
@@ -145,17 +145,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       }
     }
 
-    let placementPrizes = 0;
-    if (input.prizeSets) {
-      for (const { type, prizes } of input.prizeSets) {
-        if (type === "placement") {
-          for (const { amountInCents } of prizes) {
-            placementPrizes += amountInCents!;
-          }
-        }
-      }
-    }
-
+    const totalPrizes = this.calculateTotalPrizesInCents(input.prizeSets ?? []);
     const now = new Date().getTime();
 
     // Begin Anti-Corruption Layer
@@ -168,13 +158,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const challenge: Challenge = {
       id: IdGenerator.generateUUID(),
       created: now,
-      createdBy: handle, // TODO: extract from JWT
+      createdBy: handle,
       updated: now,
-      updatedBy: "tcwebservice", // TODO: extract from JWT
+      updatedBy: handle,
       winners: [],
       overview: {
-        totalPrizes: placementPrizes / 100,
-        totalPrizesInCents: placementPrizes,
+        totalPrizes: totalPrizes / 100,
+        totalPrizesInCents: totalPrizes,
       },
       ...input,
       prizeSets: (input.prizeSets ?? []).map((prizeSet) => {
@@ -251,7 +241,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         input.legacy = legacy;
         legacyId = legacyChallengeId;
       } else if (challenge.status !== ChallengeStatuses.New) {
-        const updateChallengeInput = legacyMapper.mapChallengeUpdateInput(
+        const updateChallengeInput = await legacyMapper.mapChallengeUpdateInput(
           challenge.legacyId!,
           challenge.legacy?.subTrack!,
           input
@@ -267,6 +257,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       }
     }
     // End Anti-Corruption Layer
+
+    // prettier-ignore
+    const totalPrizesInCents = this.calculateTotalPrizesInCents(input.prizeSetUpdate?.prizeSets ?? challenge.prizeSets ?? []);
 
     return super.update(
       scanCriteria,
@@ -307,8 +300,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         startDate: input.startDate != null ? input.startDate : undefined,
         endDate: input.endDate != null ? input.endDate : undefined,
         overview: input.overview != null ? {
-          totalPrizes: input.overview.totalPrizesInCents! / 100,
-          totalPrizesInCents: input.overview.totalPrizesInCents,
+          totalPrizes: totalPrizesInCents / 100,
+          totalPrizesInCents,
         } : undefined,
         legacyId: legacyId != null ? legacyId : undefined,
       },
@@ -427,6 +420,19 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         doc: data,
       },
     });
+  }
+
+  private calculateTotalPrizesInCents(prizeSets: Challenge_PrizeSet[]): number {
+    let totalPrizes = 0;
+    if (prizeSets) {
+      for (const { prizes } of prizeSets) {
+        for (const { amountInCents } of prizes) {
+          totalPrizes += amountInCents!;
+        }
+      }
+    }
+
+    return totalPrizes;
   }
 }
 
