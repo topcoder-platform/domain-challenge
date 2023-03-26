@@ -34,9 +34,7 @@ jobs:
           else
             export ECR_ENV="PROD"
           fi
-    - run:
-        name: "Set AWS environment variables"
-        command: |
+          echo "Using ECR Environment: ${ECR_ENV}"
           ./awsconfiguration.sh ${ECR_ENV}
     - run:
         name: "Publish docker image"
