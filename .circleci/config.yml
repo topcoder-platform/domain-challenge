@@ -6,7 +6,6 @@ jobs:
     - image: cimg/aws:2023.01
     environment:
       CODEARTIFACT_ENV: PROD
-      ECR_ENV: PROD
       SERVICE_NAME: "domain-challenge"
       OUT_DIR: "buildscripts"
     steps:
@@ -27,6 +26,14 @@ jobs:
           cp ~/.npmrc .
           rm -f awsenvconf
           docker build -t ${SERVICE_NAME}:${CIRCLE_SHA1} .
+    - run:
+        name: "Set ECR_ENV based on event type"
+        command: |
+          if [ "${CIRCLE_PULL_REQUEST}" != "" ]; then
+            export ECR_ENV="DEV"
+          else
+            export ECR_ENV="PROD"
+          fi
     - run:
         name: "Set AWS environment variables"
         command: |
