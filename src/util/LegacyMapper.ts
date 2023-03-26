@@ -173,7 +173,10 @@ class LegacyMapper {
       39: undefined,
       41: "true", // Approval Required
       43: "true", // Send Winner Emails
-      44: "false", // Post-mortem required (set to false - new Autopilot will handle this)
+      44:
+        input.metadata.find((m) => m.name == "postMortemRequired")?.value == "false"
+          ? "false"
+          : "true" ?? "true", // Post-mortem required (set to false - new Autopilot will handle this)
       45: "false", // Reliability bonus eligible
       46: "true", // Member Payments Eligible
       48: "true", // Track Late Deliverables
