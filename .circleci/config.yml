@@ -6,7 +6,6 @@ jobs:
     - image: cimg/aws:2023.01
     environment:
       CODEARTIFACT_ENV: PROD
-      ECR_ENV: PROD
       SERVICE_NAME: "domain-challenge"
       OUT_DIR: "buildscripts"
     steps:
@@ -28,8 +27,14 @@ jobs:
           rm -f awsenvconf
           docker build -t ${SERVICE_NAME}:${CIRCLE_SHA1} .
     - run:
-        name: "Set AWS environment variables"
+        name: "Set ECR_ENV based on event type"
         command: |
+          if [ "${CIRCLE_PULL_REQUEST}" != "" ]; then
+            export ECR_ENV="DEV"
+          else
+            export ECR_ENV="PROD"
+          fi
+          echo "Using ECR Environment: ${ECR_ENV}"
           ./awsconfiguration.sh ${ECR_ENV}
     - run:
         name: "Publish docker image"
@@ -45,7 +50,3 @@ workflows:
     jobs:
     - "publish-image":
         context: "org-global"
-        filters:
-          branches:
-            only:
-            - main
