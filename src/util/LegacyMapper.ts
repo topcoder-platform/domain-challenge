@@ -219,9 +219,13 @@ class LegacyMapper {
       projectInfo[32] = input.billing?.billingAccountId!.toString();
     }
 
-    return {
+    const map = {
       ...projectInfo,
       ...effortsEstimate,
+    };
+
+    return Object.fromEntries(Object.entries(map).filter(([_, v]) => v !== undefined)) as {
+      [key: number]: string;
     };
   }
 
