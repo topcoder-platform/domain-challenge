@@ -52,7 +52,3 @@ workflows:
     jobs:
     - "publish-image":
         context: "org-global"
-        filters:
-          branches:
-            only:
-            - main
