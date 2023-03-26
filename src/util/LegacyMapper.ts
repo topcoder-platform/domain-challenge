@@ -23,7 +23,7 @@ class LegacyMapper {
     input: CreateChallengeInput
   ): Promise<LegacyChallengeCreateInput> => {
     const prizeSets = this.mapPrizeSets(input.prizeSets);
-    const projectInfo = this.mapProjectInfo(input, prizeSets);
+    const projectInfo = this.mapProjectInfo(input, prizeSets, input.legacy?.subTrack!);
 
     return {
       name: input.name,
@@ -126,7 +126,11 @@ class LegacyMapper {
     }, []);
   }
 
-  private mapProjectInfo(input: CreateChallengeInput, prizeSets: any): { [key: number]: string } {
+  private mapProjectInfo(
+    input: CreateChallengeInput,
+    prizeSets: any,
+    subTrack: string
+  ): { [key: number]: string } {
     const firstPlacePrize =
       prizeSets[PrizeSetTypes.ChallengePrizes]?.length >= 1
         ? prizeSets[PrizeSetTypes.ChallengePrizes][0]?.toString()
@@ -145,6 +149,14 @@ class LegacyMapper {
       14: "Open", // Eligibility -> Open (value doesn't matter)
       16: firstPlacePrize != null ? (firstPlacePrize / 100).toString() : undefined,
       26: "Off", // No Digital Run
+      28:
+        [
+          V4_SUBTRACKS.FIRST_2_FINISH,
+          V4_SUBTRACKS.DESIGN_FIRST_2_FINISH,
+          V4_SUBTRACKS.MARATHON_MATCH,
+        ].indexOf(subTrack) != -1
+          ? "true"
+          : "false", // Allow multiple submissions
       30: "0", // No DR Points
       6: input.name,
       31: "0", // Admin Fee
