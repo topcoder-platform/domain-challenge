@@ -100,7 +100,9 @@ class LegacyMapper {
 
   private mapPrizeSets(prizeSets: Challenge_PrizeSet[]) {
     return prizeSets.reduce((acc: { [key: string]: number[] }, prize) => {
-      acc[prize.type] = prize.prizes.map((p) => p.amountInCents!).sort((a, b) => b - a);
+      acc[prize.type] = (acc[prize.type] ?? [])
+        .concat(prize.prizes.map((p) => p.amountInCents!))
+        .sort((a, b) => b - a);
       return acc;
     }, {});
   }
