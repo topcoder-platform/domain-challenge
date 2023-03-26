@@ -1,11 +1,5 @@
-const {
-  AUTH0_URL,
-  AUTH0_AUDIENCE,
-  TOKEN_CACHE_TIME,
-  AUTH0_CLIENT_ID,
-  AUTH0_CLIENT_SECRET,
-  AUTH0_PROXY_SERVER_URL,
-} = process.env;
+const { AUTH0_URL, AUTH0_AUDIENCE, AUTH0_CLIENT_ID, AUTH0_CLIENT_SECRET, AUTH0_PROXY_SERVER_URL } =
+  process.env;
 
 import _ from "lodash";
 const m2mAuth = require("tc-core-library-js").auth.m2m;
@@ -17,7 +11,6 @@ class Machine2MachineToken {
     this.m2m = m2mAuth({
       AUTH0_URL,
       AUTH0_AUDIENCE,
-      TOKEN_CACHE_TIME,
       AUTH0_PROXY_SERVER_URL,
     });
   }
