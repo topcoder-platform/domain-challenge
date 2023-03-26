@@ -4,6 +4,7 @@ const {
   TOKEN_CACHE_TIME,
   AUTH0_CLIENT_ID,
   AUTH0_CLIENT_SECRET,
+  AUTH0_PROXY_SERVER_URL,
 } = process.env;
 
 import _ from "lodash";
@@ -17,6 +18,7 @@ class Machine2MachineToken {
       AUTH0_URL,
       AUTH0_AUDIENCE,
       TOKEN_CACHE_TIME,
+      AUTH0_PROXY_SERVER_URL,
     });
   }
 
