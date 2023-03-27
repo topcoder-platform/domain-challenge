@@ -64,6 +64,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         // do nothing
       }
     }
+    // make sure groups is an array. Issue with old data
+    if (typeof item.groups === "string") {
+      try {
+        item.groups = JSON.parse(item.groups);
+      } catch (e) {
+        // do nothing
+      }
+    }
     return Challenge.fromJSON(item);
   }
 
