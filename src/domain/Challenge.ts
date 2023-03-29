@@ -40,7 +40,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   private esClient = ElasticSearch.getESClient();
 
   protected toEntity(item: { [key: string]: Value }): Challenge {
-    for (const key of ["phases", "terms", "tags", "metadata", "events", "prizeSets", "legacy"]) {
+    console.info("ToEntity input:",JSON.stringify(item))
+    for (const key of ["phases", "terms", "tags", "metadata", "events", "prizeSets", "legacy", "groups"]) {
       try {
         if (key === "metadata") {
           if (item["metadata"].kind?.$case === "listValue") {
@@ -72,6 +73,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         // do nothing
       }
     }
+    console.info("ToEntity output:",JSON.stringify(item))
     return Challenge.fromJSON(item);
   }
 
