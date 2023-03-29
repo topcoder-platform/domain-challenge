@@ -44,6 +44,32 @@ export const ChallengeStatuses = {
   New: "New",
   Active: "Active",
   Draft: "Draft",
+  Approved: "Approved",
+  Canceled: "Canceled",
+  Completed: "Completed",
+  Deleted: "Deleted",
+  CancelledFailedReview: "Cancelled - Failed Review",
+  CancelledFailedScreening: "Cancelled - Failed Screening",
+  CancelledZeroSubmissions: "Cancelled - Zero Submissions",
+  CancelledWinnerUnresponsive: "Cancelled - Winner Unresponsive",
+  CancelledClientRequest: "Cancelled - Client Request",
+  CancelledRequirementsInfeasible: "Cancelled - Requirements Infeasible",
+  CancelledZeroRegistrations: "Cancelled - Zero Registrations",
+  CancelledPaymentFailed: "Cancelled - Payment Failed",
+};
+
+export const LegacyChallengeStatusesMap = {
+  Active: 1,
+  Draft: 2,
+  Deleted: 3,
+  CancelledFailedReview: 4,
+  CancelledFailedScreening: 5,
+  CancelledZeroSubmissions: 6,
+  Completed: 7,
+  CancelledWinnerUnresponsive: 8,
+  CancelledClientRequest: 9,
+  CancelledRequirementsInfeasible: 10,
+  CancelledZeroRegistrations: 11,
 };
 
 export const PhaseNameToTypeId = {
@@ -95,3 +121,5 @@ export const PhaseCriteriaIdToName = {
   4: "View Response During Appeals",
   6: "Number of Reviewers",
 };
+
+export const TGBillingAccounts = [80000062, 80002800];

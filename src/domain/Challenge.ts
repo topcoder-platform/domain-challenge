@@ -245,7 +245,12 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         legacyId = legacyChallengeId;
       } else if (challenge.status !== ChallengeStatuses.New) {
         // prettier-ignore
-        const updateChallengeInput = await legacyMapper.mapChallengeUpdateInput(challenge.legacyId!, challenge.legacy?.subTrack!, input);
+        const updateChallengeInput = await legacyMapper.mapChallengeUpdateInput(
+          challenge.legacyId!,
+          challenge.legacy?.subTrack!,
+          challenge.billing?.billingAccountId,
+          input
+        );
 
         const { updatedCount } = await legacyChallengeDomain.update(updateChallengeInput, metadata);
 

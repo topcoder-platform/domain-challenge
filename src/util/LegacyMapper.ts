@@ -1,10 +1,12 @@
 import _ from "lodash";
 import {
   ChallengeStatuses,
+  LegacyChallengeStatusesMap,
   PhaseCriteriaIdToName,
   PhaseNames,
   PhaseNameToTypeId,
   PrizeSetTypes,
+  TGBillingAccounts,
 } from "../common/Constants";
 import { V4_SUBTRACKS, V5_TO_V4 } from "../common/ConversionMap";
 import {
@@ -13,7 +15,6 @@ import {
   CreateChallengeInput,
   UpdateChallengeInput_UpdateInput,
 } from "../models/domain-layer/challenge/challenge";
-import { legacyChallengeStatusesMap } from "./constants";
 import {
   CreateChallengeInput as LegacyChallengeCreateInput,
   UpdateChallengeInput as LegacyChallengeUpdateInput,
@@ -33,7 +34,7 @@ class LegacyMapper {
 
     return {
       name: input.name,
-      projectStatusId: legacyChallengeStatusesMap.Draft,
+      projectStatusId: LegacyChallengeStatusesMap.Draft,
       ...this.mapTrackAndTypeToCategoryStudioSpecAndMmSpec(
         input.legacy!.track!,
         input.legacy!.subTrack!
@@ -41,7 +42,11 @@ class LegacyMapper {
       groups: await this.mapGroupIds(input.groups),
       tcDirectProjectId: input.legacy?.directProjectId!,
       winnerPrizes: this.mapWinnerPrizes(prizeSets),
-      phases: this.mapPhases(input.legacy!.subTrack!, input.phases),
+      phases: this.mapPhases(
+        input.legacy!.subTrack!,
+        input.billing?.billingAccountId,
+        input.phases
+      ),
       reviewType: input.legacy?.reviewType ?? "INTERNAL",
       confidentialityType: input.legacy?.confidentialityType ?? "public",
       projectInfo,
@@ -51,6 +56,7 @@ class LegacyMapper {
   public mapChallengeUpdateInput = async (
     legacyId: number,
     subTrack: string,
+    billingAccount: number | undefined,
     input: UpdateChallengeInput_UpdateInput
   ): Promise<LegacyChallengeUpdateInput> => {
     // prettier-ignore
@@ -67,7 +73,7 @@ class LegacyMapper {
               winnerPrizes: this.mapWinnerPrizes(prizeSets),
             },
       // prettier-ignore
-      phaseUpdate: input.phaseUpdate != null ? { phases: this.mapPhases(subTrack, input.phaseUpdate.phases) } : undefined,
+      phaseUpdate: input.phaseUpdate != null ? { phases: this.mapPhases(subTrack,billingAccount, input.phaseUpdate.phases) } : undefined,
       // prettier-ignore
       groupUpdate: input.groupUpdate != null ? { groups: await this.mapGroupIds(input.groupUpdate.groups) } : undefined,
       termUpdate: input.termUpdate != null ? { terms: input.termUpdate.terms } : undefined,
@@ -248,7 +254,7 @@ class LegacyMapper {
   }
 
   // prettier-ignore
-  public mapPhases(subTrack: string, phases: Challenge_Phase[]) {
+  public mapPhases(subTrack: string, billingAccount: number | undefined, phases: Challenge_Phase[]) {
     return phases.map((phase: Challenge_Phase, index: number) => {
       return LegacyPhase.fromJSON({
         phaseTypeId: PhaseNameToTypeId[phase.name as keyof typeof PhaseNameToTypeId],
@@ -259,8 +265,8 @@ class LegacyMapper {
         actualStartTime: phase.actualStartDate,
         actualEndTime: phase.actualEndDate,
         duration: phase.duration * 1000,
-        phaseCriteria: this.mapPhaseCriteria(subTrack, phase),
-      })
+        phaseCriteria: this.mapPhaseCriteria(subTrack, billingAccount, phase),
+      });
     });
   }
 
@@ -292,7 +298,7 @@ class LegacyMapper {
   }
 
   // prettier-ignore
-  private mapPhaseCriteria(subTrack: string, phase: Challenge_Phase): { [key: number]: string | undefined } {
+  private mapPhaseCriteria(subTrack: string, billingAccount:number | undefined, phase: Challenge_Phase): { [key: number]: string | undefined } {
     const scorecardConstraint = phase.constraints?.find(
       (constraint: { name: string; value: number }) =>
         constraint.name === "Scorecard"
@@ -322,6 +328,7 @@ class LegacyMapper {
         scorecardConstraint?.value.toString() ??
         this.mapScorecard(
           subTrack,
+          billingAccount,
           PhaseNameToTypeId[phase.name as keyof typeof PhaseNameToTypeId]
         ), // Scorecard ID
       2:
@@ -359,7 +366,7 @@ class LegacyMapper {
   }
 
   // prettier-ignore
-  private mapScorecard(subTrack: string, phaseTypeId: number | undefined): string | undefined {
+  private mapScorecard(subTrack: string, billingAccount:number | undefined, phaseTypeId: number | undefined): string | undefined {
     const isNonProd = process.env.ENV != "prod";
 
     // TODO: Update scorecard ids for all subtracks and check for dev environment
@@ -370,7 +377,11 @@ class LegacyMapper {
       subTrack === V4_SUBTRACKS.FIRST_2_FINISH &&
       phaseTypeId === PhaseNameToTypeId["Iterative Review"]
     ) {
-      scorecard = isNonProd ? 30001551 : 30002160;
+      if (_.includes(TGBillingAccounts, billingAccount)) {
+        scorecard = isNonProd ? 30001551 : 30002212;
+      } else {
+        scorecard = isNonProd ? 30001551 : 30002160;
+      }
     } else if (
       subTrack === V4_SUBTRACKS.DESIGN_FIRST_2_FINISH &&
       phaseTypeId === PhaseNameToTypeId.Review
@@ -406,14 +417,9 @@ class LegacyMapper {
       } else if (phaseTypeId === PhaseNameToTypeId.Approval) {
         scorecard = isNonProd ? 30001610 : 30000720;
       }
-    } else if (
-      subTrack === V4_SUBTRACKS.CODE &&
-      phaseTypeId === PhaseNameToTypeId.Review
-    ) {
+    } else if (subTrack === V4_SUBTRACKS.CODE && phaseTypeId === PhaseNameToTypeId.Review) {
       scorecard = isNonProd ? 30002133 : 30002133;
-    } else if (
-      phaseTypeId === PhaseNameToTypeId["Post-Mortem"]
-    ) {
+    } else if (phaseTypeId === PhaseNameToTypeId["Post-Mortem"]) {
       scorecard = isNonProd ? 30001013 : 30001013;
     }
 
@@ -422,16 +428,8 @@ class LegacyMapper {
 
   private mapProjectStatus(status: string | undefined): number | undefined {
     if (status == null) return undefined;
-
-    if (status === ChallengeStatuses.Draft) {
-      return legacyChallengeStatusesMap.Draft;
-    }
-    if (status === ChallengeStatuses.Active) {
-      return legacyChallengeStatusesMap.Active;
-    }
-    if (status.toLowerCase().indexOf("cancel") !== -1) {
-      return legacyChallengeStatusesMap.Cancelled;
-    }
+    const statusKey = _.find(_.keys(ChallengeStatuses), (s) => s === status);
+    return LegacyChallengeStatusesMap[statusKey as keyof typeof LegacyChallengeStatusesMap];
   }
 
   private async mapGroupIds(groups: string[]): Promise<number[]> {
