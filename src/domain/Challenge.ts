@@ -110,6 +110,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           // prettier-ignore
           const legacyChallengeCreateResponse = await legacyChallengeDomain.create(legacyChallengeCreateInput, metadata);
 
+          legacyMapper.backFillPhaseCriteria(input, legacyChallengeCreateInput.phases);
+
           if (legacyChallengeCreateResponse.kind?.$case === "integerId") {
             legacyChallengeId = legacyChallengeCreateResponse.kind.integerId;
           }
@@ -126,6 +128,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     return {
       legacy: input.legacy,
       legacyChallengeId,
+      phases: input.phases,
     };
   }
 
@@ -148,7 +151,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     // Begin Anti-Corruption Layer
 
     // prettier-ignore
-    const { legacy, legacyChallengeId } = await this.createLegacyChallenge(input, input.status, input.trackId, input.typeId, input.tags, metadata);
+    const { legacy, legacyChallengeId, phases } = await this.createLegacyChallenge(input, input.status, input.trackId, input.typeId, input.tags, metadata);
 
     // End Anti-Corruption Layer
 
@@ -176,6 +179,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         };
       }),
       legacy,
+      phases,
       legacyId: legacyChallengeId != null ? legacyChallengeId : undefined,
       description: xss(input.description ?? ""),
       privateDescription: xss(input.privateDescription ?? ""),
@@ -234,9 +238,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         };
 
         // prettier-ignore
-        const { legacy, legacyChallengeId } = await this.createLegacyChallenge(createChallengeInput, input.status, challenge!.trackId, challenge!.typeId, challenge!.tags, metadata);
+        const { legacy, legacyChallengeId, phases } = await this.createLegacyChallenge(createChallengeInput, input.status, challenge!.trackId, challenge!.typeId, challenge!.tags, metadata);
 
         input.legacy = legacy;
+        input.phaseUpdate = { phases };
         legacyId = legacyChallengeId;
       } else if (challenge.status !== ChallengeStatuses.New) {
         // prettier-ignore
