@@ -40,8 +40,17 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   private esClient = ElasticSearch.getESClient();
 
   protected toEntity(item: { [key: string]: Value }): Challenge {
-    console.info("ToEntity input:",JSON.stringify(item))
-    for (const key of ["phases", "terms", "tags", "metadata", "events", "prizeSets", "legacy", "groups"]) {
+    console.info("ToEntity input:", JSON.stringify(item));
+    for (const key of [
+      "phases",
+      "terms",
+      "tags",
+      "metadata",
+      "events",
+      "prizeSets",
+      "legacy",
+      "groups",
+    ]) {
       try {
         if (key === "metadata") {
           if (item["metadata"].kind?.$case === "listValue") {
@@ -73,7 +82,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         // do nothing
       }
     }
-    console.info("ToEntity output:",JSON.stringify(item))
+    console.info("ToEntity output:", JSON.stringify(item));
     return Challenge.fromJSON(item);
   }
 
@@ -93,17 +102,19 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         typeId,
         tags
       );
-
-      input.legacy = {
-        ...input.legacy,
+      const directProjectId = input.legacy == null ? 0 : input.legacy.directProjectId; // v5 API can set directProjectId
+      const reviewType = input.legacy == null ? "INTERNAL" : input.legacy.reviewType; // v5 API can set reviewType
+      const confidentialityType =
+        input.legacy == null ? "private" : input.legacy.confidentialityType; // v5 API can set confidentialityType
+      _.assign(input.legacy, {
         track,
         subTrack,
         pureV5Task: isTask,
         forumId: 0,
-        directProjectId: input.legacy == null ? 0 : input.legacy.directProjectId, // v5 API can set directProjectId
-        reviewType: input.legacy == null ? "INTERNAL" : input.legacy.reviewType, // v5 API can set reviewType
-        confidentialityType: input.legacy == null ? "private" : input.legacy.confidentialityType, // v5 API can set confidentialityType
-      };
+        directProjectId,
+        reviewType,
+        confidentialityType,
+      });
 
       if (status === ChallengeStatuses.Draft) {
         try {

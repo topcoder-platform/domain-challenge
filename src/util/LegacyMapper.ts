@@ -276,10 +276,10 @@ class LegacyMapper {
     )?.phaseCriteria[1];
     const screeningScorecardId = phases.find((p) => p.phaseTypeId === PhaseNameToTypeId.Screening)
       ?.phaseCriteria[1];
-    if (_.isUndefined(reviewScorecardId)) {
+    if (!_.isUndefined(reviewScorecardId)) {
       input.legacy!.reviewScorecardId = _.toNumber(reviewScorecardId);
     }
-    if (_.isUndefined(screeningScorecardId)) {
+    if (!_.isUndefined(screeningScorecardId)) {
       input.legacy!.screeningScorecardId = _.toNumber(screeningScorecardId);
     }
 
@@ -333,14 +333,14 @@ class LegacyMapper {
         ), // Scorecard ID
       2:
         phase.name === PhaseNames.Registration
-          ? registrationPhaseConstraint?.value.toString() ?? "1"
+          ? (registrationPhaseConstraint?.value.toString() ?? "1")
           : undefined, // Registration Number
       3:
         phase.name === PhaseNames.Submission
-          ? submissionPhaseConstraint?.value.toString() ?? // if we have a submission phase constraint use it
-            reviewPhaseConstraint?.value != null
+          ? (submissionPhaseConstraint?.value.toString() ?? // if we have a submission phase constraint use it
+            (reviewPhaseConstraint?.value != null
             ? "1"
-            : undefined // otherwise if we have a review phase constraint use 1
+            : undefined)) // otherwise if we have a review phase constraint use 1
           : undefined,
       4:
         phase.name === PhaseNames.Appeals
@@ -349,7 +349,7 @@ class LegacyMapper {
             : "No"
           : undefined, // View Response During Appeals
       6:
-        reviewPhaseConstraint?.value.toString() ?? phase.name === PhaseNames.Review
+        reviewPhaseConstraint?.value.toString() ?? (phase.name === PhaseNames.Review
           ? "2"
           : phase.name === PhaseNames.IterativeReview
           ? "1"
@@ -359,7 +359,7 @@ class LegacyMapper {
           ? "1"
           : phase.name === PhaseNames.SpecificationReview
           ? "1"
-          : undefined, // Reviewer Number
+          : undefined), // Reviewer Number
     };
 
     return Object.fromEntries(Object.entries(map).filter(([_, v]) => v !== undefined)) as { [key: number]: string };
