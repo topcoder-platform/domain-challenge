@@ -8,10 +8,7 @@ import IdGenerator from "../helpers/IdGenerator";
 
 import { TimelineTemplateSchema } from "../schema/TimelineTemplateSchema";
 
-class TimelineTemplateDomain extends CoreOperations<
-  TimelineTemplate,
-  CreateTimelineTemplateInput
-> {
+class TimelineTemplateDomain extends CoreOperations<TimelineTemplate, CreateTimelineTemplateInput> {
   protected toEntity(item: { [key: string]: Value }): TimelineTemplate {
     try {
       item.phases = JSON.parse(item.phases.toString());
@@ -21,9 +18,7 @@ class TimelineTemplateDomain extends CoreOperations<
     return TimelineTemplate.fromJSON(item);
   }
 
-  public create(
-    createInput: CreateTimelineTemplateInput
-  ): Promise<TimelineTemplate> {
+  public create(createInput: CreateTimelineTemplateInput): Promise<TimelineTemplate> {
     return super.create({
       id: IdGenerator.generateUUID(),
       ...createInput,
@@ -31,8 +26,4 @@ class TimelineTemplateDomain extends CoreOperations<
   }
 }
 
-export default new TimelineTemplateDomain(
-  TimelineTemplateSchema.tableName,
-  TimelineTemplateSchema.attributes,
-  TimelineTemplateSchema.indices
-);
+export default new TimelineTemplateDomain(TimelineTemplateSchema);

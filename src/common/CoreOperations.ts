@@ -8,7 +8,6 @@ import { LookupCriteria, ScanCriteria, ScanResult } from "../models/common/commo
 import { Value } from "../models/google/protobuf/struct";
 
 import {
-  Attribute,
   DataType,
   Filter,
   Operator,
@@ -23,42 +22,14 @@ import {
 } from "../dal/models/nosql/parti_ql";
 import { Metadata, StatusBuilder } from "@grpc/grpc-js";
 import { Status } from "@grpc/grpc-js/build/src/constants";
-
-export type ValueType =
-  | "nullValue"
-  | "numberValue"
-  | "stringValue"
-  | "boolValue"
-  | "structValue"
-  | "listValue";
-
-export type DynamoTableIndex = {
-  [key: string]: {
-    index: string;
-    partitionKey: string;
-    sortKey?: string;
-  };
-};
+import { Schema } from "./Interfaces";
 
 abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key: string]: any }> {
-  public constructor(
-    private entityName: string,
-    private entityAttributes: Attribute[],
-    private entityIndexList: DynamoTableIndex
-  ) {}
-
-  private attributesKeyTypeMap: { [key: string]: DataType } = this.entityAttributes.reduce(
-    (map, attribute) => ({
-      ...map,
-      [attribute.name]: attribute.type,
-    }),
-    {}
-  );
+  public constructor(private entitySchema: Schema) {}
 
   public async lookup(lookupCriteria: LookupCriteria): Promise<T> {
     const selectQuery: SelectQuery = {
-      table: this.entityName,
-      attributes: this.entityAttributes,
+      table: this.entitySchema.tableName,
       filters: [
         {
           name: lookupCriteria.key,
@@ -117,9 +88,8 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
           kind: {
             $case: "select",
             select: {
-              table: this.entityName,
+              table: this.entitySchema.tableName,
               index: index ?? undefined,
-              attributes: this.entityAttributes,
               filters,
               nextToken,
             },
@@ -150,7 +120,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
           kind: {
             $case: "insert",
             insert: {
-              table: this.entityName,
+              table: this.entitySchema.tableName,
               attributes: entity,
             },
           },
@@ -184,7 +154,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
           kind: {
             $case: "update",
             update: {
-              table: this.entityName,
+              table: this.entitySchema.tableName,
               // TODO: Write a convenience method in @topcoder-framework/lib-common to support additional update operations like LIST_APPEND, SET_ADD, SET_REMOVE, etc
               updates: Object.entries(entity)
                 .filter(([key, value]) => value !== undefined)
@@ -228,7 +198,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
           kind: {
             $case: "delete",
             delete: {
-              table: this.entityName,
+              table: this.entitySchema.tableName,
               filters: [
                 {
                   name: lookupCriteria.key,
@@ -276,8 +246,12 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
   } {
     let index: string | null = null;
     const filters: Filter[] = scanCriteria.map((criteria) => {
-      if (index == null && this.entityIndexList[criteria.key] != null) {
-        index = this.entityIndexList[criteria.key].index!;
+      if (
+        index == null &&
+        this.entitySchema.indices != null &&
+        this.entitySchema.indices[criteria.key] != null
+      ) {
+        index = this.entitySchema.indices[criteria.key].index!;
       }
 
       return {
@@ -332,7 +306,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
   }
 
   private toValue(key: string, value: unknown): PartiQLValue {
-    const dataType: DataType = this.attributesKeyTypeMap[key];
+    const dataType: DataType = this.entitySchema.attributes[key].type;
 
     if (dataType == null) {
       throw new Error(`Unknown attribute: ${key}`);

@@ -11,9 +11,7 @@ class ChallengeTimelineTemplateDomain extends CoreOperations<
   ChallengeTimelineTemplate,
   CreateChallengeTimelineTemplateInput
 > {
-  protected toEntity(item: {
-    [key: string]: Value;
-  }): ChallengeTimelineTemplate {
+  protected toEntity(item: { [key: string]: Value }): ChallengeTimelineTemplate {
     return ChallengeTimelineTemplate.fromJSON(item);
   }
 
@@ -27,8 +25,4 @@ class ChallengeTimelineTemplateDomain extends CoreOperations<
   }
 }
 
-export default new ChallengeTimelineTemplateDomain(
-  ChallengeTimelineTemplateSchema.tableName,
-  ChallengeTimelineTemplateSchema.attributes,
-  ChallengeTimelineTemplateSchema.indices
-);
+export default new ChallengeTimelineTemplateDomain(ChallengeTimelineTemplateSchema);

@@ -451,8 +451,4 @@ interface IUpdateDataFromACL {
   updatedBy?: string;
 }
 
-export default new ChallengeDomain(
-  ChallengeSchema.tableName,
-  ChallengeSchema.attributes,
-  ChallengeSchema.indices
-);
+export default new ChallengeDomain(ChallengeSchema);

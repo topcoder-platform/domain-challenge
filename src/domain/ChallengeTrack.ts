@@ -8,17 +8,12 @@ import IdGenerator from "../helpers/IdGenerator";
 
 import { ChallengeTrackSchema } from "../schema/ChallengeTrackSchema";
 
-class ChallengeTrackDomain extends CoreOperations<
-  ChallengeTrack,
-  CreateChallengeTrackInput
-> {
+class ChallengeTrackDomain extends CoreOperations<ChallengeTrack, CreateChallengeTrackInput> {
   protected toEntity(item: { [key: string]: Value }): ChallengeTrack {
     return ChallengeTrack.fromJSON(item);
   }
 
-  public create(
-    createInput: CreateChallengeTrackInput
-  ): Promise<ChallengeTrack> {
+  public create(createInput: CreateChallengeTrackInput): Promise<ChallengeTrack> {
     return super.create({
       id: IdGenerator.generateUUID(),
       ...createInput,
@@ -26,8 +21,4 @@ class ChallengeTrackDomain extends CoreOperations<
   }
 }
 
-export default new ChallengeTrackDomain(
-  ChallengeTrackSchema.tableName,
-  ChallengeTrackSchema.attributes,
-  ChallengeTrackSchema.indices
-);
+export default new ChallengeTrackDomain(ChallengeTrackSchema);

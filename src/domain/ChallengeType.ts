@@ -8,10 +8,7 @@ import IdGenerator from "../helpers/IdGenerator";
 
 import { ChallengeTypeSchema } from "../schema/ChallengeTypeSchema";
 
-class ChallengeTypeDomain extends CoreOperations<
-  ChallengeType,
-  CreateChallengeTypeInput
-> {
+class ChallengeTypeDomain extends CoreOperations<ChallengeType, CreateChallengeTypeInput> {
   protected toEntity(item: { [key: string]: Value }): ChallengeType {
     return ChallengeType.fromJSON(item);
   }
@@ -24,8 +21,4 @@ class ChallengeTypeDomain extends CoreOperations<
   }
 }
 
-export default new ChallengeTypeDomain(
-  ChallengeTypeSchema.tableName,
-  ChallengeTypeSchema.attributes,
-  ChallengeTypeSchema.indices
-);
+export default new ChallengeTypeDomain(ChallengeTypeSchema);

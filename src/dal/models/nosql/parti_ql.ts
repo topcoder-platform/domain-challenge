@@ -582,7 +582,6 @@ export interface Filter {
 export interface SelectQuery {
   table: string;
   index?: string | undefined;
-  attributes: Attribute[];
   filters: Filter[];
   nextToken?: string | undefined;
 }
@@ -1154,7 +1153,7 @@ export const Filter = {
 };
 
 function createBaseSelectQuery(): SelectQuery {
-  return { table: "", index: undefined, attributes: [], filters: [], nextToken: undefined };
+  return { table: "", index: undefined, filters: [], nextToken: undefined };
 }
 
 export const SelectQuery = {
@@ -1165,14 +1164,11 @@ export const SelectQuery = {
     if (message.index !== undefined) {
       writer.uint32(18).string(message.index);
     }
-    for (const v of message.attributes) {
-      Attribute.encode(v!, writer.uint32(26).fork()).ldelim();
-    }
     for (const v of message.filters) {
-      Filter.encode(v!, writer.uint32(34).fork()).ldelim();
+      Filter.encode(v!, writer.uint32(26).fork()).ldelim();
     }
     if (message.nextToken !== undefined) {
-      writer.uint32(42).string(message.nextToken);
+      writer.uint32(34).string(message.nextToken);
     }
     return writer;
   },
@@ -1203,17 +1199,10 @@ export const SelectQuery = {
             break;
           }
 
-          message.attributes.push(Attribute.decode(reader, reader.uint32()));
+          message.filters.push(Filter.decode(reader, reader.uint32()));
           continue;
         case 4:
           if (tag != 34) {
-            break;
-          }
-
-          message.filters.push(Filter.decode(reader, reader.uint32()));
-          continue;
-        case 5:
-          if (tag != 42) {
             break;
           }
 
@@ -1232,7 +1221,6 @@ export const SelectQuery = {
     return {
       table: isSet(object.table) ? String(object.table) : "",
       index: isSet(object.index) ? String(object.index) : undefined,
-      attributes: Array.isArray(object?.attributes) ? object.attributes.map((e: any) => Attribute.fromJSON(e)) : [],
       filters: Array.isArray(object?.filters) ? object.filters.map((e: any) => Filter.fromJSON(e)) : [],
       nextToken: isSet(object.nextToken) ? String(object.nextToken) : undefined,
     };
@@ -1242,11 +1230,6 @@ export const SelectQuery = {
     const obj: any = {};
     message.table !== undefined && (obj.table = message.table);
     message.index !== undefined && (obj.index = message.index);
-    if (message.attributes) {
-      obj.attributes = message.attributes.map((e) => e ? Attribute.toJSON(e) : undefined);
-    } else {
-      obj.attributes = [];
-    }
     if (message.filters) {
       obj.filters = message.filters.map((e) => e ? Filter.toJSON(e) : undefined);
     } else {
@@ -1264,7 +1247,6 @@ export const SelectQuery = {
     const message = createBaseSelectQuery();
     message.table = object.table ?? "";
     message.index = object.index ?? undefined;
-    message.attributes = object.attributes?.map((e) => Attribute.fromPartial(e)) || [];
     message.filters = object.filters?.map((e) => Filter.fromPartial(e)) || [];
     message.nextToken = object.nextToken ?? undefined;
     return message;
