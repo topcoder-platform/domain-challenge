@@ -30,7 +30,7 @@ jobs:
         name: "Set ECR_ENV based on event type"
         command: |
           if [ "${CIRCLE_PULL_REQUEST}" != "" ]; then
-            export ECR_ENV="PROD"
+            export ECR_ENV="DEV"
           else
             export ECR_ENV="PROD"
           fi
