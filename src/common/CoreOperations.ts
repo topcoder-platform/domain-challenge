@@ -25,11 +25,23 @@ import { Status } from "@grpc/grpc-js/build/src/constants";
 import { Schema } from "./Interfaces";
 
 abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key: string]: any }> {
-  public constructor(private entitySchema: Schema) {}
+  #tableAttributes: string[];
+
+  public constructor(private entitySchema: Schema) {
+    this.#tableAttributes = Object.keys(this.entitySchema.attributes);
+  }
 
   public async lookup(lookupCriteria: LookupCriteria): Promise<T> {
+    let index: string | undefined = undefined;
+
+    if (this.entitySchema.indices != null) {
+      index = this.entitySchema.indices[lookupCriteria.key]?.index;
+    }
+
     const selectQuery: SelectQuery = {
+      index,
       table: this.entitySchema.tableName,
+      attributes: Object.keys(this.entitySchema.attributes),
       filters: [
         {
           name: lookupCriteria.key,
@@ -67,11 +79,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
 
     throw new StatusBuilder()
       .withCode(Status.NOT_FOUND)
-      .withDetails(
-        `Entity not found: ${lookupCriteria.key} = ${Value.unwrap(
-          (lookupCriteria.value as { value: Value }).value
-        )}`
-      )
+      .withDetails(`Entity not found: ${lookupCriteria.key} = ${lookupCriteria.value}`)
       .build();
   }
 
@@ -89,6 +97,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
             $case: "select",
             select: {
               table: this.entitySchema.tableName,
+              attributes: this.#tableAttributes,
               index: index ?? undefined,
               filters,
               nextToken,
@@ -268,32 +277,31 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
     };
   }
 
-  private getFilterValue(filter: unknown): PartiQLValue {
-    const filterValue = (filter as { value: Value }).value;
+  private getFilterValue(filter: Value): PartiQLValue {
     let value: PartiQLValue;
 
-    switch (filterValue.kind?.$case) {
-      case "numberValue":
+    switch (typeof filter) {
+      case "number":
         value = {
           kind: {
             $case: "numberValue",
-            numberValue: filterValue.kind.numberValue,
+            numberValue: filter,
           },
         };
         break;
-      case "stringValue":
+      case "string":
         value = {
           kind: {
             $case: "stringValue",
-            stringValue: filterValue.kind.stringValue,
+            stringValue: filter,
           },
         };
         break;
-      case "boolValue":
+      case "boolean":
         value = {
           kind: {
             $case: "boolean",
-            boolean: filterValue.kind.boolValue,
+            boolean: filter,
           },
         };
         break;
@@ -305,7 +313,8 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
     return value;
   }
 
-  private toValue(key: string, value: unknown): PartiQLValue {
+  private toValue(key: string, value: Value): PartiQLValue {
+    console.log("toValue", value);
     const dataType: DataType = this.entitySchema.attributes[key].type;
 
     if (dataType == null) {
@@ -316,10 +325,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
       return {
         kind: {
           $case: "stringValue",
-          stringValue:
-            typeof value === "object"
-              ? JSON.stringify(value)
-              : ((value as string) || "").toString(),
+          stringValue: value as string,
         },
       };
     }
@@ -337,7 +343,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
       return {
         kind: {
           $case: "boolean",
-          boolean: value as boolean,
+          boolean: value as unknown as boolean,
         },
       };
     }
