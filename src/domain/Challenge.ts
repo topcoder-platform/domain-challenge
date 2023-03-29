@@ -106,7 +106,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       const reviewType = input.legacy == null ? "INTERNAL" : input.legacy.reviewType; // v5 API can set reviewType
       const confidentialityType =
         input.legacy == null ? "private" : input.legacy.confidentialityType; // v5 API can set confidentialityType
-      _.assign(input.legacy, {
+      input.legacy = _.assign({}, input.legacy, {
         track,
         subTrack,
         pureV5Task: isTask,
@@ -238,6 +238,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           typeId: input.typeId ?? challenge!.typeId,
           trackId: input.trackId ?? challenge!.trackId,
           billing: challenge.billing,
+          legacy: _.assign({}, challenge.legacy, input.legacy),
           metadata: input.metadataUpdate != null ? input.metadataUpdate.metadata : challenge!.metadata,
           phases: input.phaseUpdate != null ? input.phaseUpdate.phases : challenge!.phases,
           events: input.eventUpdate != null ? input.eventUpdate.events : challenge!.events,
