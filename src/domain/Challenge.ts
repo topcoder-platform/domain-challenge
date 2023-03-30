@@ -265,14 +265,24 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           challenge.billing?.billingAccountId,
           input
         );
-
-        const { updatedCount } = await legacyChallengeDomain.update(updateChallengeInput, metadata);
-
-        if (updatedCount === 0) {
-          throw new StatusBuilder()
-            .withCode(Status.ABORTED)
-            .withDetails("Failed to update challenge")
-            .build();
+        if (
+          updateChallengeInput.groupUpdate ||
+          updateChallengeInput.phaseUpdate ||
+          updateChallengeInput.prizeUpdate ||
+          updateChallengeInput.projectStatusId ||
+          updateChallengeInput.termUpdate ||
+          !_.isEmpty(updateChallengeInput.projectInfo)
+        ) {
+          const { updatedCount } = await legacyChallengeDomain.update(
+            updateChallengeInput,
+            metadata
+          );
+          if (updatedCount === 0) {
+            throw new StatusBuilder()
+              .withCode(Status.ABORTED)
+              .withDetails("Failed to update challenge")
+              .build();
+          }
         }
       }
     }
