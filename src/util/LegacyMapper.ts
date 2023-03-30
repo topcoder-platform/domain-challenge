@@ -1,5 +1,13 @@
 import _ from "lodash";
-import { ChallengeStatuses, PhaseTypeIds, PrizeSetTypes } from "../common/Constants";
+import {
+  ChallengeStatuses,
+  LegacyChallengeStatusesMap,
+  PhaseCriteriaIdToName,
+  PhaseNames,
+  PhaseNameToTypeId,
+  PrizeSetTypes,
+  TGBillingAccounts,
+} from "../common/Constants";
 import { V4_SUBTRACKS, V5_TO_V4 } from "../common/ConversionMap";
 import {
   Challenge_Phase,
@@ -7,7 +15,6 @@ import {
   CreateChallengeInput,
   UpdateChallengeInput_UpdateInput,
 } from "../models/domain-layer/challenge/challenge";
-import { legacyChallengeStatusesMap } from "./constants";
 import {
   CreateChallengeInput as LegacyChallengeCreateInput,
   UpdateChallengeInput as LegacyChallengeUpdateInput,
@@ -27,7 +34,7 @@ class LegacyMapper {
 
     return {
       name: input.name,
-      projectStatusId: legacyChallengeStatusesMap.Draft,
+      projectStatusId: LegacyChallengeStatusesMap.Draft,
       ...this.mapTrackAndTypeToCategoryStudioSpecAndMmSpec(
         input.legacy!.track!,
         input.legacy!.subTrack!
@@ -35,7 +42,11 @@ class LegacyMapper {
       groups: await this.mapGroupIds(input.groups),
       tcDirectProjectId: input.legacy?.directProjectId!,
       winnerPrizes: this.mapWinnerPrizes(prizeSets),
-      phases: this.mapPhases(input.legacy!.subTrack!, input.phases),
+      phases: this.mapPhases(
+        input.legacy!.subTrack!,
+        input.billing?.billingAccountId,
+        input.phases
+      ),
       reviewType: input.legacy?.reviewType ?? "INTERNAL",
       confidentialityType: input.legacy?.confidentialityType ?? "public",
       projectInfo,
@@ -45,6 +56,7 @@ class LegacyMapper {
   public mapChallengeUpdateInput = async (
     legacyId: number,
     subTrack: string,
+    billingAccount: number | undefined,
     input: UpdateChallengeInput_UpdateInput
   ): Promise<LegacyChallengeUpdateInput> => {
     // prettier-ignore
@@ -61,7 +73,7 @@ class LegacyMapper {
               winnerPrizes: this.mapWinnerPrizes(prizeSets),
             },
       // prettier-ignore
-      phaseUpdate: input.phaseUpdate != null ? { phases: this.mapPhases(subTrack, input.phaseUpdate.phases) } : undefined,
+      phaseUpdate: input.phaseUpdate != null ? { phases: this.mapPhases(subTrack,billingAccount, input.phaseUpdate.phases) } : undefined,
       // prettier-ignore
       groupUpdate: input.groupUpdate != null ? { groups: await this.mapGroupIds(input.groupUpdate.groups) } : undefined,
       termUpdate: input.termUpdate != null ? { terms: input.termUpdate.terms } : undefined,
@@ -242,10 +254,10 @@ class LegacyMapper {
   }
 
   // prettier-ignore
-  public mapPhases(subTrack: string, phases: Challenge_Phase[]) {
+  public mapPhases(subTrack: string, billingAccount: number | undefined, phases: Challenge_Phase[]) {
     return phases.map((phase: Challenge_Phase, index: number) => {
       return LegacyPhase.fromJSON({
-        phaseTypeId: this.mapPhaseNameToPhaseTypeId(phase.name),
+        phaseTypeId: PhaseNameToTypeId[phase.name as keyof typeof PhaseNameToTypeId],
         phaseStatusId: phase.isOpen ? 2 : phase.actualEndDate ? 3 : 1,
         fixedStartTime: _.isUndefined(phase.predecessor) ? phase.scheduledStartDate : undefined,
         scheduledStartTime: phase.scheduledStartDate,
@@ -253,13 +265,45 @@ class LegacyMapper {
         actualStartTime: phase.actualStartDate,
         actualEndTime: phase.actualEndDate,
         duration: phase.duration * 1000,
-        phaseCriteria: this.mapPhaseCriteria(subTrack, phase),
-      })
+        phaseCriteria: this.mapPhaseCriteria(subTrack, billingAccount, phase),
+      });
     });
   }
 
+  public backFillPhaseCriteria(input: CreateChallengeInput, phases: LegacyPhase[]) {
+    const reviewScorecardId = phases.find((p) =>
+      _.includes([PhaseNameToTypeId.Review, PhaseNameToTypeId["Iterative Review"]], p.phaseTypeId)
+    )?.phaseCriteria[1];
+    const screeningScorecardId = phases.find((p) => p.phaseTypeId === PhaseNameToTypeId.Screening)
+      ?.phaseCriteria[1];
+    if (!_.isUndefined(reviewScorecardId)) {
+      input.legacy!.reviewScorecardId = _.toNumber(reviewScorecardId);
+    }
+    if (!_.isUndefined(screeningScorecardId)) {
+      input.legacy!.screeningScorecardId = _.toNumber(screeningScorecardId);
+    }
+
+    for (const phase of input.phases) {
+      const legacyPhase = _.find(
+        phases,
+        (p) => p.phaseTypeId === PhaseNameToTypeId[phase.name as keyof typeof PhaseNameToTypeId]
+      );
+      phase.constraints = _.map(_.entries(legacyPhase?.phaseCriteria), ([k, v]) => {
+        return {
+          name: PhaseCriteriaIdToName[_.toNumber(k) as keyof typeof PhaseCriteriaIdToName],
+          value: _.toNumber(v),
+        };
+      });
+    }
+  }
+
   // prettier-ignore
-  private mapPhaseCriteria(subTrack: string, phase: Challenge_Phase): { [key: number]: string | undefined } {
+  private mapPhaseCriteria(subTrack: string, billingAccount:number | undefined, phase: Challenge_Phase): { [key: number]: string | undefined } {
+    const scorecardConstraint = phase.constraints?.find(
+      (constraint: { name: string; value: number }) =>
+        constraint.name === "Scorecard"
+    );
+
     const reviewPhaseConstraint = phase.constraints?.find(
       (constraint: { name: string; value: number }) =>
         constraint.name === "Number of Reviewers"
@@ -269,82 +313,60 @@ class LegacyMapper {
       (constraint: { name: string; value: number }) => constraint.name === "Number of Submissions"
     );
 
+    const registrationPhaseConstraint = phase.constraints?.find(
+      (constraint: { name: string; value: number }) =>
+        constraint.name === "Number of Registrants"
+    );
+
+    const viewResponseDuringAppealsConstraint = phase.constraints?.find(
+      (constraint: { name: string; value: number }) =>
+        constraint.name === "View Response During Appeals"
+    );
 
     const map = {
-      1: this.mapScorecard(subTrack, this.mapPhaseNameToPhaseTypeId(phase.name)), // Scorecard ID
-      2: phase.name === "Registration" ? '1' : undefined, // Registration Number
-      3: phase.name === "Submission" ? submissionPhaseConstraint?.value.toString() ?? // if we have a submission phase constraint use it
-        reviewPhaseConstraint?.value != null ? '1' : undefined // otherwise if we have a review phase constraint use 1
-        : undefined,
-      4: undefined, // View Response During Appeals
-      5: undefined, // Manual Screening
+      1:
+        scorecardConstraint?.value.toString() ??
+        this.mapScorecard(
+          subTrack,
+          billingAccount,
+          PhaseNameToTypeId[phase.name as keyof typeof PhaseNameToTypeId]
+        ), // Scorecard ID
+      2:
+        phase.name === PhaseNames.Registration
+          ? (registrationPhaseConstraint?.value.toString() ?? "1")
+          : undefined, // Registration Number
+      3:
+        phase.name === PhaseNames.Submission
+          ? (submissionPhaseConstraint?.value.toString() ?? // if we have a submission phase constraint use it
+            (reviewPhaseConstraint?.value != null
+            ? "1"
+            : undefined)) // otherwise if we have a review phase constraint use 1
+          : undefined,
+      4:
+        phase.name === PhaseNames.Appeals
+          ? viewResponseDuringAppealsConstraint?.value.toString() === "1"
+            ? "Yes"
+            : "No"
+          : undefined, // View Response During Appeals
       6:
-        phase.name === "Review" ? reviewPhaseConstraint?.value.toString() ?? '2' : phase.name === "Iterative Review" ? '1' : undefined, // Reviewer Number
-      '7': undefined, // View Reviews During Review
+        reviewPhaseConstraint?.value.toString() ?? (phase.name === PhaseNames.Review
+          ? "2"
+          : phase.name === PhaseNames.IterativeReview
+          ? "1"
+          : phase.name === PhaseNames.Approval
+          ? "1"
+          : phase.name === PhaseNames.PostMortem
+          ? "1"
+          : phase.name === PhaseNames.SpecificationReview
+          ? "1"
+          : undefined), // Reviewer Number
     };
 
     return Object.fromEntries(Object.entries(map).filter(([_, v]) => v !== undefined)) as { [key: number]: string };
   }
 
-  private mapPhaseNameToPhaseTypeId(name: string) {
-    if (name == "Registration") {
-      return 1;
-    }
-    if (name == "Submission") {
-      return 2;
-    }
-    if (name == "Screening") {
-      return 3;
-    }
-    if (name == "Review") {
-      return 4;
-    }
-    if (name == "Appeals") {
-      return 5;
-    }
-    if (name == "Appeals Response") {
-      return 6;
-    }
-    if (name == "Aggregation") {
-      return 7;
-    }
-    if (name == "Aggregation Review") {
-      return 8;
-    }
-    if (name == "Final Fix") {
-      return 9;
-    }
-    if (name == "Final Review") {
-      return 10;
-    }
-    if (name == "Approval") {
-      return 11;
-    }
-    if (name == "Post-Mortem") {
-      return 12;
-    }
-    if (name == "Specification Submission") {
-      return 13;
-    }
-    if (name == "Specification Review") {
-      return 14;
-    }
-    if (name == "Checkpoint Submission") {
-      return 15;
-    }
-    if (name == "Checkpoint Screening") {
-      return 16;
-    }
-    if (name == "Checkpoint Review") {
-      return 17;
-    }
-    if (name == "Iterative Review") {
-      return 18;
-    }
-  }
-
   // prettier-ignore
-  private mapScorecard(subTrack: string, phaseTypeId: number | undefined): string | undefined {
+  private mapScorecard(subTrack: string, billingAccount:number | undefined, phaseTypeId: number | undefined): string | undefined {
     const isNonProd = process.env.ENV != "prod";
 
     // TODO: Update scorecard ids for all subtracks and check for dev environment
@@ -353,49 +375,52 @@ class LegacyMapper {
 
     if (
       subTrack === V4_SUBTRACKS.FIRST_2_FINISH &&
-      phaseTypeId === PhaseTypeIds.IterativeReview
+      phaseTypeId === PhaseNameToTypeId["Iterative Review"]
     ) {
-      scorecard = isNonProd ? 30001551 : 30002160;
+      if (_.includes(TGBillingAccounts, billingAccount)) {
+        scorecard = isNonProd ? 30001551 : 30002212;
+      } else {
+        scorecard = isNonProd ? 30001551 : 30002160;
+      }
     } else if (
       subTrack === V4_SUBTRACKS.DESIGN_FIRST_2_FINISH &&
-      phaseTypeId === PhaseTypeIds.Review
+      phaseTypeId === PhaseNameToTypeId.Review
     ) {
       scorecard = isNonProd ? 30001610 : 30001101;
     } else if (subTrack === V4_SUBTRACKS.BUG_HUNT) {
-      if (phaseTypeId === PhaseTypeIds.Review) {
+      if (phaseTypeId === PhaseNameToTypeId.Review) {
         scorecard = isNonProd ? 30001610 : 30001220;
-      } else if (phaseTypeId === PhaseTypeIds.SpecificationReview) {
+      } else if (phaseTypeId === PhaseNameToTypeId["Specification Review"]) {
         scorecard = isNonProd ? 30001610 : 30001120;
       }
     } else if (
       subTrack === V4_SUBTRACKS.DEVELOP_MARATHON_MATCH &&
-      phaseTypeId === PhaseTypeIds.Review
+      phaseTypeId === PhaseNameToTypeId.Review
     ) {
       scorecard = isNonProd ? 30001610 : 30002133;
     } else if (
       subTrack === V4_SUBTRACKS.MARATHON_MATCH &&
-      phaseTypeId === PhaseTypeIds.Review
+      phaseTypeId === PhaseNameToTypeId.Review
     ) {
       scorecard = isNonProd ? 30001610 : 30002133;
     } else if (subTrack === V4_SUBTRACKS.WEB_DESIGNS) {
-      if (phaseTypeId === PhaseTypeIds.SpecificationReview) {
+      if (phaseTypeId === PhaseNameToTypeId["Specification Review"]) {
         scorecard = isNonProd ? 30001610 : 30001040;
-      } else if (phaseTypeId === PhaseTypeIds.CheckpointScreening) {
+      } else if (phaseTypeId === PhaseNameToTypeId["Checkpoint Screening"]) {
         scorecard = isNonProd ? 30001610 : 30001364;
-      } else if (phaseTypeId === PhaseTypeIds.CheckpointReview) {
+      } else if (phaseTypeId === PhaseNameToTypeId["Checkpoint Review"]) {
         scorecard = isNonProd ? 30001610 : 30001004;
-      } else if (phaseTypeId === PhaseTypeIds.Screening) {
+      } else if (phaseTypeId === PhaseNameToTypeId.Screening) {
         scorecard = isNonProd ? 30001610 : 30001363;
-      } else if (phaseTypeId === PhaseTypeIds.Review) {
+      } else if (phaseTypeId === PhaseNameToTypeId.Review) {
         scorecard = isNonProd ? 30001610 : 30001031;
-      } else if (phaseTypeId === PhaseTypeIds.Approval) {
+      } else if (phaseTypeId === PhaseNameToTypeId.Approval) {
         scorecard = isNonProd ? 30001610 : 30000720;
       }
-    } else if (
-      subTrack === V4_SUBTRACKS.CODE &&
-      phaseTypeId === PhaseTypeIds.Review
-    ) {
+    } else if (subTrack === V4_SUBTRACKS.CODE && phaseTypeId === PhaseNameToTypeId.Review) {
       scorecard = isNonProd ? 30002133 : 30002133;
+    } else if (phaseTypeId === PhaseNameToTypeId["Post-Mortem"]) {
+      scorecard = isNonProd ? 30001013 : 30001013;
     }
 
     return scorecard ? scorecard.toString() : undefined;
@@ -403,16 +428,8 @@ class LegacyMapper {
 
   private mapProjectStatus(status: string | undefined): number | undefined {
     if (status == null) return undefined;
-
-    if (status === ChallengeStatuses.Draft) {
-      return legacyChallengeStatusesMap.Draft;
-    }
-    if (status === ChallengeStatuses.Active) {
-      return legacyChallengeStatusesMap.Active;
-    }
-    if (status.toLowerCase().indexOf("cancel") !== -1) {
-      return legacyChallengeStatusesMap.Cancelled;
-    }
+    const statusKey = _.find(_.keys(ChallengeStatuses), (s) => s === status);
+    return LegacyChallengeStatusesMap[statusKey as keyof typeof LegacyChallengeStatusesMap];
   }
 
   private async mapGroupIds(groups: string[]): Promise<number[]> {
