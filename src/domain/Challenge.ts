@@ -40,7 +40,17 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   private esClient = ElasticSearch.getESClient();
 
   protected toEntity(item: { [key: string]: Value }): Challenge {
-    for (const key of ["phases", "terms", "tags", "metadata", "events", "prizeSets", "legacy"]) {
+    console.info("ToEntity input:", JSON.stringify(item));
+    for (const key of [
+      "phases",
+      "terms",
+      "tags",
+      "metadata",
+      "events",
+      "prizeSets",
+      "legacy",
+      "groups",
+    ]) {
       try {
         if (key === "metadata") {
           if (item["metadata"].kind?.$case === "listValue") {
@@ -72,6 +82,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         // do nothing
       }
     }
+    console.info("ToEntity output:", JSON.stringify(item));
     return Challenge.fromJSON(item);
   }
 
@@ -91,17 +102,19 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         typeId,
         tags
       );
-
-      input.legacy = {
-        ...input.legacy,
+      const directProjectId = input.legacy == null ? 0 : input.legacy.directProjectId; // v5 API can set directProjectId
+      const reviewType = input.legacy == null ? "INTERNAL" : input.legacy.reviewType; // v5 API can set reviewType
+      const confidentialityType =
+        input.legacy == null ? "private" : input.legacy.confidentialityType; // v5 API can set confidentialityType
+      input.legacy = _.assign({}, input.legacy, {
         track,
         subTrack,
         pureV5Task: isTask,
         forumId: 0,
-        directProjectId: input.legacy == null ? 0 : input.legacy.directProjectId, // v5 API can set directProjectId
-        reviewType: input.legacy == null ? "INTERNAL" : input.legacy.reviewType, // v5 API can set reviewType
-        confidentialityType: input.legacy == null ? "private" : input.legacy.confidentialityType, // v5 API can set confidentialityType
-      };
+        directProjectId,
+        reviewType,
+        confidentialityType,
+      });
 
       if (status === ChallengeStatuses.Draft) {
         try {
@@ -109,6 +122,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           const legacyChallengeCreateInput = LegacyCreateChallengeInput.fromPartial(await legacyMapper.mapChallengeDraftUpdateInput(input));
           // prettier-ignore
           const legacyChallengeCreateResponse = await legacyChallengeDomain.create(legacyChallengeCreateInput, metadata);
+
+          legacyMapper.backFillPhaseCriteria(input, legacyChallengeCreateInput.phases);
 
           if (legacyChallengeCreateResponse.kind?.$case === "integerId") {
             legacyChallengeId = legacyChallengeCreateResponse.kind.integerId;
@@ -126,6 +141,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     return {
       legacy: input.legacy,
       legacyChallengeId,
+      phases: input.phases,
     };
   }
 
@@ -148,7 +164,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     // Begin Anti-Corruption Layer
 
     // prettier-ignore
-    const { legacy, legacyChallengeId } = await this.createLegacyChallenge(input, input.status, input.trackId, input.typeId, input.tags, metadata);
+    const { legacy, legacyChallengeId, phases } = await this.createLegacyChallenge(input, input.status, input.trackId, input.typeId, input.tags, metadata);
 
     // End Anti-Corruption Layer
 
@@ -176,6 +192,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         };
       }),
       legacy,
+      phases,
       legacyId: legacyChallengeId != null ? legacyChallengeId : undefined,
       description: xss(input.description ?? ""),
       privateDescription: xss(input.privateDescription ?? ""),
@@ -221,6 +238,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           typeId: input.typeId ?? challenge!.typeId,
           trackId: input.trackId ?? challenge!.trackId,
           billing: challenge.billing,
+          legacy: _.assign({}, challenge.legacy, input.legacy),
           metadata: input.metadataUpdate != null ? input.metadataUpdate.metadata : challenge!.metadata,
           phases: input.phaseUpdate != null ? input.phaseUpdate.phases : challenge!.phases,
           events: input.eventUpdate != null ? input.eventUpdate.events : challenge!.events,
@@ -234,21 +252,37 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         };
 
         // prettier-ignore
-        const { legacy, legacyChallengeId } = await this.createLegacyChallenge(createChallengeInput, input.status, challenge!.trackId, challenge!.typeId, challenge!.tags, metadata);
+        const { legacy, legacyChallengeId, phases } = await this.createLegacyChallenge(createChallengeInput, input.status, challenge!.trackId, challenge!.typeId, challenge!.tags, metadata);
 
         input.legacy = legacy;
+        input.phaseUpdate = { phases };
         legacyId = legacyChallengeId;
       } else if (challenge.status !== ChallengeStatuses.New) {
         // prettier-ignore
-        const updateChallengeInput = await legacyMapper.mapChallengeUpdateInput(challenge.legacyId!, challenge.legacy?.subTrack!, input);
-
-        const { updatedCount } = await legacyChallengeDomain.update(updateChallengeInput, metadata);
-
-        if (updatedCount === 0) {
-          throw new StatusBuilder()
-            .withCode(Status.ABORTED)
-            .withDetails("Failed to update challenge")
-            .build();
+        const updateChallengeInput = await legacyMapper.mapChallengeUpdateInput(
+          challenge.legacyId!,
+          challenge.legacy?.subTrack!,
+          challenge.billing?.billingAccountId,
+          input
+        );
+        if (
+          updateChallengeInput.groupUpdate ||
+          updateChallengeInput.phaseUpdate ||
+          updateChallengeInput.prizeUpdate ||
+          updateChallengeInput.projectStatusId ||
+          updateChallengeInput.termUpdate ||
+          !_.isEmpty(updateChallengeInput.projectInfo)
+        ) {
+          const { updatedCount } = await legacyChallengeDomain.update(
+            updateChallengeInput,
+            metadata
+          );
+          if (updatedCount === 0) {
+            throw new StatusBuilder()
+              .withCode(Status.ABORTED)
+              .withDetails("Failed to update challenge")
+              .build();
+          }
         }
       }
     }
