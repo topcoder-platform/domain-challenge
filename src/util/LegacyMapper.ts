@@ -428,7 +428,7 @@ class LegacyMapper {
 
   private mapProjectStatus(status: string | undefined): number | undefined {
     if (status == null) return undefined;
-    const statusKey = _.find(_.keys(ChallengeStatuses), (s) => s === status);
+    const statusKey = _.findKey(ChallengeStatuses, (s) => s === status);
     return LegacyChallengeStatusesMap[statusKey as keyof typeof LegacyChallengeStatusesMap];
   }
 
