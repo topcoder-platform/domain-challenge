@@ -98,7 +98,7 @@ export const ChallengeSchema: Schema = {
     },
     prizeSets: {
       type: DataType.DATA_TYPE_LIST,
-      itemType: DataType.DATA_TYPE_LIST,
+      itemType: DataType.DATA_TYPE_MAP,
       items: {
         type: { type: DataType.DATA_TYPE_STRING },
         description: { type: DataType.DATA_TYPE_STRING },

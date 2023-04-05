@@ -25,6 +25,7 @@ import _ from "lodash";
 import { ChallengeStatuses, ES_INDEX, ES_REFRESH } from "../common/Constants";
 import ElasticSearch from "../helpers/ElasticSearch";
 import { ScanCriteria } from "../models/common/common";
+import ChallengeScheduler from "../util/ChallengeScheduler";
 import legacyMapper from "../util/LegacyMapper";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
@@ -40,49 +41,29 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   private esClient = ElasticSearch.getESClient();
 
   protected toEntity(item: { [key: string]: Value }): Challenge {
-    console.info("ToEntity input:", JSON.stringify(item));
-    for (const key of [
-      "phases",
-      "terms",
-      "tags",
-      "metadata",
-      "events",
-      "prizeSets",
+    const fieldsPossiblyUsingLegacyDataTypes = [
       "legacy",
+      "billing",
+      "metadata",
+      "task",
+      "phases",
+      "events",
+      "terms",
+      "prizeSets",
+      "tags",
+      "winners",
+      "discussions",
+      "overview",
       "groups",
-    ]) {
-      try {
-        if (key === "metadata") {
-          if (item["metadata"].kind?.$case === "listValue") {
-            item["metadata"] = {
-              kind: {
-                $case: "listValue",
-                listValue: item["metadata"].kind.listValue.map((v) => {
-                  try {
-                    return JSON.stringify(JSON.parse(v.toString()));
-                  } catch (e) {
-                    return v;
-                  }
-                }),
-              },
-            };
-          }
-        }
+      "events",
+    ];
 
-        item[key] = JSON.parse(item[key].toString());
-      } catch (e) {
-        // do nothing
+    for (const field of fieldsPossiblyUsingLegacyDataTypes) {
+      if (item[field] != null && typeof item[field] === "string") {
+        item[field] = JSON.parse(item[field] as string);
       }
     }
-    // make sure groups is an array. Issue with old data
-    if (typeof item.groups === "string") {
-      try {
-        item.groups = JSON.parse(item.groups);
-      } catch (e) {
-        // do nothing
-      }
-    }
-    console.info("ToEntity output:", JSON.stringify(item));
+
     return Challenge.fromJSON(item);
   }
 
@@ -429,17 +410,17 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       ])
     );
 
-    // if (input.phases?.phases && input.phases.phases.length) {
-    //   await ChallengeScheduler.schedule({
-    //     action: "schedule",
-    //     challengeId: id,
-    //     phases: input.phases.phases.map((phase) => ({
-    //       name: phase.name,
-    //       scheduledStartDate: phase.scheduledStartDate,
-    //       scheduledEndDate: phase.scheduledEndDate,
-    //     })),
-    //   });
-    // }
+    if (input.phases?.phases && input.phases.phases.length) {
+      await ChallengeScheduler.schedule({
+        action: "schedule",
+        challengeId: id,
+        phases: input.phases.phases.map((phase) => ({
+          name: phase.name,
+          scheduledStartDate: phase.scheduledStartDate,
+          scheduledEndDate: phase.scheduledEndDate,
+        })),
+      });
+    }
 
     await this.esClient.update({
       index: ES_INDEX,

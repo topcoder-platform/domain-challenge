@@ -13,6 +13,7 @@ class TimelineTemplateDomain extends CoreOperations<TimelineTemplate, CreateTime
     try {
       item.phases = JSON.parse(item.phases.toString());
     } catch (e) {
+      console.error(e);
       // do nothing
     }
     return TimelineTemplate.fromJSON(item);

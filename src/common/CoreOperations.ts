@@ -7,10 +7,15 @@ import { LookupCriteria, ScanCriteria, ScanResult } from "../models/common/commo
 // TODO: Import from @topcoder-framework/lib-common
 import { Value } from "../models/google/protobuf/struct";
 
+import { Metadata, StatusBuilder } from "@grpc/grpc-js";
+import { Status } from "@grpc/grpc-js/build/src/constants";
 import {
+  Attribute,
   DataType,
   Filter,
   Operator,
+  ListValue,
+  Value as PartiQLValue,
   QueryRequest,
   QueryResponse,
   Response,
@@ -18,17 +23,20 @@ import {
   SelectQuery,
   UpdateAction,
   UpdateType,
-  Value as PartiQLValue,
 } from "../dal/models/nosql/parti_ql";
-import { Metadata, StatusBuilder } from "@grpc/grpc-js";
-import { Status } from "@grpc/grpc-js/build/src/constants";
-import { Schema } from "./Interfaces";
+import { DataTypeDefinition, Schema } from "./Interfaces";
 
 abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key: string]: any }> {
-  #tableAttributes: string[];
+  #tableAttributes: Attribute[];
 
   public constructor(private entitySchema: Schema) {
-    this.#tableAttributes = Object.keys(this.entitySchema.attributes);
+    this.#tableAttributes = Object.entries(this.entitySchema.attributes).map(
+      ([key, value]) =>
+        ({
+          name: key,
+          type: value.type,
+        } as Attribute)
+    );
   }
 
   public async lookup(lookupCriteria: LookupCriteria): Promise<T> {
@@ -97,7 +105,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
             $case: "select",
             select: {
               table: this.entitySchema.tableName,
-              attributes: this.#tableAttributes,
+              attributes: this.#tableAttributes.map((attr) => attr.name),
               index: index ?? undefined,
               filters,
               nextToken,
@@ -130,7 +138,15 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
             $case: "insert",
             insert: {
               table: this.entitySchema.tableName,
-              attributes: entity,
+              attributes: Object.entries(entity)
+                .filter(([, value]) => value !== undefined)
+                .map(([key, value]) => ({
+                  attribute: {
+                    name: key,
+                    type: this.entitySchema.attributes[key].type,
+                  },
+                  value: this.marshallValue(this.entitySchema.attributes[key], value),
+                })),
             },
           },
         },
@@ -280,28 +296,28 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
   private getFilterValue(filter: Value): PartiQLValue {
     let value: PartiQLValue;
 
-    switch (typeof filter) {
-      case "number":
+    switch (filter.kind?.$case) {
+      case "numberValue":
         value = {
           kind: {
             $case: "numberValue",
-            numberValue: filter,
+            numberValue: filter.kind.numberValue,
           },
         };
         break;
-      case "string":
+      case "stringValue":
         value = {
           kind: {
             $case: "stringValue",
-            stringValue: filter,
+            stringValue: filter.kind.stringValue,
           },
         };
         break;
-      case "boolean":
+      case "boolValue":
         value = {
           kind: {
             $case: "boolean",
-            boolean: filter,
+            boolean: filter.kind.boolValue,
           },
         };
         break;
@@ -313,13 +329,8 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
     return value;
   }
 
-  private toValue(key: string, value: Value): PartiQLValue {
-    console.log("toValue", value);
-    const dataType: DataType = this.entitySchema.attributes[key].type;
-
-    if (dataType == null) {
-      throw new Error(`Unknown attribute: ${key}`);
-    }
+  private marshallValue(definition: DataTypeDefinition, value: unknown): PartiQLValue {
+    const dataType = definition.type;
 
     if (dataType == DataType.DATA_TYPE_STRING) {
       return {
@@ -348,24 +359,6 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
       };
     }
 
-    if (dataType == DataType.DATA_TYPE_LIST) {
-      return {
-        kind: {
-          $case: "listValue",
-          listValue: (value as unknown[]).map((item) => item),
-        },
-      };
-    }
-
-    if (dataType == DataType.DATA_TYPE_MAP) {
-      return {
-        kind: {
-          $case: "mapValue",
-          mapValue: value as { [key: string]: unknown },
-        },
-      };
-    }
-
     if (dataType === DataType.DATA_TYPE_STRING_SET) {
       return {
         kind: {
@@ -383,6 +376,75 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
           $case: "numberSetValue",
           numberSetValue: {
             values: value as number[],
+          },
+        },
+      };
+    }
+
+    if (dataType == DataType.DATA_TYPE_LIST) {
+      const listValue: ListValue = {
+        values: [],
+      };
+
+      switch (definition.itemType) {
+        case DataType.DATA_TYPE_STRING:
+        case DataType.DATA_TYPE_NUMBER:
+        case DataType.DATA_TYPE_BOOLEAN:
+        case DataType.DATA_TYPE_STRING_SET:
+        case DataType.DATA_TYPE_NUMBER_SET:
+          listValue.values = (value as unknown[]).map((item) =>
+            this.marshallValue(
+              {
+                type: definition.itemType!,
+              },
+              item
+            )
+          );
+          break;
+        case DataType.DATA_TYPE_MAP:
+          listValue.values = (value as { [key: string]: unknown }[]).map((item) =>
+            this.marshallValue(
+              {
+                type: DataType.DATA_TYPE_MAP,
+                items: definition.items,
+              },
+              item
+            )
+          );
+          break;
+        case DataType.DATA_TYPE_LIST:
+          listValue.values = (value as unknown[]).map((item) =>
+            this.marshallValue(
+              {
+                type: definition.itemType!,
+                itemType: definition.itemType,
+                items: definition.items,
+              },
+              item
+            )
+          );
+      }
+
+      return {
+        kind: {
+          $case: "listValue",
+          listValue,
+        },
+      };
+    }
+
+    if (dataType == DataType.DATA_TYPE_MAP) {
+      return {
+        kind: {
+          $case: "mapValue",
+          mapValue: {
+            values: Object.entries(value as { [key: string]: unknown }).reduce(
+              (acc, [key, value]) => {
+                acc[key] = this.marshallValue(definition.items![key], value);
+                return acc;
+              },
+              {} as { [key: string]: PartiQLValue }
+            ),
           },
         },
       };
