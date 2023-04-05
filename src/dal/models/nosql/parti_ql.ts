@@ -624,6 +624,7 @@ export interface UpdateQuery {
 
 export interface DeleteQuery {
   table: string;
+  index?: string | undefined;
   filters: Filter[];
   returnValues?: ReturnValue | undefined;
 }
@@ -1930,7 +1931,7 @@ export const UpdateQuery = {
 };
 
 function createBaseDeleteQuery(): DeleteQuery {
-  return { table: "", filters: [], returnValues: undefined };
+  return { table: "", index: undefined, filters: [], returnValues: undefined };
 }
 
 export const DeleteQuery = {
@@ -1938,11 +1939,14 @@ export const DeleteQuery = {
     if (message.table !== "") {
       writer.uint32(10).string(message.table);
     }
+    if (message.index !== undefined) {
+      writer.uint32(18).string(message.index);
+    }
     for (const v of message.filters) {
-      Filter.encode(v!, writer.uint32(18).fork()).ldelim();
+      Filter.encode(v!, writer.uint32(26).fork()).ldelim();
     }
     if (message.returnValues !== undefined) {
-      writer.uint32(24).int32(returnValueToNumber(message.returnValues));
+      writer.uint32(32).int32(returnValueToNumber(message.returnValues));
     }
     return writer;
   },
@@ -1966,10 +1970,17 @@ export const DeleteQuery = {
             break;
           }
 
-          message.filters.push(Filter.decode(reader, reader.uint32()));
+          message.index = reader.string();
           continue;
         case 3:
-          if (tag != 24) {
+          if (tag != 26) {
+            break;
+          }
+
+          message.filters.push(Filter.decode(reader, reader.uint32()));
+          continue;
+        case 4:
+          if (tag != 32) {
             break;
           }
 
@@ -1987,6 +1998,7 @@ export const DeleteQuery = {
   fromJSON(object: any): DeleteQuery {
     return {
       table: isSet(object.table) ? String(object.table) : "",
+      index: isSet(object.index) ? String(object.index) : undefined,
       filters: Array.isArray(object?.filters) ? object.filters.map((e: any) => Filter.fromJSON(e)) : [],
       returnValues: isSet(object.returnValues) ? returnValueFromJSON(object.returnValues) : undefined,
     };
@@ -1995,6 +2007,7 @@ export const DeleteQuery = {
   toJSON(message: DeleteQuery): unknown {
     const obj: any = {};
     message.table !== undefined && (obj.table = message.table);
+    message.index !== undefined && (obj.index = message.index);
     if (message.filters) {
       obj.filters = message.filters.map((e) => e ? Filter.toJSON(e) : undefined);
     } else {
@@ -2012,6 +2025,7 @@ export const DeleteQuery = {
   fromPartial<I extends Exact<DeepPartial<DeleteQuery>, I>>(object: I): DeleteQuery {
     const message = createBaseDeleteQuery();
     message.table = object.table ?? "";
+    message.index = object.index ?? undefined;
     message.filters = object.filters?.map((e) => Filter.fromPartial(e)) || [];
     message.returnValues = object.returnValues ?? undefined;
     return message;

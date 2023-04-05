@@ -28,8 +28,10 @@ import { DataTypeDefinition, Schema } from "./Interfaces";
 
 abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key: string]: any }> {
   #tableAttributes: Attribute[];
+  #attributes: string[];
 
   public constructor(private entitySchema: Schema) {
+    this.#attributes = Object.keys(this.entitySchema.attributes);
     this.#tableAttributes = Object.entries(this.entitySchema.attributes).map(
       ([key, value]) =>
         ({
@@ -37,58 +39,6 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
           type: value.type,
         } as Attribute)
     );
-  }
-
-  public async lookup(lookupCriteria: LookupCriteria): Promise<T> {
-    let index: string | undefined = undefined;
-
-    if (this.entitySchema.indices != null) {
-      index = this.entitySchema.indices[lookupCriteria.key]?.index;
-    }
-
-    const selectQuery: SelectQuery = {
-      index,
-      table: this.entitySchema.tableName,
-      attributes: Object.keys(this.entitySchema.attributes),
-      filters: [
-        {
-          name: lookupCriteria.key,
-          operator: Operator.OPERATOR_EQUAL,
-          value: this.getFilterValue(lookupCriteria.value),
-        },
-      ],
-    };
-
-    const queryRequest: QueryRequest = {
-      kind: {
-        $case: "query",
-        query: {
-          kind: {
-            $case: "select",
-            select: selectQuery,
-          },
-        },
-      },
-    };
-
-    const queryResponse: QueryResponse = await noSqlClient.query(queryRequest);
-
-    switch (queryResponse.kind?.$case) {
-      case "error":
-        throw new StatusBuilder()
-          .withCode(Status.INTERNAL)
-          .withDetails(queryResponse.kind?.error?.message)
-          .build();
-      case "response":
-        if (queryResponse.kind?.response?.items?.length > 0) {
-          return this.toEntity(queryResponse.kind?.response?.items[0]);
-        }
-    }
-
-    throw new StatusBuilder()
-      .withCode(Status.NOT_FOUND)
-      .withDetails(`Entity not found: ${lookupCriteria.key} = ${lookupCriteria.value}`)
-      .build();
   }
 
   public async scan(
@@ -127,6 +77,53 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
       nextToken: response?.nextToken,
       items: response?.items.map((item) => this.toEntity(item)) ?? [],
     };
+  }
+
+  public async lookup(lookupCriteria: LookupCriteria): Promise<T> {
+    let index: string | undefined = undefined;
+
+    if (this.entitySchema.indices != null) {
+      index = this.entitySchema.indices[lookupCriteria.key]?.index;
+    }
+
+    const selectQuery: SelectQuery = {
+      index,
+      table: this.entitySchema.tableName,
+      attributes: this.#attributes,
+      filters: [this.toFilter(lookupCriteria)],
+    };
+
+    const queryRequest: QueryRequest = {
+      kind: {
+        $case: "query",
+        query: {
+          kind: {
+            $case: "select",
+            select: selectQuery,
+          },
+        },
+      },
+    };
+
+    const queryResponse: QueryResponse = await noSqlClient.query(queryRequest);
+
+    switch (queryResponse.kind?.$case) {
+      case "error":
+        throw new StatusBuilder()
+          .withCode(Status.INTERNAL)
+          .withDetails(queryResponse.kind?.error?.message)
+          .build();
+
+      case "response":
+        if (queryResponse.kind?.response?.items?.length > 0) {
+          return this.toEntity(queryResponse.kind?.response?.items[0]);
+        }
+    }
+
+    throw new StatusBuilder()
+      .withCode(Status.NOT_FOUND)
+      .withDetails(`Entity not found: ${lookupCriteria.key} = ${lookupCriteria.value}`)
+      .build();
   }
 
   protected async create(entity: I & T, metadata?: Metadata): Promise<T> {
@@ -172,6 +169,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
     }
 
     const { filters } = this.toFilters(scanCriteria);
+
     const queryRequest: QueryRequest = {
       kind: {
         $case: "query",
@@ -180,14 +178,16 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
             $case: "update",
             update: {
               table: this.entitySchema.tableName,
-              // TODO: Write a convenience method in @topcoder-framework/lib-common to support additional update operations like LIST_APPEND, SET_ADD, SET_REMOVE, etc
               updates: Object.entries(entity)
-                .filter(([key, value]) => value !== undefined)
+                .filter(([, value]) => value !== undefined)
                 .map(([key, value]) => ({
-                  action: UpdateAction.UPDATE_ACTION_SET,
+                  action: UpdateAction.UPDATE_ACTION_SET, // TODO: Write a convenience method in @topcoder-framework/lib-common to support additional update operations like LIST_APPEND, SET_ADD, SET_REMOVE, etc
                   type: UpdateType.UPDATE_TYPE_VALUE,
-                  attribute: key,
-                  value: this.toValue(key, value),
+                  attribute: {
+                    name: key,
+                    type: this.entitySchema.attributes[key].type,
+                  },
+                  value: this.marshallValue(this.entitySchema.attributes[key], value),
                 })),
               filters,
               returnValue: ReturnValue.RETURN_VALUE_ALL_NEW,
@@ -216,6 +216,12 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
   }
 
   public async delete(lookupCriteria: LookupCriteria): Promise<{ items: T[] }> {
+    let index: string | undefined = undefined;
+
+    if (this.entitySchema.indices != null) {
+      index = this.entitySchema.indices[lookupCriteria.key]?.index;
+    }
+
     const queryRequest: QueryRequest = {
       kind: {
         $case: "query",
@@ -223,14 +229,9 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
           kind: {
             $case: "delete",
             delete: {
+              index,
               table: this.entitySchema.tableName,
-              filters: [
-                {
-                  name: lookupCriteria.key,
-                  operator: Operator.OPERATOR_EQUAL,
-                  value: this.getFilterValue(lookupCriteria.value),
-                },
-              ],
+              filters: [this.toFilter(lookupCriteria)],
               returnValues: ReturnValue.RETURN_VALUE_ALL_OLD,
             },
           },
@@ -252,11 +253,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
     if (response.items?.length === 0) {
       throw new StatusBuilder()
         .withCode(Status.NOT_FOUND)
-        .withDetails(
-          `Entity not found: ${lookupCriteria.key} = ${Value.unwrap(
-            (lookupCriteria.value as { value: Value }).value
-          )}`
-        )
+        .withDetails(`Entity not found: ${lookupCriteria.key} = ${lookupCriteria.value}`)
         .build();
     }
 
@@ -279,12 +276,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
         index = this.entitySchema.indices[criteria.key].index!;
       }
 
-      return {
-        name: criteria.key,
-        // TODO: Map operator from topcoder.common.Operator to PartiQL.Operator
-        operator: Operator.OPERATOR_EQUAL,
-        value: this.toValue(criteria.key, criteria.value),
-      };
+      return this.toFilter(criteria);
     });
 
     return {
@@ -293,40 +285,15 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
     };
   }
 
-  private getFilterValue(filter: Value): PartiQLValue {
-    let value: PartiQLValue;
-
-    switch (filter.kind?.$case) {
-      case "numberValue":
-        value = {
-          kind: {
-            $case: "numberValue",
-            numberValue: filter.kind.numberValue,
-          },
-        };
-        break;
-      case "stringValue":
-        value = {
-          kind: {
-            $case: "stringValue",
-            stringValue: filter.kind.stringValue,
-          },
-        };
-        break;
-      case "boolValue":
-        value = {
-          kind: {
-            $case: "boolean",
-            boolean: filter.kind.boolValue,
-          },
-        };
-        break;
-
-      default:
-        throw new Error("Lookups are only supported for string, number & boolean value");
-    }
-
-    return value;
+  private toFilter(lookupCriteria: LookupCriteria): Filter {
+    return {
+      name: lookupCriteria.key,
+      operator: Operator.OPERATOR_EQUAL,
+      value: this.marshallValue(
+        this.entitySchema.attributes[lookupCriteria.key],
+        lookupCriteria.value
+      ),
+    };
   }
 
   private marshallValue(definition: DataTypeDefinition, value: unknown): PartiQLValue {
@@ -438,24 +405,18 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
         kind: {
           $case: "mapValue",
           mapValue: {
-            values: Object.entries(value as { [key: string]: unknown }).reduce(
-              (acc, [key, value]) => {
+            values: Object.entries(value as { [key: string]: unknown })
+              .filter(([, value]) => value != null)
+              .reduce((acc, [key, value]) => {
                 acc[key] = this.marshallValue(definition.items![key], value);
                 return acc;
-              },
-              {} as { [key: string]: PartiQLValue }
-            ),
+              }, {} as { [key: string]: PartiQLValue }),
           },
         },
       };
     }
 
     throw new Error(`Unsupported data type: ${dataType}`);
-  }
-
-  // TODO: Use defined schema to do the conversion
-  protected toInsertAttributes(model: T): any {
-    return model;
   }
 
   protected abstract toEntity(response: { [key: string]: PartiQLValue }): T;
