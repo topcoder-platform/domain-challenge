@@ -377,24 +377,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     }
 
     if (!_.isUndefined(input.prizeSets)) {
-      if (_.isUndefined(challenge)) {
-        challenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
-      }
-      const prizeSets = _.filter(
-        [
-          ..._.intersectionBy(input.prizeSets.prizeSets, challenge.prizeSets, "type"),
-          ..._.differenceBy(challenge.prizeSets, input.prizeSets.prizeSets, "type"),
-        ],
-        (entry) => entry.type !== "copilot"
-      );
-      const copilotPayments = _.filter(
-        input.prizeSets.prizeSets,
-        (entry) => entry.type === "copilot"
-      );
-      if (!_.isEmpty(copilotPayments)) {
-        prizeSets.push(...copilotPayments);
-      }
-      data.prizeSets = prizeSets.map((prizeSet) => {
+      data.prizeSets = input.prizeSets.prizeSets.map((prizeSet) => {
         return {
           ...prizeSet,
           prizes: prizeSet.prizes.map((prize) => ({
