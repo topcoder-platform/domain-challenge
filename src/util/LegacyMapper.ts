@@ -291,7 +291,7 @@ class LegacyMapper {
       phase.constraints = _.map(_.entries(legacyPhase?.phaseCriteria), ([k, v]) => {
         return {
           name: PhaseCriteriaIdToName[_.toNumber(k) as keyof typeof PhaseCriteriaIdToName],
-          value: _.isNumber(v) ? _.toNumber(v) : v.toLowerCase() == "yes" ? 1 : 0,
+          value: _.toNumber(k) === 4 ? (v.toLowerCase() === "yes" ? 1 : 0) : _.toNumber(v)
         };
       });
     }
