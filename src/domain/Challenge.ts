@@ -377,6 +377,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     if (!_.isUndefined(input.winners)) {
       data.winners = input.winners.winners;
     }
+    this.cleanPrizeSets(data.prizeSets, data.overview);
 
     data.updated = new Date();
     data.updatedBy = updatedBy;
@@ -419,14 +420,29 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   private calculateTotalPrizesInCents(prizeSets: Challenge_PrizeSet[]): number {
     let totalPrizes = 0;
     if (prizeSets) {
-      for (const { prizes } of prizeSets) {
-        for (const { amountInCents } of prizes) {
-          totalPrizes += amountInCents!;
+      for (const { prizes, type } of prizeSets) {
+        if (_.toLower(type) === 'placement') {
+          for (const { amountInCents } of prizes) {
+            totalPrizes += amountInCents!;
+          }
         }
       }
     }
 
     return totalPrizes;
+  }
+
+  private cleanPrizeSets(prizeSets?: Challenge_PrizeSet[], overview?: Challenge_Overview) {
+    _.forEach(prizeSets, (prizeSet) => {
+      _.forEach(prizeSet.prizes, (prize) => {
+        if (prize.amountInCents != null) {
+          delete prize.amountInCents;
+        }
+      });
+    });
+    if (overview && !_.isUndefined(overview.totalPrizesInCents)) {
+      delete overview.totalPrizesInCents;
+    }
   }
 }
 
