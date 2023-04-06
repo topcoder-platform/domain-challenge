@@ -136,7 +136,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
             insert: {
               table: this.entitySchema.tableName,
               attributes: Object.entries(entity)
-                .filter(([, value]) => value !== undefined)
+                .filter(([, value]) => (Array.isArray(value) ? value.length > 0 : value != null))
                 .map(([key, value]) => ({
                   attribute: {
                     name: key,
