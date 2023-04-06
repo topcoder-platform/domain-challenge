@@ -394,6 +394,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       ])
     );
 
+    /*
     if (input.phases?.phases && input.phases.phases.length) {
       await ChallengeScheduler.schedule({
         action: "schedule",
@@ -405,6 +406,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         })),
       });
     }
+    */
 
     await this.esClient.update({
       index: ES_INDEX,
