@@ -80,18 +80,18 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
   }
 
   public async lookup(lookupCriteria: LookupCriteria): Promise<T> {
-    let index: string | undefined = undefined;
-
-    if (this.entitySchema.indices != null) {
-      index = this.entitySchema.indices[lookupCriteria.key]?.index;
-    }
-
     const selectQuery: SelectQuery = {
-      index,
       table: this.entitySchema.tableName,
       attributes: this.#attributes,
       filters: [this.toFilter(lookupCriteria)],
     };
+
+    if (
+      this.entitySchema.indices != null &&
+      this.entitySchema.indices[lookupCriteria.key] != null
+    ) {
+      selectQuery.index = this.entitySchema.indices[lookupCriteria.key].index;
+    }
 
     const queryRequest: QueryRequest = {
       kind: {
@@ -298,6 +298,12 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
 
   private marshallValue(definition: DataTypeDefinition, value: unknown): PartiQLValue {
     const dataType = definition.type;
+
+    // TODO: This is temporary until all services update to @topcoder-framework/lib-common v0.0.14+
+    if ((value as PartiQLValue).kind != null && (value as PartiQLValue).kind?.$case != null) {
+      console.log(`Value is already a PartiQLValue: ${JSON.stringify(value)}`);
+      return value as PartiQLValue;
+    }
 
     if (dataType == DataType.DATA_TYPE_STRING) {
       return {

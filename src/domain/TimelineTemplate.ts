@@ -10,12 +10,10 @@ import { TimelineTemplateSchema } from "../schema/TimelineTemplateSchema";
 
 class TimelineTemplateDomain extends CoreOperations<TimelineTemplate, CreateTimelineTemplateInput> {
   protected toEntity(item: { [key: string]: Value }): TimelineTemplate {
-    try {
-      item.phases = JSON.parse(item.phases.toString());
-    } catch (e) {
-      console.error(e);
-      // do nothing
+    if (item["phases"] != null && typeof item["phases"] === "string") {
+      item["phases"] = JSON.parse(item["phases"] as string);
     }
+
     return TimelineTemplate.fromJSON(item);
   }
 
