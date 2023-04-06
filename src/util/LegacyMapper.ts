@@ -195,7 +195,7 @@ class LegacyMapper {
       38: undefined,
       // Checkpoint Bonus Cost
       39: undefined,
-      41: "true", // Approval Required
+      41: "false", // Approval Required
       43: "true", // Send Winner Emails
       44:
         input.metadata.find((m) => m.name == "postMortemRequired")?.value == "false"
@@ -203,7 +203,7 @@ class LegacyMapper {
           : "true" ?? "true", // Post-mortem required (set to false - new Autopilot will handle this)
       45: "false", // Reliability bonus eligible
       46: "true", // Member Payments Eligible
-      48: "true", // Track Late Deliverables
+      48: "false", // Track Late Deliverables
       52: "false", // Allow Stock Art
       57: "0.5", // Contest Fee Percentage
       59: "false", // Review Feedback Flag
