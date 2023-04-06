@@ -301,7 +301,11 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
 
     // TODO: This is temporary until all services update to @topcoder-framework/lib-common v0.0.14+
     if ((value as PartiQLValue).kind != null && (value as PartiQLValue).kind?.$case != null) {
-      console.log(`Value is already a PartiQLValue: ${JSON.stringify(value)}`);
+      console.log(
+        `Value likely created using older lib-common - it's already a PartiQLValue: ${JSON.stringify(
+          value
+        )}`
+      );
       return value as PartiQLValue;
     }
 
