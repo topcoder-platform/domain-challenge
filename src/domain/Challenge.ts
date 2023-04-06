@@ -377,7 +377,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     if (!_.isUndefined(input.winners)) {
       data.winners = input.winners.winners;
     }
-    this.cleanPrizeSets(data.prizeSets, data.overview);
 
     data.updated = new Date();
     data.updatedBy = updatedBy;
@@ -407,6 +406,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       });
     }
     */
+    this.cleanPrizeSets(data.prizeSets, data.overview);
 
     await this.esClient.update({
       index: ES_INDEX,
