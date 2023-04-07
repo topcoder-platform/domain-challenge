@@ -246,12 +246,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           challenge.billing?.billingAccountId,
           input
         );
+
         if (
+          updateChallengeInput.termUpdate ||
           updateChallengeInput.groupUpdate ||
           updateChallengeInput.phaseUpdate ||
           updateChallengeInput.prizeUpdate ||
           updateChallengeInput.projectStatusId ||
-          updateChallengeInput.termUpdate ||
+          !_.isEmpty(updateChallengeInput.name) ||
           !_.isEmpty(updateChallengeInput.projectInfo)
         ) {
           const { updatedCount } = await legacyChallengeDomain.update(
@@ -423,7 +425,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     let totalPrizes = 0;
     if (prizeSets) {
       for (const { prizes, type } of prizeSets) {
-        if (_.toLower(type) === 'placement') {
+        if (_.toLower(type) === "placement") {
           for (const { amountInCents } of prizes) {
             totalPrizes += amountInCents!;
           }
