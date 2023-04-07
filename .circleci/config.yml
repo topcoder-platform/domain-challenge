@@ -32,7 +32,7 @@ jobs:
           if [ "${CIRCLE_PULL_REQUEST}" != "" ]; then
             export ECR_ENV="DEV"
           else
-            export ECR_ENV="DEV"
+            export ECR_ENV="PROD"
           fi
           echo "Using ECR Environment: ${ECR_ENV}"
           ./awsconfiguration.sh ${ECR_ENV}
