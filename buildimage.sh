@@ -1,5 +1,7 @@
 #!/bin/bash
+
 set -eo pipefail
+
 ENV=$1
 ENV=`echo "$ENV" | tr '[:upper:]' '[:lower:]'`
 
