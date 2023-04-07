@@ -7,11 +7,15 @@ import { LookupCriteria, ScanCriteria, ScanResult } from "../models/common/commo
 // TODO: Import from @topcoder-framework/lib-common
 import { Value } from "../models/google/protobuf/struct";
 
+import { Metadata, StatusBuilder } from "@grpc/grpc-js";
+import { Status } from "@grpc/grpc-js/build/src/constants";
 import {
   Attribute,
   DataType,
   Filter,
   Operator,
+  ListValue,
+  Value as PartiQLValue,
   QueryRequest,
   QueryResponse,
   Response,
@@ -19,89 +23,22 @@ import {
   SelectQuery,
   UpdateAction,
   UpdateType,
-  Value as PartiQLValue,
 } from "../dal/models/nosql/parti_ql";
-import { Metadata, StatusBuilder } from "@grpc/grpc-js";
-import { Status } from "@grpc/grpc-js/build/src/constants";
-
-export type ValueType =
-  | "nullValue"
-  | "numberValue"
-  | "stringValue"
-  | "boolValue"
-  | "structValue"
-  | "listValue";
-
-export type DynamoTableIndex = {
-  [key: string]: {
-    index: string;
-    partitionKey: string;
-    sortKey?: string;
-  };
-};
+import { DataTypeDefinition, Schema } from "./Interfaces";
 
 abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key: string]: any }> {
-  public constructor(
-    private entityName: string,
-    private entityAttributes: Attribute[],
-    private entityIndexList: DynamoTableIndex
-  ) {}
+  #tableAttributes: Attribute[];
+  #attributes: string[];
 
-  private attributesKeyTypeMap: { [key: string]: DataType } = this.entityAttributes.reduce(
-    (map, attribute) => ({
-      ...map,
-      [attribute.name]: attribute.type,
-    }),
-    {}
-  );
-
-  public async lookup(lookupCriteria: LookupCriteria): Promise<T> {
-    const selectQuery: SelectQuery = {
-      table: this.entityName,
-      attributes: this.entityAttributes,
-      filters: [
-        {
-          name: lookupCriteria.key,
-          operator: Operator.OPERATOR_EQUAL,
-          value: this.getFilterValue(lookupCriteria.value),
-        },
-      ],
-    };
-
-    const queryRequest: QueryRequest = {
-      kind: {
-        $case: "query",
-        query: {
-          kind: {
-            $case: "select",
-            select: selectQuery,
-          },
-        },
-      },
-    };
-
-    const queryResponse: QueryResponse = await noSqlClient.query(queryRequest);
-
-    switch (queryResponse.kind?.$case) {
-      case "error":
-        throw new StatusBuilder()
-          .withCode(Status.INTERNAL)
-          .withDetails(queryResponse.kind?.error?.message)
-          .build();
-      case "response":
-        if (queryResponse.kind?.response?.items?.length > 0) {
-          return this.toEntity(queryResponse.kind?.response?.items[0]);
-        }
-    }
-
-    throw new StatusBuilder()
-      .withCode(Status.NOT_FOUND)
-      .withDetails(
-        `Entity not found: ${lookupCriteria.key} = ${Value.unwrap(
-          (lookupCriteria.value as { value: Value }).value
-        )}`
-      )
-      .build();
+  public constructor(private entitySchema: Schema) {
+    this.#attributes = Object.keys(this.entitySchema.attributes);
+    this.#tableAttributes = Object.entries(this.entitySchema.attributes).map(
+      ([key, value]) =>
+        ({
+          name: key,
+          type: value.type,
+        } as Attribute)
+    );
   }
 
   public async scan(
@@ -117,9 +54,9 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
           kind: {
             $case: "select",
             select: {
-              table: this.entityName,
+              table: this.entitySchema.tableName,
+              attributes: this.#tableAttributes.map((attr) => attr.name),
               index: index ?? undefined,
-              attributes: this.entityAttributes,
               filters,
               nextToken,
             },
@@ -142,6 +79,53 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
     };
   }
 
+  public async lookup(lookupCriteria: LookupCriteria): Promise<T> {
+    const selectQuery: SelectQuery = {
+      table: this.entitySchema.tableName,
+      attributes: this.#attributes,
+      filters: [this.toFilter(lookupCriteria)],
+    };
+
+    if (
+      this.entitySchema.indices != null &&
+      this.entitySchema.indices[lookupCriteria.key] != null
+    ) {
+      selectQuery.index = this.entitySchema.indices[lookupCriteria.key].index;
+    }
+
+    const queryRequest: QueryRequest = {
+      kind: {
+        $case: "query",
+        query: {
+          kind: {
+            $case: "select",
+            select: selectQuery,
+          },
+        },
+      },
+    };
+
+    const queryResponse: QueryResponse = await noSqlClient.query(queryRequest);
+
+    switch (queryResponse.kind?.$case) {
+      case "error":
+        throw new StatusBuilder()
+          .withCode(Status.INTERNAL)
+          .withDetails(queryResponse.kind?.error?.message)
+          .build();
+
+      case "response":
+        if (queryResponse.kind?.response?.items?.length > 0) {
+          return this.toEntity(queryResponse.kind?.response?.items[0]);
+        }
+    }
+
+    throw new StatusBuilder()
+      .withCode(Status.NOT_FOUND)
+      .withDetails(`Entity not found: ${lookupCriteria.key} = ${lookupCriteria.value}`)
+      .build();
+  }
+
   protected async create(entity: I & T, metadata?: Metadata): Promise<T> {
     const queryRequest: QueryRequest = {
       kind: {
@@ -150,8 +134,16 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
           kind: {
             $case: "insert",
             insert: {
-              table: this.entityName,
-              attributes: entity,
+              table: this.entitySchema.tableName,
+              attributes: Object.entries(entity)
+                .filter(([, value]) => (Array.isArray(value) ? value.length > 0 : value != null))
+                .map(([key, value]) => ({
+                  attribute: {
+                    name: key,
+                    type: this.entitySchema.attributes[key].type,
+                  },
+                  value: this.marshallValue(this.entitySchema.attributes[key], value),
+                })),
             },
           },
         },
@@ -177,6 +169,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
     }
 
     const { filters } = this.toFilters(scanCriteria);
+
     const queryRequest: QueryRequest = {
       kind: {
         $case: "query",
@@ -184,15 +177,17 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
           kind: {
             $case: "update",
             update: {
-              table: this.entityName,
-              // TODO: Write a convenience method in @topcoder-framework/lib-common to support additional update operations like LIST_APPEND, SET_ADD, SET_REMOVE, etc
+              table: this.entitySchema.tableName,
               updates: Object.entries(entity)
-                .filter(([key, value]) => value !== undefined)
+                .filter(([, value]) => value !== undefined)
                 .map(([key, value]) => ({
-                  action: UpdateAction.UPDATE_ACTION_SET,
+                  action: UpdateAction.UPDATE_ACTION_SET, // TODO: Write a convenience method in @topcoder-framework/lib-common to support additional update operations like LIST_APPEND, SET_ADD, SET_REMOVE, etc
                   type: UpdateType.UPDATE_TYPE_VALUE,
-                  attribute: key,
-                  value: this.toValue(key, value),
+                  attribute: {
+                    name: key,
+                    type: this.entitySchema.attributes[key].type,
+                  },
+                  value: this.marshallValue(this.entitySchema.attributes[key], value),
                 })),
               filters,
               returnValue: ReturnValue.RETURN_VALUE_ALL_NEW,
@@ -221,6 +216,12 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
   }
 
   public async delete(lookupCriteria: LookupCriteria): Promise<{ items: T[] }> {
+    let index: string | undefined = undefined;
+
+    if (this.entitySchema.indices != null) {
+      index = this.entitySchema.indices[lookupCriteria.key]?.index;
+    }
+
     const queryRequest: QueryRequest = {
       kind: {
         $case: "query",
@@ -228,14 +229,9 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
           kind: {
             $case: "delete",
             delete: {
-              table: this.entityName,
-              filters: [
-                {
-                  name: lookupCriteria.key,
-                  operator: Operator.OPERATOR_EQUAL,
-                  value: this.getFilterValue(lookupCriteria.value),
-                },
-              ],
+              index,
+              table: this.entitySchema.tableName,
+              filters: [this.toFilter(lookupCriteria)],
               returnValues: ReturnValue.RETURN_VALUE_ALL_OLD,
             },
           },
@@ -257,11 +253,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
     if (response.items?.length === 0) {
       throw new StatusBuilder()
         .withCode(Status.NOT_FOUND)
-        .withDetails(
-          `Entity not found: ${lookupCriteria.key} = ${Value.unwrap(
-            (lookupCriteria.value as { value: Value }).value
-          )}`
-        )
+        .withDetails(`Entity not found: ${lookupCriteria.key} = ${lookupCriteria.value}`)
         .build();
     }
 
@@ -276,16 +268,15 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
   } {
     let index: string | null = null;
     const filters: Filter[] = scanCriteria.map((criteria) => {
-      if (index == null && this.entityIndexList[criteria.key] != null) {
-        index = this.entityIndexList[criteria.key].index!;
+      if (
+        index == null &&
+        this.entitySchema.indices != null &&
+        this.entitySchema.indices[criteria.key] != null
+      ) {
+        index = this.entitySchema.indices[criteria.key].index!;
       }
 
-      return {
-        name: criteria.key,
-        // TODO: Map operator from topcoder.common.Operator to PartiQL.Operator
-        operator: Operator.OPERATOR_EQUAL,
-        value: this.toValue(criteria.key, criteria.value),
-      };
+      return this.toFilter(criteria);
     });
 
     return {
@@ -294,58 +285,35 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
     };
   }
 
-  private getFilterValue(filter: unknown): PartiQLValue {
-    const filterValue = (filter as { value: Value }).value;
-    let value: PartiQLValue;
-
-    switch (filterValue.kind?.$case) {
-      case "numberValue":
-        value = {
-          kind: {
-            $case: "numberValue",
-            numberValue: filterValue.kind.numberValue,
-          },
-        };
-        break;
-      case "stringValue":
-        value = {
-          kind: {
-            $case: "stringValue",
-            stringValue: filterValue.kind.stringValue,
-          },
-        };
-        break;
-      case "boolValue":
-        value = {
-          kind: {
-            $case: "boolean",
-            boolean: filterValue.kind.boolValue,
-          },
-        };
-        break;
-
-      default:
-        throw new Error("Lookups are only supported for string, number & boolean value");
-    }
-
-    return value;
+  private toFilter(lookupCriteria: LookupCriteria): Filter {
+    return {
+      name: lookupCriteria.key,
+      operator: Operator.OPERATOR_EQUAL,
+      value: this.marshallValue(
+        this.entitySchema.attributes[lookupCriteria.key],
+        lookupCriteria.value
+      ),
+    };
   }
 
-  private toValue(key: string, value: unknown): PartiQLValue {
-    const dataType: DataType = this.attributesKeyTypeMap[key];
+  private marshallValue(definition: DataTypeDefinition, value: unknown): PartiQLValue {
+    const dataType = definition.type;
 
-    if (dataType == null) {
-      throw new Error(`Unknown attribute: ${key}`);
+    // TODO: This is temporary until all services update to @topcoder-framework/lib-common v0.0.14+
+    if ((value as PartiQLValue).kind != null && (value as PartiQLValue).kind?.$case != null) {
+      console.log(
+        `Value likely created using older lib-common - it's already a PartiQLValue: ${JSON.stringify(
+          value
+        )}`
+      );
+      return value as PartiQLValue;
     }
 
     if (dataType == DataType.DATA_TYPE_STRING) {
       return {
         kind: {
           $case: "stringValue",
-          stringValue:
-            typeof value === "object"
-              ? JSON.stringify(value)
-              : ((value as string) || "").toString(),
+          stringValue: value as string,
         },
       };
     }
@@ -363,25 +331,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
       return {
         kind: {
           $case: "boolean",
-          boolean: value as boolean,
-        },
-      };
-    }
-
-    if (dataType == DataType.DATA_TYPE_LIST) {
-      return {
-        kind: {
-          $case: "listValue",
-          listValue: (value as unknown[]).map((item) => item),
-        },
-      };
-    }
-
-    if (dataType == DataType.DATA_TYPE_MAP) {
-      return {
-        kind: {
-          $case: "mapValue",
-          mapValue: value as { [key: string]: unknown },
+          boolean: value as unknown as boolean,
         },
       };
     }
@@ -408,12 +358,75 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
       };
     }
 
-    throw new Error(`Unsupported data type: ${dataType}`);
-  }
+    if (dataType == DataType.DATA_TYPE_LIST) {
+      const listValue: ListValue = {
+        values: [],
+      };
 
-  // TODO: Use defined schema to do the conversion
-  protected toInsertAttributes(model: T): any {
-    return model;
+      switch (definition.itemType) {
+        case DataType.DATA_TYPE_STRING:
+        case DataType.DATA_TYPE_NUMBER:
+        case DataType.DATA_TYPE_BOOLEAN:
+        case DataType.DATA_TYPE_STRING_SET:
+        case DataType.DATA_TYPE_NUMBER_SET:
+          listValue.values = (value as unknown[]).map((item) =>
+            this.marshallValue(
+              {
+                type: definition.itemType!,
+              },
+              item
+            )
+          );
+          break;
+        case DataType.DATA_TYPE_MAP:
+          listValue.values = (value as { [key: string]: unknown }[]).map((item) =>
+            this.marshallValue(
+              {
+                type: DataType.DATA_TYPE_MAP,
+                items: definition.items,
+              },
+              item
+            )
+          );
+          break;
+        case DataType.DATA_TYPE_LIST:
+          listValue.values = (value as unknown[]).map((item) =>
+            this.marshallValue(
+              {
+                type: definition.itemType!,
+                itemType: definition.itemType,
+                items: definition.items,
+              },
+              item
+            )
+          );
+      }
+
+      return {
+        kind: {
+          $case: "listValue",
+          listValue,
+        },
+      };
+    }
+
+    if (dataType == DataType.DATA_TYPE_MAP) {
+      return {
+        kind: {
+          $case: "mapValue",
+          mapValue: {
+            values: Object.entries(value as { [key: string]: unknown })
+              .filter(([, value]) => value != null)
+              .reduce((acc, [key, value]) => {
+                acc[key] = this.marshallValue(definition.items![key], value);
+                return acc;
+              }, {} as { [key: string]: PartiQLValue }),
+          },
+        },
+      };
+    }
+
+    throw new Error(`Unsupported data type: ${dataType}`);
   }
 
   protected abstract toEntity(response: { [key: string]: PartiQLValue }): T;

@@ -25,6 +25,7 @@ import _ from "lodash";
 import { ChallengeStatuses, ES_INDEX, ES_REFRESH } from "../common/Constants";
 import ElasticSearch from "../helpers/ElasticSearch";
 import { ScanCriteria } from "../models/common/common";
+import ChallengeScheduler from "../util/ChallengeScheduler";
 import legacyMapper from "../util/LegacyMapper";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
@@ -40,49 +41,29 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   private esClient = ElasticSearch.getESClient();
 
   protected toEntity(item: { [key: string]: Value }): Challenge {
-    console.info("ToEntity input:", JSON.stringify(item));
-    for (const key of [
-      "phases",
-      "terms",
-      "tags",
-      "metadata",
-      "events",
-      "prizeSets",
+    const fieldsPossiblyUsingLegacyDataTypes = [
       "legacy",
+      "billing",
+      "metadata",
+      "task",
+      "phases",
+      "events",
+      "terms",
+      "prizeSets",
+      "tags",
+      "winners",
+      "discussions",
+      "overview",
       "groups",
-    ]) {
-      try {
-        if (key === "metadata") {
-          if (item["metadata"].kind?.$case === "listValue") {
-            item["metadata"] = {
-              kind: {
-                $case: "listValue",
-                listValue: item["metadata"].kind.listValue.map((v) => {
-                  try {
-                    return JSON.stringify(JSON.parse(v.toString()));
-                  } catch (e) {
-                    return v;
-                  }
-                }),
-              },
-            };
-          }
-        }
+      "events",
+    ];
 
-        item[key] = JSON.parse(item[key].toString());
-      } catch (e) {
-        // do nothing
+    for (const field of fieldsPossiblyUsingLegacyDataTypes) {
+      if (item[field] != null && typeof item[field] === "string") {
+        item[field] = JSON.parse(item[field] as string);
       }
     }
-    // make sure groups is an array. Issue with old data
-    if (typeof item.groups === "string") {
-      try {
-        item.groups = JSON.parse(item.groups);
-      } catch (e) {
-        // do nothing
-      }
-    }
-    console.info("ToEntity output:", JSON.stringify(item));
+
     return Challenge.fromJSON(item);
   }
 
@@ -265,12 +246,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           challenge.billing?.billingAccountId,
           input
         );
+
         if (
+          updateChallengeInput.termUpdate ||
           updateChallengeInput.groupUpdate ||
           updateChallengeInput.phaseUpdate ||
           updateChallengeInput.prizeUpdate ||
           updateChallengeInput.projectStatusId ||
-          updateChallengeInput.termUpdate ||
+          !_.isEmpty(updateChallengeInput.name) ||
           !_.isEmpty(updateChallengeInput.projectInfo)
         ) {
           const { updatedCount } = await legacyChallengeDomain.update(
@@ -377,24 +360,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     }
 
     if (!_.isUndefined(input.prizeSets)) {
-      if (_.isUndefined(challenge)) {
-        challenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
-      }
-      const prizeSets = _.filter(
-        [
-          ..._.intersectionBy(input.prizeSets.prizeSets, challenge.prizeSets, "type"),
-          ..._.differenceBy(challenge.prizeSets, input.prizeSets.prizeSets, "type"),
-        ],
-        (entry) => entry.type !== "copilot"
-      );
-      const copilotPayments = _.filter(
-        input.prizeSets.prizeSets,
-        (entry) => entry.type === "copilot"
-      );
-      if (!_.isEmpty(copilotPayments)) {
-        prizeSets.push(...copilotPayments);
-      }
-      data.prizeSets = prizeSets.map((prizeSet) => {
+      data.prizeSets = input.prizeSets.prizeSets.map((prizeSet) => {
         return {
           ...prizeSet,
           prizes: prizeSet.prizes.map((prize) => ({
@@ -429,17 +395,20 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       ])
     );
 
-    // if (input.phases?.phases && input.phases.phases.length) {
-    //   await ChallengeScheduler.schedule({
-    //     action: "schedule",
-    //     challengeId: id,
-    //     phases: input.phases.phases.map((phase) => ({
-    //       name: phase.name,
-    //       scheduledStartDate: phase.scheduledStartDate,
-    //       scheduledEndDate: phase.scheduledEndDate,
-    //     })),
-    //   });
-    // }
+    /*
+    if (input.phases?.phases && input.phases.phases.length) {
+      await ChallengeScheduler.schedule({
+        action: "schedule",
+        challengeId: id,
+        phases: input.phases.phases.map((phase) => ({
+          name: phase.name,
+          scheduledStartDate: phase.scheduledStartDate,
+          scheduledEndDate: phase.scheduledEndDate,
+        })),
+      });
+    }
+    */
+    this.cleanPrizeSets(data.prizeSets, data.overview);
 
     await this.esClient.update({
       index: ES_INDEX,
@@ -455,14 +424,29 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   private calculateTotalPrizesInCents(prizeSets: Challenge_PrizeSet[]): number {
     let totalPrizes = 0;
     if (prizeSets) {
-      for (const { prizes } of prizeSets) {
-        for (const { amountInCents } of prizes) {
-          totalPrizes += amountInCents!;
+      for (const { prizes, type } of prizeSets) {
+        if (_.toLower(type) === "placement") {
+          for (const { amountInCents } of prizes) {
+            totalPrizes += amountInCents!;
+          }
         }
       }
     }
 
     return totalPrizes;
+  }
+
+  private cleanPrizeSets(prizeSets?: Challenge_PrizeSet[], overview?: Challenge_Overview) {
+    _.forEach(prizeSets, (prizeSet) => {
+      _.forEach(prizeSet.prizes, (prize) => {
+        if (prize.amountInCents != null) {
+          delete prize.amountInCents;
+        }
+      });
+    });
+    if (overview && !_.isUndefined(overview.totalPrizesInCents)) {
+      delete overview.totalPrizesInCents;
+    }
   }
 }
 
@@ -485,8 +469,4 @@ interface IUpdateDataFromACL {
   updatedBy?: string;
 }
 
-export default new ChallengeDomain(
-  ChallengeSchema.tableName,
-  ChallengeSchema.attributes,
-  ChallengeSchema.indices
-);
+export default new ChallengeDomain(ChallengeSchema);

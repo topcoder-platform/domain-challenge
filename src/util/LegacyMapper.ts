@@ -65,6 +65,7 @@ class LegacyMapper {
 
     return {
       projectId: legacyId,
+      name: input.name,
       projectStatusId: this.mapProjectStatus(input.status),
       prizeUpdate:
         prizeSets == null
@@ -149,13 +150,13 @@ class LegacyMapper {
         : undefined;
 
     const map = {
-      3: "1",
+      3: "1", // Component Version
       4: "0",
       7: "1.0",
-      9: "On", // Turn Auto Pilot Off
+      9: "On", // Turn Auto Pilot On
       78: "Development", // Forum Type - value doesn't matter
-      10: "On", // Turn status notification off
-      11: "On", // Turn timeline notification off
+      10: "On", // Turn status notification on
+      11: "On", // Turn timeline notification on
       12: "Yes", // Public -> Yes (make it dynamic)
       13: "Yes", // Rated -> Yes (make it dynamic)
       14: "Open", // Eligibility -> Open (value doesn't matter)
@@ -195,7 +196,7 @@ class LegacyMapper {
       38: undefined,
       // Checkpoint Bonus Cost
       39: undefined,
-      41: "true", // Approval Required
+      41: "false", // Approval Required
       43: "true", // Send Winner Emails
       44:
         input.metadata.find((m) => m.name == "postMortemRequired")?.value == "false"
@@ -203,7 +204,7 @@ class LegacyMapper {
           : "true" ?? "true", // Post-mortem required (set to false - new Autopilot will handle this)
       45: "false", // Reliability bonus eligible
       46: "true", // Member Payments Eligible
-      48: "true", // Track Late Deliverables
+      48: "false", // Track Late Deliverables
       52: "false", // Allow Stock Art
       57: "0.5", // Contest Fee Percentage
       59: "false", // Review Feedback Flag
@@ -291,7 +292,7 @@ class LegacyMapper {
       phase.constraints = _.map(_.entries(legacyPhase?.phaseCriteria), ([k, v]) => {
         return {
           name: PhaseCriteriaIdToName[_.toNumber(k) as keyof typeof PhaseCriteriaIdToName],
-          value: _.toNumber(v),
+          value: _.toNumber(k) === 4 ? (v.toLowerCase() === "yes" ? 1 : 0) : _.toNumber(v),
         };
       });
     }

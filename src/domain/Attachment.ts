@@ -8,10 +8,7 @@ import IdGenerator from "../helpers/IdGenerator";
 
 import { AttachmentSchema } from "../schema/AttachmentSchema";
 
-class AttachmentDomain extends CoreOperations<
-  Attachment,
-  CreateAttachmentInput
-> {
+class AttachmentDomain extends CoreOperations<Attachment, CreateAttachmentInput> {
   protected toEntity(item: { [key: string]: Value }): Attachment {
     return Attachment.fromJSON(item);
   }
@@ -24,8 +21,4 @@ class AttachmentDomain extends CoreOperations<
   }
 }
 
-export default new AttachmentDomain(
-  AttachmentSchema.tableName,
-  AttachmentSchema.attributes,
-  AttachmentSchema.indices
-);
+export default new AttachmentDomain(AttachmentSchema);

@@ -21,8 +21,4 @@ class PhaseDomain extends CoreOperations<Phase, CreatePhaseInput> {
   }
 }
 
-export default new PhaseDomain(
-  PhaseSchema.tableName,
-  PhaseSchema.attributes,
-  PhaseSchema.indices
-);
+export default new PhaseDomain(PhaseSchema);
