@@ -25,6 +25,7 @@ import {
   UpdateType,
 } from "../dal/models/nosql/parti_ql";
 import { DataTypeDefinition, Schema } from "./Interfaces";
+import _ from "lodash";
 
 abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key: string]: any }> {
   #tableAttributes: Attribute[];
@@ -313,7 +314,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
       return {
         kind: {
           $case: "stringValue",
-          stringValue: value as string,
+          stringValue: _.toString(value as string),
         },
       };
     }
@@ -322,7 +323,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
       return {
         kind: {
           $case: "numberValue",
-          numberValue: value as number,
+          numberValue: _.toNumber(value as number),
         },
       };
     }
@@ -341,7 +342,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
         kind: {
           $case: "stringSetValue",
           stringSetValue: {
-            values: value as string[],
+            values: (value as string[]).map((item) => _.toString(item)),
           },
         },
       };
@@ -352,7 +353,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
         kind: {
           $case: "numberSetValue",
           numberSetValue: {
-            values: value as number[],
+            values: (value as number[]).map((item) => _.toNumber(item)),
           },
         },
       };
