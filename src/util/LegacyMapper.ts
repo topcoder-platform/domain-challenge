@@ -149,13 +149,13 @@ class LegacyMapper {
         : undefined;
 
     const map = {
-      3: "1",
+      3: "1", // Component Version
       4: "0",
       7: "1.0",
-      9: "On", // Turn Auto Pilot Off
+      9: "On", // Turn Auto Pilot On
       78: "Development", // Forum Type - value doesn't matter
-      10: "On", // Turn status notification off
-      11: "On", // Turn timeline notification off
+      10: "On", // Turn status notification on
+      11: "On", // Turn timeline notification on
       12: "Yes", // Public -> Yes (make it dynamic)
       13: "Yes", // Rated -> Yes (make it dynamic)
       14: "Open", // Eligibility -> Open (value doesn't matter)
@@ -291,7 +291,7 @@ class LegacyMapper {
       phase.constraints = _.map(_.entries(legacyPhase?.phaseCriteria), ([k, v]) => {
         return {
           name: PhaseCriteriaIdToName[_.toNumber(k) as keyof typeof PhaseCriteriaIdToName],
-          value: _.toNumber(k) === 4 ? (v.toLowerCase() === "yes" ? 1 : 0) : _.toNumber(v)
+          value: _.toNumber(k) === 4 ? (v.toLowerCase() === "yes" ? 1 : 0) : _.toNumber(v),
         };
       });
     }
