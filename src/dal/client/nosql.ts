@@ -5,15 +5,12 @@ import "source-map-support/register";
 import { credentials, Metadata } from "@grpc/grpc-js";
 import { promisify } from "util";
 
-import {
-  PartiQLQueryClient,
-  QueryRequest,
-  QueryResponse,
-} from "../models/nosql/parti_ql";
+import { PartiQLQueryClient, QueryRequest, QueryResponse } from "../models/nosql/parti_ql";
 
 class NoSQLClient {
   // https://github.com/grpc/grpc/blob/master/doc/keepalive.md
   // https://cloud.ibm.com/docs/blockchain-multicloud?topic=blockchain-multicloud-best-practices-app#best-practices-app-connections
+
   private readonly client: PartiQLQueryClient = new PartiQLQueryClient(
     `${GRPC_NOSQL_SERVER_HOST}:${GRPC_NOSQL_SERVER_PORT}`, // 5051
     credentials.createInsecure(),
@@ -26,13 +23,18 @@ class NoSQLClient {
     }
   );
 
+  constructor() {
+    console.log(`NoSQLClient: ${GRPC_NOSQL_SERVER_HOST}:${GRPC_NOSQL_SERVER_PORT}`);
+  }
+
   public async query(
     param: QueryRequest,
     metadata: Metadata = new Metadata()
   ): Promise<QueryResponse> {
-    return promisify<QueryRequest, Metadata, QueryResponse>(
-      this.client.query.bind(this.client)
-    )(param, metadata);
+    return promisify<QueryRequest, Metadata, QueryResponse>(this.client.query.bind(this.client))(
+      param,
+      metadata
+    );
   }
 }
 

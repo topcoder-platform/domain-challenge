@@ -4,9 +4,6 @@ import { noSqlClient } from "../dal/client/nosql";
 // TODO: Import from @topcoder-framework/lib-common
 import { LookupCriteria, ScanCriteria, ScanResult } from "../models/common/common";
 
-// TODO: Import from @topcoder-framework/lib-common
-import { Value } from "../models/google/protobuf/struct";
-
 import { Metadata, StatusBuilder } from "@grpc/grpc-js";
 import { Status } from "@grpc/grpc-js/build/src/constants";
 import {
