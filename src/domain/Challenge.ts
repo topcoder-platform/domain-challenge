@@ -175,8 +175,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       legacy,
       phases,
       legacyId: legacyChallengeId != null ? legacyChallengeId : undefined,
-      description: xss(input.description ?? ""),
-      privateDescription: xss(input.privateDescription ?? ""),
+      description: input.description ?? "",
+      privateDescription: input.privateDescription ?? "",
       metadata:
         input.metadata.map((m) => {
           let parsedValue = m.value;
