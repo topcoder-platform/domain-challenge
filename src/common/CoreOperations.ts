@@ -181,15 +181,26 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
               table: this.entitySchema.tableName,
               updates: Object.entries(entity)
                 .filter(([, value]) => value !== undefined)
-                .map(([key, value]) => ({
-                  action: UpdateAction.UPDATE_ACTION_SET, // TODO: Write a convenience method in @topcoder-framework/lib-common to support additional update operations like LIST_APPEND, SET_ADD, SET_REMOVE, etc
-                  type: UpdateType.UPDATE_TYPE_VALUE,
-                  attribute: {
-                    name: key,
-                    type: this.entitySchema.attributes[key].type,
-                  },
-                  value: this.marshallValue(this.entitySchema.attributes[key], value),
-                })),
+                .map(([key, value]) => {
+                  let actionToTake = UpdateAction.UPDATE_ACTION_SET
+                  let updateType = UpdateType.UPDATE_TYPE_VALUE
+
+                  // TODO: make this more generic, to check the data type and the length of the updates in case of delete the attribute
+                  if ([DataType.DATA_TYPE_LIST, DataType.DATA_TYPE_NUMBER_SET, DataType.DATA_TYPE_STRING_SET].includes(this.entitySchema.attributes[key].type) && value.length === 0) {
+                    actionToTake = UpdateAction.UPDATE_ACTION_REMOVE
+                    updateType = UpdateType.UPDATE_TYPE_SET_DELETE
+                  }
+
+                  return ({
+                    action: actionToTake, // TODO: Write a convenience method in @topcoder-framework/lib-common to support additional update operations like LIST_APPEND, SET_ADD, SET_REMOVE, etc
+                    type: updateType,
+                    attribute: {
+                      name: key,
+                      type: this.entitySchema.attributes[key].type,
+                    },
+                    value: this.marshallValue(this.entitySchema.attributes[key], value),
+                  })
+                }),
               filters,
               returnValue: ReturnValue.RETURN_VALUE_ALL_NEW,
             },
