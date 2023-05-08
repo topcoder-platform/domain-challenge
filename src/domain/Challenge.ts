@@ -16,6 +16,7 @@ import {
   UpdateChallengeInputForACL_WinnerACL,
   UpdateChallengeInput_UpdateInput,
 } from "../models/domain-layer/challenge/challenge";
+
 import { ChallengeSchema } from "../schema/Challenge";
 
 import { Metadata, StatusBuilder } from "@grpc/grpc-js";
@@ -192,7 +193,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         }) ?? [],
     };
 
-    return super.create(challenge, metadata);
+    const newChallenge = await super.create(challenge, metadata);
+
+    if (input.phases && input.phases.length) {
+      await ChallengeScheduler.schedule(newChallenge.id, input.phases);
+    }
+
+    return newChallenge;
   }
 
   public async update(
@@ -273,6 +280,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     // prettier-ignore
     const totalPrizesInCents = this.calculateTotalPrizesInCents(input.prizeSetUpdate?.prizeSets ?? challenge.prizeSets ?? []);
+
+    if (input.phaseUpdate?.phases && input.phaseUpdate.phases.length) {
+      await ChallengeScheduler.schedule(challenge.id, input.phaseUpdate.phases);
+    }
 
     return super.update(
       scanCriteria,
@@ -395,19 +406,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       ])
     );
 
-    /*
     if (input.phases?.phases && input.phases.phases.length) {
-      await ChallengeScheduler.schedule({
-        action: "schedule",
-        challengeId: id,
-        phases: input.phases.phases.map((phase) => ({
-          name: phase.name,
-          scheduledStartDate: phase.scheduledStartDate,
-          scheduledEndDate: phase.scheduledEndDate,
-        })),
-      });
+      await ChallengeScheduler.schedule(id, input.phases.phases);
     }
-    */
+
     this.cleanPrizeSets(data.prizeSets, data.overview);
 
     await this.esClient.update({
