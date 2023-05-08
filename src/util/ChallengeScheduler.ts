@@ -3,6 +3,10 @@ import { fromUtf8 } from "@aws-sdk/util-utf8-node";
 import WorkflowBuilder from "../helpers/WorkflowBuilder";
 import { Challenge_Phase } from "../models/domain-layer/challenge/challenge";
 
+const FunctionName =
+  process.env.TOPCODER_SCHEDULER_LAMBDA_ARN ??
+  "arn:aws:lambda:us-east-1:811668436784:function:topcoder-scheduler-dev-schedule-task";
+
 export default new (class {
   #client: LambdaClient = new LambdaClient({ region: process.env.AWS_REGION });
 
@@ -67,7 +71,7 @@ export default new (class {
 
   private invokeSchedulerLambda(input: any) {
     const invokeCommand = new InvokeCommand({
-      FunctionName: process.env.TOPCODER_SCHEDULER_LAMBDA_ARN,
+      FunctionName,
       Payload: fromUtf8(JSON.stringify(input)),
     });
 
