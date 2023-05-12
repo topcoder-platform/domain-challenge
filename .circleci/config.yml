@@ -38,7 +38,7 @@ jobs:
     - run:
         name: "Setup deploy scripts"
         command: |
-          git clone -b v1.4 https://github.com/topcoder-platform/tc-deploy-scripts ../${OUT_DIR}
+          git clone -b v1.4.15 https://github.com/topcoder-platform/tc-deploy-scripts ../${OUT_DIR}
           cp ./../${OUT_DIR}/awsconfiguration.sh .
     - run:
         name: "Authenticate with AWS CodeArtifact and Build Docker Image"
