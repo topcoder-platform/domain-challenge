@@ -439,7 +439,7 @@ class LegacyMapper {
     const token = await m2mToken.getM2MToken();
     for (const groupId of groups) {
       const group = await getRequest(`${process.env.TOPCODER_API_URL}/groups/${groupId}`, token);
-      if (group != null && !group.oldId) {
+      if (group != null && group.oldId) {
         oldGroupIds.push(group.oldId);
       }
     }
