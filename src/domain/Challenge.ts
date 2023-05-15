@@ -57,8 +57,10 @@ import {
   ES_INDEX,
   ES_REFRESH,
   ChallengeStatuses,
+  Topics
 } from "../common/Constants";
 import m2m from "../helpers/MachineToMachineToken";
+import busApi from "../helpers/BusApi";
 import ElasticSearch from "../helpers/ElasticSearch";
 import { ScanCriteria } from "../models/common/common";
 import constants from "../util/constants";
@@ -1303,8 +1305,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     let challenge: Challenge | undefined = undefined;
     const id = scanCriteria[0].value;
     const data: IUpdateDataFromACL = {};
+    let raiseEvent = false;
     if (!_.isUndefined(input.status)) {
       data.status = input.status;
+      raiseEvent = true;
     }
     if (!_.isUndefined(input.phases)) {
       console.log("setting phases");
@@ -1374,6 +1378,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     console.log("done with overview");
     if (!_.isUndefined(input.winners)) {
       data.winners = input.winners.winners;
+      raiseEvent = true;
     }
     console.log("done with winners");
 
@@ -1381,16 +1386,17 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     data.updatedBy = updatedBy;
 
     console.log("Updating...", JSON.stringify(data, null, 2));
+    const dynamoUpdate = _.omit(data, [
+      "currentPhase",
+      "currentPhaseNames",
+      "registrationStartDate",
+      "registrationEndDate",
+      "submissionStartDate",
+      "submissionEndDate",
+    ])
     await super.update(
       scanCriteria,
-      _.omit(data, [
-        "currentPhase",
-        "currentPhaseNames",
-        "registrationStartDate",
-        "registrationEndDate",
-        "submissionStartDate",
-        "submissionEndDate",
-      ])
+      dynamoUpdate
     );
 
     // if (input.phases?.phases && input.phases.phases.length) {
@@ -1413,6 +1419,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         doc: data,
       },
     });
+
+    if (raiseEvent) {
+      if (_.isUndefined(challenge)) {
+        challenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
+      }
+      const eventPayload = _.assign({}, challenge, dynamoUpdate);
+      await busApi.postBusEvent(Topics.ChallengeUpdated, eventPayload);
+    }
   }
 }
 

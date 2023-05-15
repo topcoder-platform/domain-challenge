@@ -3,10 +3,6 @@
  */
 import metadataExtractor from "./metadataExtractor";
 
-const EVENT_ORIGINATOR = "legacy-challenge-processor";
-
-const EVENT_MIME_TYPE = "application/json";
-
 export const legacyChallengeStatusesMap = {
   Active: 1,
   Draft: 2,
@@ -178,8 +174,6 @@ const STUDIO_CATEGORY_TYPES = [
 ];
 
 export default {
-  EVENT_ORIGINATOR,
-  EVENT_MIME_TYPE,
   legacyChallengeStatusesMap,
   challengeStatuses,
   PhaseStatusTypes,
