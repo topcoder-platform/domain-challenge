@@ -123,3 +123,13 @@ export const PhaseCriteriaIdToName = {
 };
 
 export const TGBillingAccounts = [80000062, 80002800];
+
+export const EVENT_ORIGINATOR = "domain-challenge";
+
+export const EVENT_MIME_TYPE = "application/json";
+
+export const Topics = {
+  ChallengeCreated: "challenge.notification.create",
+  ChallengeUpdated: "challenge.notification.update",
+  ChallengeDeleted: "challenge.notification.delete",
+};
