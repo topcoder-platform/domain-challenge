@@ -23,7 +23,8 @@ import { Metadata, StatusBuilder } from "@grpc/grpc-js";
 import { Status } from "@grpc/grpc-js/build/src/constants";
 import { CreateChallengeInput as LegacyCreateChallengeInput } from "@topcoder-framework/domain-acl";
 import _ from "lodash";
-import { ChallengeStatuses, ES_INDEX, ES_REFRESH } from "../common/Constants";
+import { ChallengeStatuses, ES_INDEX, ES_REFRESH, Topics } from "../common/Constants";
+import BusApi from "../helpers/BusApi";
 import ElasticSearch from "../helpers/ElasticSearch";
 import { ScanCriteria } from "../models/common/common";
 import ChallengeScheduler from "../util/ChallengeScheduler";
@@ -341,8 +342,12 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     let challenge: Challenge | undefined = undefined;
     const id = scanCriteria[0].value;
     const data: IUpdateDataFromACL = {};
+    let raiseEvent = false;
     if (!_.isUndefined(input.status)) {
       data.status = input.status;
+      if (input.status === ChallengeStatuses.Completed) {
+        raiseEvent = true;
+      }
     }
     if (!_.isUndefined(input.phases)) {
       data.phases = input.phases.phases;
@@ -389,21 +394,24 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     }
     if (!_.isUndefined(input.winners)) {
       data.winners = input.winners.winners;
+      raiseEvent = true;
     }
 
     data.updated = new Date();
     data.updatedBy = updatedBy;
 
+    const dynamoUpdate = _.omit(data, [
+      "currentPhase",
+      "currentPhaseNames",
+      "registrationStartDate",
+      "registrationEndDate",
+      "submissionStartDate",
+      "submissionEndDate",
+    ])
+
     await super.update(
       scanCriteria,
-      _.omit(data, [
-        "currentPhase",
-        "currentPhaseNames",
-        "registrationStartDate",
-        "registrationEndDate",
-        "submissionStartDate",
-        "submissionEndDate",
-      ])
+      dynamoUpdate
     );
 
     if (input.phases?.phases && input.phases.phases.length) {
@@ -421,6 +429,16 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         doc: data,
       },
     });
+
+    if (raiseEvent) {
+      let eventPayload;
+      if (_.isUndefined(challenge)) {
+        eventPayload = await this.lookup(DomainHelper.getLookupCriteria("id", id));
+      } else {
+        eventPayload = _.assign({}, challenge, dynamoUpdate);
+      }
+      await BusApi.postBusEvent(Topics.ChallengeUpdated, eventPayload);
+    }
   }
 
   private calculateTotalPrizesInCents(prizeSets: Challenge_PrizeSet[]): number {
