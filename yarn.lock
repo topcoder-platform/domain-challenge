@@ -2567,10 +2567,6 @@ topcoder-bus-api-wrapper@topcoder-platform/tc-bus-api-wrapper.git:
     superagent "^3.8.3"
     tc-core-library-js appirio-tech/tc-core-library-js.git#v2.6.4
 
-"topcoder-interface@github:topcoder-platform/plat-interface-definition#v0.0.49":
-  version "1.0.0"
-  resolved "https://codeload.github.com/topcoder-platform/plat-interface-definition/tar.gz/2688ec4d265f32d9d980eff6120b0e4740f22c12"
-
 "topcoder-interface@github:topcoder-platform/plat-interface-definition#v0.0.50-beta-1":
   version "1.0.0"
   resolved "https://codeload.github.com/topcoder-platform/plat-interface-definition/tar.gz/8adde65946946b00b9275d33c4b4f18caf5847fc"
