@@ -1,6 +1,7 @@
 interface Payload {
   endpoint: string;
-  phaseName: string;
+  phase: string;
+  operation: "open" | "close";
   method: string;
   authStrategy: string;
 }
