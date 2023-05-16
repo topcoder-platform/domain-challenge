@@ -1,8 +1,10 @@
 interface Payload {
   endpoint: string;
-  phase: string;
-  operation?: "open" | "close";
   method: string;
+  body: {
+    phase: string;
+    operation?: "open" | "close";
+  };
   authStrategy: string;
 }
 
@@ -25,8 +27,10 @@ class WorkflowBuilder {
       name: "",
       payload: {
         endpoint: "",
-        phase: "",
         method: "",
+        body: {
+          phase: "",
+        },
         authStrategy: "",
       },
       success: {

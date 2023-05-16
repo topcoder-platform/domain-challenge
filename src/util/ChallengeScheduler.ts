@@ -22,10 +22,9 @@ export default new (class {
           endpoint: `${
             process.env.TOPCODER_API_ENDPOINT ?? "https://api.topcoder-dev.com/v5/challenges"
           }/challenges/${challengeId}/advance-phase`,
-          method: "POST",
-          phase: phase.name,
-          operation: "open",
           authStrategy: "",
+          method: "POST",
+          body: { phase: phase.name, operation: "open" },
         })
         .setSuccess({ action: "Complete" })
         .setFailure({ action: "Complete" })
@@ -51,9 +50,8 @@ export default new (class {
             process.env.TOPCODER_API_ENDPOINT ?? "https://api.topcoder-dev.com/v5/challenges"
           }/challenges/${challengeId}/advance-phase`,
           method: "POST",
-          phase: phase.name,
-          operation: "close",
           authStrategy: "",
+          body: { phase: phase.name, operation: "close" },
         })
         .setSuccess({ action: "Complete" })
         .setFailure({ action: "Complete" })
