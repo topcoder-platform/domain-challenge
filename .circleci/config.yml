@@ -44,12 +44,15 @@ jobs:
           docker tag ${SERVICE_NAME}:${CIRCLE_SHA1} $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}:${CIRCLE_SHA1}
           docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}:${CIRCLE_SHA1}
           if [ "${ECR_ENV}" = "DEV" ]; then
+            echo "Publishing to ECR QA"
             # Publish to ECR QA
             ./awsconfiguration.sh QA
             source awsenvconf
             aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
             docker tag ${SERVICE_NAME}:${CIRCLE_SHA1} $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}:${CIRCLE_SHA1}
             docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}:${CIRCLE_SHA1}
+          else
+            echo "Not publishing to ECR QA"
           fi
 
 workflows:
