@@ -37,12 +37,25 @@ jobs:
           echo "Using ECR Environment: ${ECR_ENV}"
           ./awsconfiguration.sh ${ECR_ENV}
     - run:
-        name: "Publish docker image"
+        name: "Publish docker image to ${ECR_ENV}"
         command: |
           source awsenvconf
           aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
-          docker tag ${SERVICE_NAME}:${CIRCLE_SHA1} $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}:${CIRCLE_SHA1}
-          docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}:${CIRCLE_SHA1}
+          if [ "${ECR_ENV}" = "DEV" ]; then
+            # Publish to ECR DEV
+            docker tag ${SERVICE_NAME}:${CIRCLE_SHA1} $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}-dev:${CIRCLE_SHA1}
+            docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}-dev:${CIRCLE_SHA1}
+            # Publish to ECR QA
+            ./awsconfiguration.sh QA
+            source awsenvconf
+            aws ecr get-login-password | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+            docker tag ${SERVICE_NAME}:${CIRCLE_SHA1} $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}-qa:${CIRCLE_SHA1}
+            docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}-qa:${CIRCLE_SHA1}
+          else
+            # Publish to ECR PROD
+            docker tag ${SERVICE_NAME}:${CIRCLE_SHA1} $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}:${CIRCLE_SHA1}
+            docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${SERVICE_NAME}:${CIRCLE_SHA1}
+          fi
 
 workflows:
   version: 2
