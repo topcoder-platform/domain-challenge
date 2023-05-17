@@ -35,7 +35,7 @@ jobs:
     - image: cimg/aws:2023.01
     environment:
       CODEARTIFACT_ENV: PROD
-      ECR_ENV: DEV
+      ECR_ENV: QA
       SERVICE_NAME: "domain-challenge"
       OUT_DIR: "buildscripts"
     steps:
@@ -77,6 +77,15 @@ jobs:
       APPNAME: "domain-challenge"
     steps: *deploy_steps
 
+  deploy-qa:
+    !!merge <<: *defaults
+    environment:
+      DEPLOY_ENV: "QA"
+      LOGICAL_ENV: "qa"
+      BUILD_ENV: "qa"
+      APPNAME: "domain-challenge"
+    steps: *deploy_steps
+
   deploy-prod:
     !!merge <<: *defaults
     environment:
@@ -103,10 +112,15 @@ workflows:
           branches:
             only:
             - deploy/dev
+    - "deploy-qa":
+        context: "org-global"
+        filters:
+          branches:
+            only:
+            - deploy/qa
     - "deploy-prod":
         context: "org-global"
         filters:
           branches:
             only:
             - deploy/prod
-
