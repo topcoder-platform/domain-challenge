@@ -1,64 +1,55 @@
-interface Payload {
-  endpoint: string;
-  method: string;
-  body: {
-    phase: string;
-    operation?: "open" | "close";
-  };
-  authStrategy: string;
+// TODO: Move to @topcoder-framework/lib-workflow
+interface WorkflowPayload {
+  [key: string]: any;
 }
 
-interface ActionResult {
-  action: string;
+interface Transform {
+  [key: string]: string;
+}
+
+interface NextWorkflowConfiguration {
+  transform: Transform;
+}
+
+interface NextWorkflow {
+  workflow: string;
+  configuration: NextWorkflowConfiguration;
 }
 
 interface Workflow {
   name: string;
-  payload: Payload;
-  success: ActionResult;
-  failure: ActionResult;
+  payload: WorkflowPayload;
+  success?: NextWorkflow;
+  failure?: NextWorkflow;
 }
 
 class WorkflowBuilder {
-  private _workflow: Workflow;
+  protected _workflow: Workflow;
 
   constructor() {
     this._workflow = {
       name: "",
-      payload: {
-        endpoint: "",
-        method: "",
-        body: {
-          phase: "",
-        },
-        authStrategy: "",
-      },
-      success: {
-        action: "",
-      },
-      failure: {
-        action: "",
-      },
+      payload: {},
     };
   }
 
-  setName(name: string): WorkflowBuilder {
+  setName(name: string): this {
     this._workflow.name = name;
     return this;
   }
 
-  setPayload(payload: Payload): WorkflowBuilder {
+  setPayload(payload: WorkflowPayload): this {
     this._workflow.payload = payload;
     return this;
   }
 
-  setSuccess(success: ActionResult): WorkflowBuilder {
-    this._workflow.success = success;
+  setSuccess(nextWorkflow: NextWorkflow): this {
+    this._workflow.success = nextWorkflow;
     return this;
   }
 
-  setFailure(failure: ActionResult): WorkflowBuilder {
-    this._workflow.failure = failure;
+  setFailure(nextWorkflow: NextWorkflow): this {
+    this._workflow.failure = nextWorkflow;
     return this;
   }
 
@@ -67,4 +58,11 @@ class WorkflowBuilder {
   }
 }
 
-export default WorkflowBuilder;
+export {
+  WorkflowPayload,
+  Transform,
+  NextWorkflowConfiguration,
+  NextWorkflow,
+  Workflow,
+  WorkflowBuilder,
+};
