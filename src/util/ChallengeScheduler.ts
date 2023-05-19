@@ -13,7 +13,7 @@ const FunctionName =
 
 const buildPhaseAdvanceEndpoint = (challengeId: string) =>
   `${
-    process.env.TOPCODER_API_ENDPOINT ?? "https://api.topcoder-dev.com/v5/challenges"
+    process.env.TOPCODER_API_ENDPOINT ?? "https://api.topcoder-dev.com/v5"
   }/challenges/${challengeId}/advance-phase`;
 
 const buildAdvancePhaseWorkflowPayload = (
