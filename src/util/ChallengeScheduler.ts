@@ -132,13 +132,13 @@ export default new (class {
       if (phase.scheduledEndDate === null) return false;
 
       const scheduledEndDate = new Date(phase.scheduledEndDate!);
-      const isPastScheduledTime = scheduledEndDate < currentDate;
+      const isPastScheduledEndTime = scheduledEndDate < currentDate;
       const isOpenTrue = phase.isOpen;
 
       if (predecessor === null) {
-        return !phase.predecessor && !isPastScheduledTime && isOpenTrue;
+        return !phase.predecessor && !isPastScheduledEndTime && isOpenTrue;
       } else {
-        return phase.predecessor === predecessor && !isPastScheduledTime && isOpenTrue;
+        return phase.predecessor === predecessor && !isPastScheduledEndTime && isOpenTrue;
       }
     });
   }
