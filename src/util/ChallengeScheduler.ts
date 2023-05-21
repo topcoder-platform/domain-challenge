@@ -31,7 +31,8 @@ const buildNextWorkflowConfiguration = (endpoint: string): ApiRequestNextWorkflo
   endpoint,
   method: "POST",
   transform: {
-    "body.phase": "$.next[0].name",
+    "body.phase": "$.next.phases[0].name",
+    "body.operation": "$.next.operation",
   },
 });
 
