@@ -3,10 +3,6 @@
  */
 import metadataExtractor from "./metadataExtractor";
 
-const EVENT_ORIGINATOR = "legacy-challenge-processor";
-
-const EVENT_MIME_TYPE = "application/json";
-
 const scorecardQuestionMapping: any = {
   30002212: [
     {
@@ -144,8 +140,6 @@ const STUDIO_CATEGORY_TYPES = [
 ];
 
 export default {
-  EVENT_ORIGINATOR,
-  EVENT_MIME_TYPE,
   PhaseStatusTypes,
   prizeTypesIds,
   supportedMetadata,
