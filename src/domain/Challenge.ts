@@ -1,5 +1,5 @@
 import { ChallengeDomain as LegacyChallengeDomain } from "@topcoder-framework/domain-acl";
-import { DomainHelper } from "@topcoder-framework/lib-common";
+import { DomainHelper, PhaseFactRequest, PhaseFactResponse } from "@topcoder-framework/lib-common";
 import xss from "xss";
 import CoreOperations from "../common/CoreOperations";
 import { Value } from "../dal/models/nosql/parti_ql";
@@ -407,12 +407,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       "registrationEndDate",
       "submissionStartDate",
       "submissionEndDate",
-    ])
+    ]);
 
-    await super.update(
-      scanCriteria,
-      dynamoUpdate
-    );
+    await super.update(scanCriteria, dynamoUpdate);
 
     if (input.phases?.phases && input.phases.phases.length) {
       await ChallengeScheduler.schedule(id, input.phases.phases);
@@ -439,6 +436,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       }
       await BusApi.postBusEvent(Topics.ChallengeUpdated, eventPayload);
     }
+  }
+
+  public async getPhaseFacts(phaseFactRequest: PhaseFactRequest): Promise<PhaseFactResponse> {
+    // Just a pass through to the legacy domain - this is fine for now, but ideally these should be handled in the "future" review-api
+    return legacyChallengeDomain.getPhaseFacts(phaseFactRequest);
   }
 
   private calculateTotalPrizesInCents(prizeSets: Challenge_PrizeSet[]): number {

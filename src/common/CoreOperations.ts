@@ -4,9 +4,6 @@ import { noSqlClient } from "../dal/client/nosql";
 // TODO: Import from @topcoder-framework/lib-common
 import { LookupCriteria, ScanCriteria, ScanResult } from "../models/common/common";
 
-// TODO: Import from @topcoder-framework/lib-common
-import { Value } from "../models/google/protobuf/struct";
-
 import { Metadata, StatusBuilder } from "@grpc/grpc-js";
 import { Status } from "@grpc/grpc-js/build/src/constants";
 import {
@@ -26,6 +23,7 @@ import {
 } from "../dal/models/nosql/parti_ql";
 import { DataTypeDefinition, Schema } from "./Interfaces";
 import _ from "lodash";
+import { PhaseFactRequest, PhaseFactResponse } from "@topcoder-framework/lib-common";
 
 abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key: string]: any }> {
   #tableAttributes: Attribute[];
@@ -182,16 +180,23 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
               updates: Object.entries(entity)
                 .filter(([, value]) => value !== undefined)
                 .map(([key, value]) => {
-                  let actionToTake = UpdateAction.UPDATE_ACTION_SET
-                  let updateType = UpdateType.UPDATE_TYPE_VALUE
+                  let actionToTake = UpdateAction.UPDATE_ACTION_SET;
+                  let updateType = UpdateType.UPDATE_TYPE_VALUE;
 
                   // TODO: make this more generic, to check the data type and the length of the updates in case of delete the attribute
-                  if ([DataType.DATA_TYPE_LIST, DataType.DATA_TYPE_NUMBER_SET, DataType.DATA_TYPE_STRING_SET].includes(this.entitySchema.attributes[key].type) && value.length === 0) {
-                    actionToTake = UpdateAction.UPDATE_ACTION_REMOVE
-                    updateType = UpdateType.UPDATE_TYPE_SET_DELETE
+                  if (
+                    [
+                      DataType.DATA_TYPE_LIST,
+                      DataType.DATA_TYPE_NUMBER_SET,
+                      DataType.DATA_TYPE_STRING_SET,
+                    ].includes(this.entitySchema.attributes[key].type) &&
+                    value.length === 0
+                  ) {
+                    actionToTake = UpdateAction.UPDATE_ACTION_REMOVE;
+                    updateType = UpdateType.UPDATE_TYPE_SET_DELETE;
                   }
 
-                  return ({
+                  return {
                     action: actionToTake, // TODO: Write a convenience method in @topcoder-framework/lib-common to support additional update operations like LIST_APPEND, SET_ADD, SET_REMOVE, etc
                     type: updateType,
                     attribute: {
@@ -199,7 +204,7 @@ abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key
                       type: this.entitySchema.attributes[key].type,
                     },
                     value: this.marshallValue(this.entitySchema.attributes[key], value),
-                  })
+                  };
                 }),
               filters,
               returnValue: ReturnValue.RETURN_VALUE_ALL_NEW,
