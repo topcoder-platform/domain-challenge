@@ -1,6 +1,12 @@
 import { handleUnaryCall, sendUnaryData, ServerUnaryCall, UntypedHandleCall } from "@grpc/grpc-js";
 
-import { LookupCriteria, ScanRequest, ScanResult } from "../models/common/common";
+import {
+  LookupCriteria,
+  PhaseFactRequest,
+  PhaseFactResponse,
+  ScanRequest,
+  ScanResult,
+} from "../models/common/common";
 
 import {
   ChallengeServer,
@@ -91,6 +97,13 @@ class ChallengeServerImpl implements ChallengeServer {
     Domain.delete(lookupCriteria)
       .then((challengeList) => callback(null, challengeList))
       .catch((error) => callback(error, null));
+  };
+
+  getPhaseFacts: handleUnaryCall<PhaseFactRequest, PhaseFactResponse> = async (
+    call: ServerUnaryCall<PhaseFactRequest, PhaseFactResponse>,
+    callback: sendUnaryData<PhaseFactResponse>
+  ): Promise<void> => {
+    // TODO: Intentionally left blank
   };
 }
 
