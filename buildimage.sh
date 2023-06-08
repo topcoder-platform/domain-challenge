@@ -7,7 +7,7 @@ ENV=`echo "$ENV" | tr '[:upper:]' '[:lower:]'`
 
 informix_access_layer_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/informix-access-layer:bebda7880120facbd34969c5f9ff9c87036cb2d4
 dynamo_access_layer_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/dynamo-access-layer:024afa71805187e3780a0865c0d755f73dccda90
-anticorruption_layer_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/anticorruption-layer:7599a4e4d1460e59d5859fe422be8b731a08f4a8
+anticorruption_layer_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/anticorruption-layer:d3b754c606ae356d49724975a50b5ee3792768ba
 domain_challenge_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/domain-challenge:022c949218412e2fbe51baee4f589aba10d6f732
 
 sed -i='' "s|dynamo-access-layer:latest|$dynamo_access_layer_TAG|" docker-compose.yml
