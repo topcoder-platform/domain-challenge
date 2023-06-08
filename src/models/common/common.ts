@@ -191,6 +191,51 @@ export function domainToJSON(object: Domain): string {
   }
 }
 
+export enum PhaseFact {
+  PHASE_FACT_UNSPECIFIED = 0,
+  PHASE_FACT_HAS_ACTIVE_UNREVIEWED_SUBMISSIONS = 1,
+  PHASE_FACT_ARE_ALL_SUBMISSIONS_REVIEWED = 2,
+  PHASE_FACT_ARE_ALL_APPEALS_RESOLVED = 3,
+  UNRECOGNIZED = -1,
+}
+
+export function phaseFactFromJSON(object: any): PhaseFact {
+  switch (object) {
+    case 0:
+    case "PHASE_FACT_UNSPECIFIED":
+      return PhaseFact.PHASE_FACT_UNSPECIFIED;
+    case 1:
+    case "PHASE_FACT_HAS_ACTIVE_UNREVIEWED_SUBMISSIONS":
+      return PhaseFact.PHASE_FACT_HAS_ACTIVE_UNREVIEWED_SUBMISSIONS;
+    case 2:
+    case "PHASE_FACT_ARE_ALL_SUBMISSIONS_REVIEWED":
+      return PhaseFact.PHASE_FACT_ARE_ALL_SUBMISSIONS_REVIEWED;
+    case 3:
+    case "PHASE_FACT_ARE_ALL_APPEALS_RESOLVED":
+      return PhaseFact.PHASE_FACT_ARE_ALL_APPEALS_RESOLVED;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return PhaseFact.UNRECOGNIZED;
+  }
+}
+
+export function phaseFactToJSON(object: PhaseFact): string {
+  switch (object) {
+    case PhaseFact.PHASE_FACT_UNSPECIFIED:
+      return "PHASE_FACT_UNSPECIFIED";
+    case PhaseFact.PHASE_FACT_HAS_ACTIVE_UNREVIEWED_SUBMISSIONS:
+      return "PHASE_FACT_HAS_ACTIVE_UNREVIEWED_SUBMISSIONS";
+    case PhaseFact.PHASE_FACT_ARE_ALL_SUBMISSIONS_REVIEWED:
+      return "PHASE_FACT_ARE_ALL_SUBMISSIONS_REVIEWED";
+    case PhaseFact.PHASE_FACT_ARE_ALL_APPEALS_RESOLVED:
+      return "PHASE_FACT_ARE_ALL_APPEALS_RESOLVED";
+    case PhaseFact.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export interface ScanCriteria {
   key: string;
   operator?: Operator | undefined;
@@ -229,6 +274,20 @@ export interface LookupCriteria {
 export interface GoogleProtobufTypesPlaceholder {
   timestamp?: string;
   empty?: Empty;
+}
+
+export interface PhaseFactRequest {
+  legacyId: number;
+  facts: PhaseFact[];
+}
+
+export interface PhaseFactResponse {
+  factResponses: PhaseFactResponse_FactResponse[];
+}
+
+export interface PhaseFactResponse_FactResponse {
+  fact: PhaseFact;
+  response?: any;
 }
 
 function createBaseScanCriteria(): ScanCriteria {
@@ -810,6 +869,229 @@ export const GoogleProtobufTypesPlaceholder = {
     const message = createBaseGoogleProtobufTypesPlaceholder();
     message.timestamp = object.timestamp ?? undefined;
     message.empty = (object.empty !== undefined && object.empty !== null) ? Empty.fromPartial(object.empty) : undefined;
+    return message;
+  },
+};
+
+function createBasePhaseFactRequest(): PhaseFactRequest {
+  return { legacyId: 0, facts: [] };
+}
+
+export const PhaseFactRequest = {
+  encode(message: PhaseFactRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.legacyId !== 0) {
+      writer.uint32(8).int32(message.legacyId);
+    }
+    writer.uint32(18).fork();
+    for (const v of message.facts) {
+      writer.int32(v);
+    }
+    writer.ldelim();
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): PhaseFactRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePhaseFactRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 8) {
+            break;
+          }
+
+          message.legacyId = reader.int32();
+          continue;
+        case 2:
+          if (tag == 16) {
+            message.facts.push(reader.int32() as any);
+            continue;
+          }
+
+          if (tag == 18) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.facts.push(reader.int32() as any);
+            }
+
+            continue;
+          }
+
+          break;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PhaseFactRequest {
+    return {
+      legacyId: isSet(object.legacyId) ? Number(object.legacyId) : 0,
+      facts: Array.isArray(object?.facts) ? object.facts.map((e: any) => phaseFactFromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: PhaseFactRequest): unknown {
+    const obj: any = {};
+    message.legacyId !== undefined && (obj.legacyId = Math.round(message.legacyId));
+    if (message.facts) {
+      obj.facts = message.facts.map((e) => phaseFactToJSON(e));
+    } else {
+      obj.facts = [];
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PhaseFactRequest>, I>>(base?: I): PhaseFactRequest {
+    return PhaseFactRequest.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<PhaseFactRequest>, I>>(object: I): PhaseFactRequest {
+    const message = createBasePhaseFactRequest();
+    message.legacyId = object.legacyId ?? 0;
+    message.facts = object.facts?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBasePhaseFactResponse(): PhaseFactResponse {
+  return { factResponses: [] };
+}
+
+export const PhaseFactResponse = {
+  encode(message: PhaseFactResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.factResponses) {
+      PhaseFactResponse_FactResponse.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): PhaseFactResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePhaseFactResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.factResponses.push(PhaseFactResponse_FactResponse.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PhaseFactResponse {
+    return {
+      factResponses: Array.isArray(object?.factResponses)
+        ? object.factResponses.map((e: any) => PhaseFactResponse_FactResponse.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: PhaseFactResponse): unknown {
+    const obj: any = {};
+    if (message.factResponses) {
+      obj.factResponses = message.factResponses.map((e) => e ? PhaseFactResponse_FactResponse.toJSON(e) : undefined);
+    } else {
+      obj.factResponses = [];
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PhaseFactResponse>, I>>(base?: I): PhaseFactResponse {
+    return PhaseFactResponse.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<PhaseFactResponse>, I>>(object: I): PhaseFactResponse {
+    const message = createBasePhaseFactResponse();
+    message.factResponses = object.factResponses?.map((e) => PhaseFactResponse_FactResponse.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBasePhaseFactResponse_FactResponse(): PhaseFactResponse_FactResponse {
+  return { fact: 0, response: undefined };
+}
+
+export const PhaseFactResponse_FactResponse = {
+  encode(message: PhaseFactResponse_FactResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.fact !== 0) {
+      writer.uint32(8).int32(message.fact);
+    }
+    if (message.response !== undefined) {
+      Value.encode(Value.wrap(message.response), writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): PhaseFactResponse_FactResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePhaseFactResponse_FactResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 8) {
+            break;
+          }
+
+          message.fact = reader.int32() as any;
+          continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.response = Value.unwrap(Value.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PhaseFactResponse_FactResponse {
+    return {
+      fact: isSet(object.fact) ? phaseFactFromJSON(object.fact) : 0,
+      response: isSet(object?.response) ? object.response : undefined,
+    };
+  },
+
+  toJSON(message: PhaseFactResponse_FactResponse): unknown {
+    const obj: any = {};
+    message.fact !== undefined && (obj.fact = phaseFactToJSON(message.fact));
+    message.response !== undefined && (obj.response = message.response);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PhaseFactResponse_FactResponse>, I>>(base?: I): PhaseFactResponse_FactResponse {
+    return PhaseFactResponse_FactResponse.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<PhaseFactResponse_FactResponse>, I>>(
+    object: I,
+  ): PhaseFactResponse_FactResponse {
+    const message = createBasePhaseFactResponse_FactResponse();
+    message.fact = object.fact ?? 0;
+    message.response = object.response ?? undefined;
     return message;
   },
 };
