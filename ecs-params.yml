@@ -4,10 +4,10 @@ task_definition:
   services:
     dynamo-access-layer:
       cpu_shares: 100
-      mem_limit: 1G
+      mem_limit: 2G
     informix-access-layer:
       cpu_shares: 100
-      mem_limit: 1G 
+      mem_limit: 2G 
     anticorruption-layer:
       cpu_shares: 100
       mem_limit: 1G            
