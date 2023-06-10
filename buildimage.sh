@@ -5,7 +5,7 @@ set -eo pipefail
 ENV=$1
 ENV=`echo "$ENV" | tr '[:upper:]' '[:lower:]'`
 
-informix_access_layer_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/informix-access-layer:bebda7880120facbd34969c5f9ff9c87036cb2d4
+informix_access_layer_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/informix-access-layer:70a0bade6a649f7c8e2995ffe2fe2f46a0de6a97
 dynamo_access_layer_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/dynamo-access-layer:024afa71805187e3780a0865c0d755f73dccda90
 anticorruption_layer_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/anticorruption-layer:d3b754c606ae356d49724975a50b5ee3792768ba
 domain_challenge_TAG=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/domain-challenge:022c949218412e2fbe51baee4f589aba10d6f732
