@@ -27,8 +27,8 @@ import { ChallengeStatuses, ES_INDEX, ES_REFRESH, Topics } from "../common/Const
 import BusApi from "../helpers/BusApi";
 import ElasticSearch from "../helpers/ElasticSearch";
 import { ScanCriteria } from "../models/common/common";
-import ChallengeScheduler from "../util/ChallengeScheduler";
 import legacyMapper from "../util/LegacyMapper";
+import ChallengeScheduler from "../util/ChallengeScheduler";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
   throw new Error("Missing required configurations GRPC_ACL_SERVER_HOST and GRPC_ACL_SERVER_PORT");
