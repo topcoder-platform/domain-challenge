@@ -56,7 +56,7 @@ export default new (class {
     const input = {
       source: "challenge",
       id: challengeId,
-      key: phase,
+      key: phase.replace(" ", "-"),
       scheduledTime: new Date(Date.now() + 5000),
       workflow,
     };
@@ -81,7 +81,7 @@ export default new (class {
       const input = {
         source: "challenge",
         id: challengeId,
-        key: phase.name,
+        key: phase.name.replace(" ", "-"),
         scheduledTime: phase.scheduledStartDate!,
         workflow,
       };
@@ -106,7 +106,7 @@ export default new (class {
       const input = {
         source: "challenge",
         id: challengeId,
-        key: phase.name,
+        key: phase.name.replace(" ", "-"),
         scheduledTime: phase.scheduledEndDate!,
         workflow,
       };
