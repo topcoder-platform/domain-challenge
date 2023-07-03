@@ -132,20 +132,17 @@ export default new (class {
   }
 
   private findPhasesToOpen(challengePhases: Challenge_Phase[], predecessor?: string) {
-    const currentDate = new Date();
-
     return challengePhases.filter((phase: Challenge_Phase) => {
       if (phase.isOpen) return false;
       if (phase.scheduledStartDate === null) return false;
 
-      const scheduledStartDate = new Date(phase.scheduledStartDate!);
-      const hasFutureStartDate = scheduledStartDate > currentDate;
-      const isOpenFalse = !phase.isOpen;
+      const phaseNotStarted = phase.actualStartDate == null;
+      const phaseNotOpen = !phase.isOpen;
 
       if (predecessor === null) {
-        return !phase.predecessor && hasFutureStartDate && isOpenFalse;
+        return !phase.predecessor && phaseNotStarted && phaseNotOpen;
       } else {
-        return phase.predecessor === predecessor && hasFutureStartDate && isOpenFalse;
+        return phase.predecessor === predecessor && phaseNotStarted && phaseNotOpen;
       }
     });
   }

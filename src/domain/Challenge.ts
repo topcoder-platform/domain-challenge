@@ -282,11 +282,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     // prettier-ignore
     const totalPrizesInCents = this.calculateTotalPrizesInCents(input.prizeSetUpdate?.prizeSets ?? challenge.prizeSets ?? []);
 
-    if (input.phaseUpdate?.phases && input.phaseUpdate.phases.length) {
-      await ChallengeScheduler.schedule(challenge.id, input.phaseUpdate.phases);
-    }
-
-    return super.update(
+    const updatedChallenge = await super.update(
       scanCriteria,
       // prettier-ignore
       {
@@ -332,6 +328,12 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       },
       metadata
     );
+
+    if (input.phaseUpdate?.phases && input.phaseUpdate.phases.length) {
+      await ChallengeScheduler.schedule(challenge.id, input.phaseUpdate.phases);
+    }
+
+    return updatedChallenge;
   }
 
   public async updateForAcl(
