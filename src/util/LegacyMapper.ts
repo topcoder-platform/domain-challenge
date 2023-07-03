@@ -153,12 +153,7 @@ class LegacyMapper {
       3: "1", // Component Version
       4: "0",
       7: "1.0",
-      9:
-        [V4_SUBTRACKS.FIRST_2_FINISH, V4_SUBTRACKS.DEVELOPMENT, V4_SUBTRACKS.CODE].indexOf(
-          subTrack
-        ) !== -1
-          ? "Off"
-          : "On", // Turn Auto Pilot Off for F2F, Development and Code
+      9: [V4_SUBTRACKS.FIRST_2_FINISH].indexOf(subTrack) !== -1 ? "Off" : "On", // Turn Auto Pilot Off for F2F. Next in line: V4_SUBTRACKS.DEVELOPMENT, V4_SUBTRACKS.CODE
       78: "Development", // Forum Type - value doesn't matter
       10: "On", // Turn status notification on
       11: "On", // Turn timeline notification on
