@@ -343,12 +343,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const id = scanCriteria[0].value;
     const data: IUpdateDataFromACL = {};
     let raiseEvent = false;
+
     if (!_.isUndefined(input.status)) {
       data.status = input.status;
       if (input.status === ChallengeStatuses.Completed) {
         raiseEvent = true;
       }
     }
+
     if (!_.isUndefined(input.phases)) {
       data.phases = input.phases.phases;
       data.currentPhase = input.currentPhase;
@@ -363,6 +365,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     if (!_.isUndefined(input.currentPhaseNames)) {
       data.currentPhaseNames = input.currentPhaseNames.currentPhaseNames;
     }
+
     if (!_.isUndefined(input.legacy)) {
       if (_.isUndefined(challenge)) {
         try {
@@ -386,12 +389,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         };
       });
     }
+
     if (!_.isUndefined(input.overview)) {
       data.overview = {
         ...input.overview,
         totalPrizes: input.overview.totalPrizesInCents! / 100,
       };
     }
+
     if (!_.isUndefined(input.winners)) {
       data.winners = input.winners.winners;
       raiseEvent = true;
@@ -413,6 +418,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     if (input.phases?.phases && input.phases.phases.length) {
       await ChallengeScheduler.schedule(id, input.phases.phases);
+    }
+
+    if (!_.isUndefined(input.phaseToClose)) {
+      await ChallengeScheduler.schedulePhaseOperation(id, input.phaseToClose, "close");
     }
 
     this.cleanPrizeSets(data.prizeSets, data.overview);

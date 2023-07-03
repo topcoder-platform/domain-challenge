@@ -39,6 +39,31 @@ const buildNextWorkflowConfiguration = (endpoint: string): ApiRequestNextWorkflo
 export default new (class {
   #client: LambdaClient = new LambdaClient({ region: process.env.AWS_REGION });
 
+  async schedulePhaseOperation(challengeId: string, phase: string, operation: "open" | "close") {
+    const endpoint = buildPhaseAdvanceEndpoint(challengeId);
+    const payload = buildAdvancePhaseWorkflowPayload(endpoint, operation, phase);
+    const onSuccessWorkflowConfiguration = buildNextWorkflowConfiguration(endpoint);
+
+    const workflowBuilder = new ApiWorkflowBuilder();
+    const workflow = workflowBuilder
+      .setPayload(payload)
+      .setSuccess({
+        workflow: ApiWorkflowBuilder.WorkflowName,
+        configuration: onSuccessWorkflowConfiguration,
+      })
+      .build();
+
+    const input = {
+      source: "challenge",
+      id: challengeId,
+      key: phase,
+      scheduledTime: new Date(Date.now() + 5000),
+      workflow,
+    };
+
+    this.invokeSchedulerLambda(input);
+  }
+
   async schedule(challengeId: string, phases: Challenge_Phase[], predecessor?: string) {
     const phasesToOpen = this.findPhasesToOpen(phases, predecessor);
     const phasesToClose = this.findPhasesToClose(phases, predecessor);
