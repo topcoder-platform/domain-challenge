@@ -103,7 +103,10 @@ class ChallengeServerImpl implements ChallengeServer {
     call: ServerUnaryCall<PhaseFactRequest, PhaseFactResponse>,
     callback: sendUnaryData<PhaseFactResponse>
   ): Promise<void> => {
-    // TODO: Intentionally left blank
+    const { request: phaseFactRequest } = call;
+    Domain.getPhaseFacts(phaseFactRequest)
+      .then((phaseFactResponse) => callback(null, phaseFactResponse))
+      .catch((error) => callback(error, null));
   };
 }
 
