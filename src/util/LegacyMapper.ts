@@ -23,6 +23,7 @@ import {
 } from "@topcoder-framework/domain-acl";
 import { getRequest } from "../api/v5Api";
 import m2mToken from "../helpers/MachineToMachineToken";
+import DateUtil from "./DateUtil";
 
 class LegacyMapper {
   // To be used on challenge:update calls that change state from New -> Draft
@@ -242,6 +243,9 @@ class LegacyMapper {
     }
     if (input.billing?.billingAccountId != null) {
       projectInfo[32] = input.billing?.billingAccountId!.toString();
+    }
+    if (input.status === ChallengeStatuses.Completed) {
+      projectInfo[21] = DateUtil.formatDateForIfx(new Date().toISOString(), "MM.DD.YYYY HH:mm z")!; // project_info 21 is Completion Timestamp; and it has a different date format
     }
 
     const map = {
