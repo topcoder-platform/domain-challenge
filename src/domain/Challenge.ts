@@ -1,5 +1,5 @@
 import { ChallengeDomain as LegacyChallengeDomain } from "@topcoder-framework/domain-acl";
-import { DomainHelper } from "@topcoder-framework/lib-common";
+import { DomainHelper, PhaseFactRequest, PhaseFactResponse } from "@topcoder-framework/lib-common";
 import xss from "xss";
 import CoreOperations from "../common/CoreOperations";
 import { Value } from "../dal/models/nosql/parti_ql";
@@ -16,17 +16,19 @@ import {
   UpdateChallengeInputForACL_WinnerACL,
   UpdateChallengeInput_UpdateInput,
 } from "../models/domain-layer/challenge/challenge";
+
 import { ChallengeSchema } from "../schema/Challenge";
 
 import { Metadata, StatusBuilder } from "@grpc/grpc-js";
 import { Status } from "@grpc/grpc-js/build/src/constants";
 import { CreateChallengeInput as LegacyCreateChallengeInput } from "@topcoder-framework/domain-acl";
 import _ from "lodash";
-import { ChallengeStatuses, ES_INDEX, ES_REFRESH } from "../common/Constants";
+import { ChallengeStatuses, ES_INDEX, ES_REFRESH, Topics } from "../common/Constants";
+import BusApi from "../helpers/BusApi";
 import ElasticSearch from "../helpers/ElasticSearch";
 import { ScanCriteria } from "../models/common/common";
-import ChallengeScheduler from "../util/ChallengeScheduler";
 import legacyMapper from "../util/LegacyMapper";
+import ChallengeScheduler from "../util/ChallengeScheduler";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
   throw new Error("Missing required configurations GRPC_ACL_SERVER_HOST and GRPC_ACL_SERVER_PORT");
@@ -192,7 +194,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         }) ?? [],
     };
 
-    return super.create(challenge, metadata);
+    const newChallenge = await super.create(challenge, metadata);
+
+    if (input.phases && input.phases.length) {
+      await ChallengeScheduler.schedule(newChallenge.id, input.phases);
+    }
+
+    return newChallenge;
   }
 
   public async update(
@@ -274,7 +282,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     // prettier-ignore
     const totalPrizesInCents = this.calculateTotalPrizesInCents(input.prizeSetUpdate?.prizeSets ?? challenge.prizeSets ?? []);
 
-    return super.update(
+    const updatedChallenge = await super.update(
       scanCriteria,
       // prettier-ignore
       {
@@ -320,6 +328,12 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       },
       metadata
     );
+
+    if (input.phaseUpdate?.phases && input.phaseUpdate.phases.length) {
+      await ChallengeScheduler.schedule(challenge.id, input.phaseUpdate.phases);
+    }
+
+    return updatedChallenge;
   }
 
   public async updateForAcl(
@@ -330,9 +344,15 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     let challenge: Challenge | undefined = undefined;
     const id = scanCriteria[0].value;
     const data: IUpdateDataFromACL = {};
+    let raiseEvent = false;
+
     if (!_.isUndefined(input.status)) {
       data.status = input.status;
+      if (input.status === ChallengeStatuses.Completed) {
+        raiseEvent = true;
+      }
     }
+
     if (!_.isUndefined(input.phases)) {
       data.phases = input.phases.phases;
       data.currentPhase = input.currentPhase;
@@ -347,6 +367,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     if (!_.isUndefined(input.currentPhaseNames)) {
       data.currentPhaseNames = input.currentPhaseNames.currentPhaseNames;
     }
+
     if (!_.isUndefined(input.legacy)) {
       if (_.isUndefined(challenge)) {
         try {
@@ -370,44 +391,41 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         };
       });
     }
+
     if (!_.isUndefined(input.overview)) {
       data.overview = {
         ...input.overview,
         totalPrizes: input.overview.totalPrizesInCents! / 100,
       };
     }
+
     if (!_.isUndefined(input.winners)) {
       data.winners = input.winners.winners;
+      raiseEvent = true;
     }
 
     data.updated = new Date();
     data.updatedBy = updatedBy;
 
-    await super.update(
-      scanCriteria,
-      _.omit(data, [
-        "currentPhase",
-        "currentPhaseNames",
-        "registrationStartDate",
-        "registrationEndDate",
-        "submissionStartDate",
-        "submissionEndDate",
-      ])
-    );
+    const dynamoUpdate = _.omit(data, [
+      "currentPhase",
+      "currentPhaseNames",
+      "registrationStartDate",
+      "registrationEndDate",
+      "submissionStartDate",
+      "submissionEndDate",
+    ]);
 
-    /*
+    await super.update(scanCriteria, dynamoUpdate);
+
     if (input.phases?.phases && input.phases.phases.length) {
-      await ChallengeScheduler.schedule({
-        action: "schedule",
-        challengeId: id,
-        phases: input.phases.phases.map((phase) => ({
-          name: phase.name,
-          scheduledStartDate: phase.scheduledStartDate,
-          scheduledEndDate: phase.scheduledEndDate,
-        })),
-      });
+      await ChallengeScheduler.schedule(id, input.phases.phases);
     }
-    */
+
+    if (!_.isUndefined(input.phaseToClose)) {
+      await ChallengeScheduler.schedulePhaseOperation(id, input.phaseToClose, "close");
+    }
+
     this.cleanPrizeSets(data.prizeSets, data.overview);
 
     await this.esClient.update({
@@ -419,6 +437,21 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         doc: data,
       },
     });
+
+    if (raiseEvent) {
+      let eventPayload;
+      if (_.isUndefined(challenge)) {
+        eventPayload = await this.lookup(DomainHelper.getLookupCriteria("id", id));
+      } else {
+        eventPayload = _.assign({}, challenge, dynamoUpdate);
+      }
+      await BusApi.postBusEvent(Topics.ChallengeUpdated, eventPayload);
+    }
+  }
+
+  public async getPhaseFacts(phaseFactRequest: PhaseFactRequest): Promise<PhaseFactResponse> {
+    // Just a pass through to the legacy domain - this is fine for now, but ideally these should be handled in the "future" review-api
+    return legacyChallengeDomain.getPhaseFacts(phaseFactRequest);
   }
 
   private calculateTotalPrizesInCents(prizeSets: Challenge_PrizeSet[]): number {
