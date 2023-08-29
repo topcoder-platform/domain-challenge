@@ -26,9 +26,10 @@ import _ from "lodash";
 import { ChallengeStatuses, ES_INDEX, ES_REFRESH, Topics } from "../common/Constants";
 import BusApi from "../helpers/BusApi";
 import ElasticSearch from "../helpers/ElasticSearch";
-import { ScanCriteria } from "../models/common/common";
+import { LookupCriteria, ScanCriteria } from "../models/common/common";
 import legacyMapper from "../util/LegacyMapper";
 import ChallengeScheduler from "../util/ChallengeScheduler";
+import * as BillingAccount from "../api/BillingAccount";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
   throw new Error("Missing required configurations GRPC_ACL_SERVER_HOST and GRPC_ACL_SERVER_PORT");
@@ -141,60 +142,75 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       }
     }
 
-    const totalPrizes = this.calculateTotalPrizesInCents(input.prizeSets ?? []);
+    const totalPrizesInCents = this.calculateTotalPrizesInCents(input.prizeSets ?? []);
     const now = new Date().getTime();
 
-    // Begin Anti-Corruption Layer
-
-    // prettier-ignore
-    const { legacy, legacyChallengeId, phases } = await this.createLegacyChallenge(input, input.status, input.trackId, input.typeId, input.tags, metadata);
-
-    // End Anti-Corruption Layer
-
-    const challenge: Challenge = {
-      id: IdGenerator.generateUUID(),
-      created: now,
-      createdBy: handle,
-      updated: now,
-      updatedBy: handle,
-      winners: [],
-      overview: {
-        totalPrizes: totalPrizes / 100,
-        totalPrizesInCents: totalPrizes,
-      },
-      ...input,
-      prizeSets: (input.prizeSets ?? []).map((prizeSet) => {
-        return {
-          ...prizeSet,
-          prizes: (prizeSet.prizes ?? []).map((prize) => {
-            return {
-              ...prize,
-              value: prize.amountInCents! / 100,
-            };
-          }),
-        };
-      }),
-      legacy,
-      phases,
-      legacyId: legacyChallengeId != null ? legacyChallengeId : undefined,
-      description: xss(input.description ?? ""),
-      privateDescription: xss(input.privateDescription ?? ""),
-      metadata:
-        input.metadata.map((m) => {
-          let parsedValue = m.value;
-          try {
-            parsedValue = JSON.parse(m.value);
-          } catch (e) {
-            // ignore error and use unparsed value
-          }
-          return {
-            name: m.name,
-            value: parsedValue,
-          };
-        }) ?? [],
+    // Lock amount
+    const baValidation: BAValidation = {
+      billingAccountId: input.billing?.billingAccountId,
+      status: input.status,
+      totalPrizesInCents,
+      prevTotalPrizesInCents: 0,
     };
+    await this.lockConsumeAmount(baValidation);
+    let newChallenge;
+    try {
+      // Begin Anti-Corruption Layer
 
-    const newChallenge = await super.create(challenge, metadata);
+      // prettier-ignore
+      const { legacy, legacyChallengeId, phases } = await this.createLegacyChallenge(input, input.status, input.trackId, input.typeId, input.tags, metadata);
+
+      // End Anti-Corruption Layer
+
+      const challenge: Challenge = {
+        id: IdGenerator.generateUUID(),
+        created: now,
+        createdBy: handle,
+        updated: now,
+        updatedBy: handle,
+        winners: [],
+        overview: {
+          totalPrizes: totalPrizesInCents / 100,
+          totalPrizesInCents,
+        },
+        ...input,
+        prizeSets: (input.prizeSets ?? []).map((prizeSet) => {
+          return {
+            ...prizeSet,
+            prizes: (prizeSet.prizes ?? []).map((prize) => {
+              return {
+                ...prize,
+                value: prize.amountInCents! / 100,
+              };
+            }),
+          };
+        }),
+        legacy,
+        phases,
+        legacyId: legacyChallengeId != null ? legacyChallengeId : undefined,
+        description: xss(input.description ?? ""),
+        privateDescription: xss(input.privateDescription ?? ""),
+        metadata:
+          input.metadata.map((m) => {
+            let parsedValue = m.value;
+            try {
+              parsedValue = JSON.parse(m.value);
+            } catch (e) {
+              // ignore error and use unparsed value
+            }
+            return {
+              name: m.name,
+              value: parsedValue,
+            };
+          }) ?? [],
+      };
+
+      newChallenge = await super.create(challenge, metadata);
+    } catch (err) {
+      // Rollback lock amount
+      await this.lockConsumeAmount(baValidation, true);
+      throw err;
+    }
 
     if (input.phases && input.phases.length) {
       await ChallengeScheduler.schedule(newChallenge.id, input.phases);
@@ -210,124 +226,143 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   ): Promise<ChallengeList> {
     const { items } = await this.scan(scanCriteria, undefined);
     let challenge = items[0] as Challenge;
+    let updatedChallenge;
 
-    // Begin Anti-Corruption Layer
-    let legacyId: number | null = null;
-    if (challenge.legacy!.pureV5Task !== true) {
-      if (input.status === ChallengeStatuses.Draft) {
-        if (items.length === 0 || items[0] == null) {
-          throw new StatusBuilder()
-            .withCode(Status.NOT_FOUND)
-            .withDetails("Challenge not found")
-            .build();
-        }
-        // prettier-ignore
-        const createChallengeInput: CreateChallengeInput = {
-          name: input.name ?? challenge!.name,
-          typeId: input.typeId ?? challenge!.typeId,
-          trackId: input.trackId ?? challenge!.trackId,
-          billing: challenge.billing,
-          legacy: _.assign({}, challenge.legacy, input.legacy),
-          metadata: input.metadataUpdate != null ? input.metadataUpdate.metadata : challenge!.metadata,
-          phases: input.phaseUpdate != null ? input.phaseUpdate.phases : challenge!.phases,
-          events: input.eventUpdate != null ? input.eventUpdate.events : challenge!.events,
-          terms: input.termUpdate != null ? input.termUpdate.terms : challenge!.terms,
-          prizeSets: input.prizeSetUpdate != null ? input.prizeSetUpdate.prizeSets : challenge!.prizeSets,
-          tags: input.tagUpdate != null ? input.tagUpdate.tags : challenge!.tags,
-          status: input.status ?? challenge!.status,
-          attachments: input.attachmentUpdate != null ? input.attachmentUpdate.attachments : challenge!.attachments,
-          groups: input.groupUpdate != null ? input.groupUpdate.groups : challenge!.groups,
-          discussions: input.discussionUpdate != null ? input.discussionUpdate.discussions : challenge!.discussions,
-        };
+    // prettier-ignore
+    const prevTotalPrizesInCents = this.calculateTotalPrizesInCents(challenge?.prizeSets ?? []);
 
-        // prettier-ignore
-        const { legacy, legacyChallengeId, phases } = await this.createLegacyChallenge(createChallengeInput, input.status, challenge!.trackId, challenge!.typeId, challenge!.tags, metadata);
+    // prettier-ignore
+    const totalPrizesInCents = _.isArray(input.prizeSetUpdate?.prizeSets) ? this.calculateTotalPrizesInCents(input.prizeSetUpdate?.prizeSets!) : prevTotalPrizesInCents;
 
-        input.legacy = legacy;
-        input.phaseUpdate = { phases };
-        legacyId = legacyChallengeId;
-      } else if (challenge.status !== ChallengeStatuses.New) {
-        // prettier-ignore
-        const updateChallengeInput = await legacyMapper.mapChallengeUpdateInput(
-          challenge.legacyId!,
-          challenge.legacy?.subTrack!,
-          challenge.billing?.billingAccountId,
-          input
-        );
+    const baValidation: BAValidation = {
+      challengeId: challenge?.id,
+      billingAccountId: input.billing?.billingAccountId ?? challenge?.billing?.billingAccountId,
+      status: input.status ?? challenge?.status,
+      prevStatus: challenge?.status,
+      totalPrizesInCents,
+      prevTotalPrizesInCents,
+    };
 
-        if (
-          updateChallengeInput.termUpdate ||
-          updateChallengeInput.groupUpdate ||
-          updateChallengeInput.phaseUpdate ||
-          updateChallengeInput.prizeUpdate ||
-          updateChallengeInput.projectStatusId ||
-          !_.isEmpty(updateChallengeInput.name) ||
-          !_.isEmpty(updateChallengeInput.projectInfo)
-        ) {
-          const { updatedCount } = await legacyChallengeDomain.update(
-            updateChallengeInput,
-            metadata
-          );
-          if (updatedCount === 0) {
+    await this.lockConsumeAmount(baValidation);
+    try {
+      // Begin Anti-Corruption Layer
+      let legacyId: number | null = null;
+      if (challenge.legacy!.pureV5Task !== true) {
+        if (input.status === ChallengeStatuses.Draft) {
+          if (items.length === 0 || items[0] == null) {
             throw new StatusBuilder()
-              .withCode(Status.ABORTED)
-              .withDetails("Failed to update challenge")
+              .withCode(Status.NOT_FOUND)
+              .withDetails("Challenge not found")
               .build();
+          }
+          // prettier-ignore
+          const createChallengeInput: CreateChallengeInput = {
+            name: input.name ?? challenge!.name,
+            typeId: input.typeId ?? challenge!.typeId,
+            trackId: input.trackId ?? challenge!.trackId,
+            billing: challenge.billing,
+            legacy: _.assign({}, challenge.legacy, input.legacy),
+            metadata: input.metadataUpdate != null ? input.metadataUpdate.metadata : challenge!.metadata,
+            phases: input.phaseUpdate != null ? input.phaseUpdate.phases : challenge!.phases,
+            events: input.eventUpdate != null ? input.eventUpdate.events : challenge!.events,
+            terms: input.termUpdate != null ? input.termUpdate.terms : challenge!.terms,
+            prizeSets: input.prizeSetUpdate != null ? input.prizeSetUpdate.prizeSets : challenge!.prizeSets,
+            tags: input.tagUpdate != null ? input.tagUpdate.tags : challenge!.tags,
+            status: input.status ?? challenge!.status,
+            attachments: input.attachmentUpdate != null ? input.attachmentUpdate.attachments : challenge!.attachments,
+            groups: input.groupUpdate != null ? input.groupUpdate.groups : challenge!.groups,
+            discussions: input.discussionUpdate != null ? input.discussionUpdate.discussions : challenge!.discussions,
+          };
+
+          // prettier-ignore
+          const { legacy, legacyChallengeId, phases } = await this.createLegacyChallenge(createChallengeInput, input.status, challenge!.trackId, challenge!.typeId, challenge!.tags, metadata);
+
+          input.legacy = legacy;
+          input.phaseUpdate = { phases };
+          legacyId = legacyChallengeId;
+        } else if (challenge.status !== ChallengeStatuses.New) {
+          // prettier-ignore
+          const updateChallengeInput = await legacyMapper.mapChallengeUpdateInput(
+            challenge.legacyId!,
+            challenge.legacy?.subTrack!,
+            challenge.billing?.billingAccountId,
+            input
+          );
+
+          if (
+            updateChallengeInput.termUpdate ||
+            updateChallengeInput.groupUpdate ||
+            updateChallengeInput.phaseUpdate ||
+            updateChallengeInput.prizeUpdate ||
+            updateChallengeInput.projectStatusId ||
+            !_.isEmpty(updateChallengeInput.name) ||
+            !_.isEmpty(updateChallengeInput.projectInfo)
+          ) {
+            const { updatedCount } = await legacyChallengeDomain.update(
+              updateChallengeInput,
+              metadata
+            );
+            if (updatedCount === 0) {
+              throw new StatusBuilder()
+                .withCode(Status.ABORTED)
+                .withDetails("Failed to update challenge")
+                .build();
+            }
           }
         }
       }
+      // End Anti-Corruption Layer
+
+      updatedChallenge = await super.update(
+        scanCriteria,
+        // prettier-ignore
+        {
+          name: input.name != null ? xss(input.name) : undefined,
+          typeId: input.typeId != null ? input.typeId : undefined,
+          trackId: input.trackId != null ? input.trackId : undefined,
+          timelineTemplateId: input.timelineTemplateId != null ? input.timelineTemplateId : undefined,
+          legacy: input.legacy != null ? input.legacy : undefined,
+          billing: input.billing != null ? input.billing : undefined,
+          description: input.description != null ? xss(input.description) : undefined,
+          privateDescription: input.privateDescription != null ? xss(input.privateDescription) : undefined,
+          descriptionFormat: input.descriptionFormat != null ? input.descriptionFormat : undefined,
+          task: input.task != null ? input.task : undefined,
+          winners: input.winnerUpdate != null ? input.winnerUpdate.winners : undefined,
+          discussions: input.discussionUpdate != null ? input.discussionUpdate.discussions : undefined,
+          metadata: input.metadataUpdate != null ? input.metadataUpdate.metadata : undefined,
+          phases: input.phaseUpdate != null ? input.phaseUpdate.phases : undefined,
+          events: input.eventUpdate != null ? input.eventUpdate.events : undefined,
+          terms: input.termUpdate != null ? input.termUpdate.terms : undefined,
+          prizeSets: input.prizeSetUpdate != null ? input.prizeSetUpdate.prizeSets.map((prizeSet) => {
+            return {
+              ...prizeSet,
+              prizes: (prizeSet.prizes ?? []).map((prize) => {
+                return {
+                  ...prize,
+                  value: prize.amountInCents! / 100,
+                };
+              }),
+            };
+          }) : undefined,
+          tags: input.tagUpdate != null ? input.tagUpdate.tags : undefined,
+          status: input.status != null ? input.status : undefined,
+          attachments: input.attachmentUpdate != null ? input.attachmentUpdate.attachments : undefined,
+          groups: input.groupUpdate != null ? input.groupUpdate.groups : undefined,
+          projectId: input.projectId != null ? input.projectId : undefined,
+          startDate: input.startDate != null ? input.startDate : undefined,
+          endDate: input.endDate != null ? input.endDate : undefined,
+          overview: input.overview != null ? {
+            totalPrizes: totalPrizesInCents / 100,
+            totalPrizesInCents,
+          } : undefined,
+          legacyId: legacyId != null ? legacyId : undefined,
+        },
+        metadata
+      );
+    } catch (err) {
+      await this.lockConsumeAmount(baValidation, true);
+      throw err;
     }
-    // End Anti-Corruption Layer
-
-    // prettier-ignore
-    const totalPrizesInCents = this.calculateTotalPrizesInCents(input.prizeSetUpdate?.prizeSets ?? challenge.prizeSets ?? []);
-
-    const updatedChallenge = await super.update(
-      scanCriteria,
-      // prettier-ignore
-      {
-        name: input.name != null ? xss(input.name) : undefined,
-        typeId: input.typeId != null ? input.typeId : undefined,
-        trackId: input.trackId != null ? input.trackId : undefined,
-        timelineTemplateId: input.timelineTemplateId != null ? input.timelineTemplateId : undefined,
-        legacy: input.legacy != null ? input.legacy : undefined,
-        billing: input.billing != null ? input.billing : undefined,
-        description: input.description != null ? xss(input.description) : undefined,
-        privateDescription: input.privateDescription != null ? xss(input.privateDescription) : undefined,
-        descriptionFormat: input.descriptionFormat != null ? input.descriptionFormat : undefined,
-        task: input.task != null ? input.task : undefined,
-        winners: input.winnerUpdate != null ? input.winnerUpdate.winners : undefined,
-        discussions: input.discussionUpdate != null ? input.discussionUpdate.discussions : undefined,
-        metadata: input.metadataUpdate != null ? input.metadataUpdate.metadata : undefined,
-        phases: input.phaseUpdate != null ? input.phaseUpdate.phases : undefined,
-        events: input.eventUpdate != null ? input.eventUpdate.events : undefined,
-        terms: input.termUpdate != null ? input.termUpdate.terms : undefined,
-        prizeSets: input.prizeSetUpdate != null ? input.prizeSetUpdate.prizeSets.map((prizeSet) => {
-          return {
-            ...prizeSet,
-            prizes: (prizeSet.prizes ?? []).map((prize) => {
-              return {
-                ...prize,
-                value: prize.amountInCents! / 100,
-              };
-            }),
-          };
-        }) : undefined,
-        tags: input.tagUpdate != null ? input.tagUpdate.tags : undefined,
-        status: input.status != null ? input.status : undefined,
-        attachments: input.attachmentUpdate != null ? input.attachmentUpdate.attachments : undefined,
-        groups: input.groupUpdate != null ? input.groupUpdate.groups : undefined,
-        projectId: input.projectId != null ? input.projectId : undefined,
-        startDate: input.startDate != null ? input.startDate : undefined,
-        endDate: input.endDate != null ? input.endDate : undefined,
-        overview: input.overview != null ? {
-          totalPrizes: totalPrizesInCents / 100,
-          totalPrizesInCents,
-        } : undefined,
-        legacyId: legacyId != null ? legacyId : undefined,
-      },
-      metadata
-    );
 
     if (input.phaseUpdate?.phases && input.phaseUpdate.phases.length) {
       await ChallengeScheduler.schedule(challenge.id, input.phaseUpdate.phases);
@@ -341,9 +376,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     input: UpdateChallengeInputForACL_UpdateInputForACL
   ): Promise<void> {
     const updatedBy = "tcwebservice"; // TODO: Extract from interceptors
-    let challenge: Challenge | undefined = undefined;
     const id = scanCriteria[0].value;
     const data: IUpdateDataFromACL = {};
+    const challenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
+
     let raiseEvent = false;
 
     if (!_.isUndefined(input.status)) {
@@ -369,14 +405,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     }
 
     if (!_.isUndefined(input.legacy)) {
-      if (_.isUndefined(challenge)) {
-        try {
-          challenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
-        } catch (err) {
-          console.error(err);
-          throw err;
-        }
-      }
       data.legacy = _.assign({}, challenge.legacy, input.legacy);
     }
 
@@ -407,6 +435,21 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     data.updated = new Date();
     data.updatedBy = updatedBy;
 
+    // prettier-ignore
+    const prevTotalPrizesInCents = this.calculateTotalPrizesInCents(challenge?.prizeSets ?? []);
+    // prettier-ignore
+    const totalPrizesInCents = _.isArray(data.prizeSets) ? this.calculateTotalPrizesInCents(data.prizeSets!) : prevTotalPrizesInCents;
+
+    const baValidation: BAValidation = {
+      challengeId: challenge?.id,
+      billingAccountId: challenge?.billing?.billingAccountId,
+      status: input.status ?? challenge?.status,
+      prevStatus: challenge?.status,
+      totalPrizesInCents,
+      prevTotalPrizesInCents,
+    };
+
+    await this.lockConsumeAmount(baValidation);
     const dynamoUpdate = _.omit(data, [
       "currentPhase",
       "currentPhaseNames",
@@ -416,7 +459,12 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       "submissionEndDate",
     ]);
 
-    await super.update(scanCriteria, dynamoUpdate);
+    try {
+      await super.update(scanCriteria, dynamoUpdate);
+    } catch (err) {
+      await this.lockConsumeAmount(baValidation, true);
+      throw err;
+    }
 
     if (input.phases?.phases && input.phases.phases.length) {
       await ChallengeScheduler.schedule(id, input.phases.phases);
@@ -446,6 +494,79 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         eventPayload = _.assign({}, challenge, dynamoUpdate);
       }
       await BusApi.postBusEvent(Topics.ChallengeUpdated, eventPayload);
+    }
+  }
+
+  public async delete(lookupCriteria: LookupCriteria): Promise<ChallengeList> {
+    const challenge = await this.lookup(lookupCriteria);
+
+    // prettier-ignore
+    const prevTotalPrizesInCents = this.calculateTotalPrizesInCents(challenge?.prizeSets ?? []);
+
+    const baValidation: BAValidation = {
+      challengeId: challenge?.id,
+      billingAccountId: challenge?.billing?.billingAccountId,
+      status: ChallengeStatuses.Deleted,
+      prevStatus: challenge?.status,
+      prevTotalPrizesInCents,
+      totalPrizesInCents: prevTotalPrizesInCents,
+    };
+
+    await this.lockConsumeAmount(baValidation);
+
+    try {
+      return super.delete(lookupCriteria);
+    } catch (err) {
+      await this.lockConsumeAmount(baValidation, true);
+      throw err;
+    }
+  }
+
+  private async lockConsumeAmount(
+    baValidation: BAValidation,
+    rollback: boolean = false
+  ): Promise<void> {
+    console.log("Update BA validation:", baValidation);
+    if (!_.isNumber(baValidation.billingAccountId)) {
+      return;
+    }
+
+    let amount: number;
+    if (
+      baValidation.status === baValidation.prevStatus ||
+      baValidation.status === ChallengeStatuses.New ||
+      baValidation.status === ChallengeStatuses.Draft ||
+      baValidation.status === ChallengeStatuses.Active ||
+      baValidation.status === ChallengeStatuses.Approved
+    ) {
+      // Update lock amount
+      amount = (baValidation.totalPrizesInCents - baValidation.prevTotalPrizesInCents) / 100;
+
+      // prettier-ignore
+      await BillingAccount.lockAmount(baValidation.billingAccountId, rollback ? -amount : amount);
+    } else if (baValidation.status === ChallengeStatuses.Completed) {
+      // Challenge completed, set consumed amount
+      amount = baValidation.totalPrizesInCents / 100;
+
+      // prettier-ignore
+      await BillingAccount.consumeAmount(baValidation.billingAccountId, rollback ? -amount : amount);
+    } else if (
+      baValidation.status === ChallengeStatuses.Deleted ||
+      baValidation.status === ChallengeStatuses.Canceled ||
+      baValidation.status === ChallengeStatuses.CancelledFailedReview ||
+      baValidation.status === ChallengeStatuses.CancelledFailedScreening ||
+      baValidation.status === ChallengeStatuses.CancelledZeroSubmissions ||
+      baValidation.status === ChallengeStatuses.CancelledWinnerUnresponsive ||
+      baValidation.status === ChallengeStatuses.CancelledClientRequest ||
+      baValidation.status === ChallengeStatuses.CancelledRequirementsInfeasible ||
+      baValidation.status === ChallengeStatuses.CancelledZeroRegistrations ||
+      baValidation.status === ChallengeStatuses.CancelledPaymentFailed
+    ) {
+      // Challenge canceled, update lock amount
+      amount = baValidation.prevTotalPrizesInCents / 100;
+
+      // prettier-ignore
+      await BillingAccount.lockAmount(baValidation.billingAccountId, rollback ? amount : -amount);
     }
   }
 
@@ -481,6 +602,15 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       delete overview.totalPrizesInCents;
     }
   }
+}
+
+interface BAValidation {
+  challengeId?: string;
+  billingAccountId?: number;
+  prevStatus?: string;
+  status?: string;
+  prevTotalPrizesInCents: number;
+  totalPrizesInCents: number;
 }
 
 interface IUpdateDataFromACL {
