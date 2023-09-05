@@ -212,7 +212,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       throw err;
     }
 
-    if (input.phases && input.phases.length) {
+    if (input.phases && input.phases.length && this.shouldUseScheduler(newChallenge)) {
       await ChallengeScheduler.schedule(newChallenge.id, input.phases);
     }
 
@@ -364,7 +364,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       throw err;
     }
 
-    if (input.phaseUpdate?.phases && input.phaseUpdate.phases.length) {
+    if (
+      input.phaseUpdate?.phases &&
+      input.phaseUpdate.phases.length &&
+      this.shouldUseScheduler(challenge)
+    ) {
       await ChallengeScheduler.schedule(challenge.id, input.phaseUpdate.phases);
     }
 
@@ -377,6 +381,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   ): Promise<void> {
     const updatedBy = "tcwebservice"; // TODO: Extract from interceptors
     const id = scanCriteria[0].value;
+
+    const challenge: Challenge | undefined =
+      !_.isUndefined(input.legacy) ||
+      !_.isUndefined(input.phaseToClose) ||
+      (input.phases?.phases && input.phases.phases.length)
+        ? await this.lookup(DomainHelper.getLookupCriteria("id", id))
+        : undefined;
+
     const data: IUpdateDataFromACL = {};
     const challenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
 
@@ -405,7 +417,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     }
 
     if (!_.isUndefined(input.legacy)) {
-      data.legacy = _.assign({}, challenge.legacy, input.legacy);
+      data.legacy = _.assign({}, challenge?.legacy, input.legacy);
     }
 
     if (!_.isUndefined(input.prizeSets)) {
@@ -466,11 +478,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       throw err;
     }
 
-    if (input.phases?.phases && input.phases.phases.length) {
+    if (input.phases?.phases && input.phases.phases.length && this.shouldUseScheduler(challenge!)) {
       await ChallengeScheduler.schedule(id, input.phases.phases);
     }
 
-    if (!_.isUndefined(input.phaseToClose)) {
+    if (!_.isUndefined(input.phaseToClose) && this.shouldUseScheduler(challenge!)) {
       await ChallengeScheduler.schedulePhaseOperation(id, input.phaseToClose, "close");
     }
 
@@ -601,6 +613,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     if (overview && !_.isUndefined(overview.totalPrizesInCents)) {
       delete overview.totalPrizesInCents;
     }
+  }
+
+  private shouldUseScheduler(challenge: Challenge) {
+    // Use scheduler only for legacy code F2Fs
+    return challenge?.legacy?.subTrack === "FIRST_2_FINISH" && !challenge?.legacy.pureV5Task;
   }
 }
 
