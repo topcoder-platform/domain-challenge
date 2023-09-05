@@ -382,13 +382,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const updatedBy = "tcwebservice"; // TODO: Extract from interceptors
     const id = scanCriteria[0].value;
 
-    const challenge: Challenge | undefined =
-      !_.isUndefined(input.legacy) ||
-      !_.isUndefined(input.phaseToClose) ||
-      (input.phases?.phases && input.phases.phases.length)
-        ? await this.lookup(DomainHelper.getLookupCriteria("id", id))
-        : undefined;
-
     const data: IUpdateDataFromACL = {};
     const challenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
 
