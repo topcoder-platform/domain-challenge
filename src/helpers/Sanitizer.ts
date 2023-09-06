@@ -15,13 +15,18 @@ const htmlXSS = new xss.FilterXSS();
 const markdownXSS = new xss.FilterXSS({
   whiteList: xssWhiteTags,
   escapeHtml: (html) => {
-    // Handle blockquote which starts with '>'
-    const blockquoteMatched = html.match(/^\s*>/);
-    if (blockquoteMatched) {
-      // prettier-ignore
-      return blockquoteMatched[0] + html.substring(blockquoteMatched[0].length).replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-    return html.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    const splitted = html.split("\n");
+    return splitted
+      .map((str) => {
+        // Handle blockquote which starts with '>'
+        const blockquoteMatched = str.match(/^\s*>/);
+        if (blockquoteMatched) {
+          // prettier-ignore
+          return blockquoteMatched[0] + str.substring(blockquoteMatched[0].length).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+        return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      })
+      .join("\n");
   },
 });
 
