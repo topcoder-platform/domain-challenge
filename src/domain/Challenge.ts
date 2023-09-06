@@ -148,6 +148,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     // Lock amount
     const baValidation: BAValidation = {
       billingAccountId: input.billing?.billingAccountId,
+      markup: input.billing?.markup,
       status: input.status,
       totalPrizesInCents,
       prevTotalPrizesInCents: 0,
@@ -237,6 +238,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const baValidation: BAValidation = {
       challengeId: challenge?.id,
       billingAccountId: input.billing?.billingAccountId ?? challenge?.billing?.billingAccountId,
+      markup: input.billing?.markup !== undefined && input.billing?.markup !== null ? input.billing?.markup : challenge?.billing?.markup,
       status: input.status ?? challenge?.status,
       prevStatus: challenge?.status,
       totalPrizesInCents,
@@ -448,6 +450,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const baValidation: BAValidation = {
       challengeId: challenge?.id,
       billingAccountId: challenge?.billing?.billingAccountId,
+      markup: challenge?.billing?.markup,
       status: input.status ?? challenge?.status,
       prevStatus: challenge?.status,
       totalPrizesInCents,
@@ -511,6 +514,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const baValidation: BAValidation = {
       challengeId: challenge?.id,
       billingAccountId: challenge?.billing?.billingAccountId,
+      markup: challenge?.billing?.markup,
       status: ChallengeStatuses.Deleted,
       prevStatus: challenge?.status,
       prevTotalPrizesInCents,
@@ -554,7 +558,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       const consumedAmount = baValidation.totalPrizesInCents / 100;
 
       // prettier-ignore
-      await BillingAccount.consumeAmount(baValidation.billingAccountId, rollback ? -lockedAmount : lockedAmount, rollback ? -consumedAmount : consumedAmount);
+      const dto = {
+        challengeId: baValidation.challengeId!,
+        markup: baValidation.markup,
+        consumedAmount: rollback ? -consumedAmount : consumedAmount,
+        unlockedAmount: rollback ? -lockedAmount : lockedAmount,
+      };
+      await BillingAccount.consumeAmount(baValidation.billingAccountId, dto);
     } else if (
       baValidation.status === ChallengeStatuses.Deleted ||
       baValidation.status === ChallengeStatuses.Canceled ||
@@ -617,6 +627,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 interface BAValidation {
   challengeId?: string;
   billingAccountId?: number;
+  markup?: number;
   prevStatus?: string;
   status?: string;
   prevTotalPrizesInCents: number;

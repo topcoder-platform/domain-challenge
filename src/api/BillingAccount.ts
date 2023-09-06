@@ -68,8 +68,9 @@ export async function lockAmount(billingAccountId: number, amount: number) {
   }
 }
 
-export async function consumeAmount(billingAccountId: number, unlockAmount: number, consumedAmount: number) {
-  if ((consumedAmount === 0 && unlockAmount === 0) || _.includes(TGBillingAccounts, billingAccountId)) {
+export async function consumeAmount(billingAccountId: number, dto: ConsumedAmountDTO) {
+  // prettier-ignore
+  if ((dto.consumedAmount === 0 && dto.unlockedAmount === 0) || _.includes(TGBillingAccounts, billingAccountId)) {
     return;
   }
 
@@ -79,10 +80,7 @@ export async function consumeAmount(billingAccountId: number, unlockAmount: numb
     await axios.patch(
       `${V3_BA_API_URL}/${billingAccountId}/consume-amount`,
       {
-        param: {
-            "unlockedAmount": unlockAmount,
-            "consumedAmount": consumedAmount
-        },
+        param: dto,
       },
       {
         headers: {
@@ -97,4 +95,11 @@ export async function consumeAmount(billingAccountId: number, unlockAmount: numb
       .withDetails(err.response?.data?.result?.content ?? "Failed to consume challenge amount")
       .build();
   }
+}
+
+export interface ConsumedAmountDTO {
+  challengeId: string;
+  markup?: number;
+  consumedAmount: number;
+  unlockedAmount: number;
 }
