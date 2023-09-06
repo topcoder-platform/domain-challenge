@@ -1,6 +1,6 @@
 import { ChallengeDomain as LegacyChallengeDomain } from "@topcoder-framework/domain-acl";
 import { DomainHelper, PhaseFactRequest, PhaseFactResponse } from "@topcoder-framework/lib-common";
-import * as xss from "xss";
+import { sanitize } from "../helpers/Sanitizer";
 import CoreOperations from "../common/CoreOperations";
 import { Value } from "../dal/models/nosql/parti_ql";
 import IdGenerator from "../helpers/IdGenerator";
@@ -38,38 +38,6 @@ const legacyChallengeDomain = new LegacyChallengeDomain(
   process.env.GRPC_ACL_SERVER_HOST,
   process.env.GRPC_ACL_SERVER_PORT
 );
-
-const xssWhiteTags = xss.getDefaultWhiteList();
-for (const key of Object.keys(xssWhiteTags)) {
-  // Allow style attribute
-  if (!xssWhiteTags[key]?.includes("style")) {
-    xssWhiteTags[key]?.push("style");
-  }
-}
-
-// XSS filter for html
-const htmlXSS = new xss.FilterXSS();
-
-// XSS filter for markdown
-const markdownXSS = new xss.FilterXSS({
-  whiteList: xssWhiteTags,
-  escapeHtml: (html) => {
-    // Handle blockquote which starts with '>'
-    const blockquoteMatched = html.match(/^\s*>/);
-    if (blockquoteMatched) {
-      // prettier-ignore
-      return blockquoteMatched[0] + html.substring(blockquoteMatched[0].length).replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-    return html.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  },
-});
-
-function sanitize(str: string, format: string = 'html'): string {
-  if (!str) {
-    return str;
-  }
-  return format === 'markdown' ? markdownXSS.process(str) : htmlXSS.process(str);
-}
 
 class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   private esClient = ElasticSearch.getESClient();
