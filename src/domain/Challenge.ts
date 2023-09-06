@@ -536,7 +536,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       return;
     }
 
-    let amount: number;
     if (
       baValidation.status === baValidation.prevStatus ||
       baValidation.status === ChallengeStatuses.New ||
@@ -544,17 +543,18 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       baValidation.status === ChallengeStatuses.Active ||
       baValidation.status === ChallengeStatuses.Approved
     ) {
-      // Update lock amount
-      amount = (baValidation.totalPrizesInCents - baValidation.prevTotalPrizesInCents) / 100;
+      // Update lock amount by increase the delta amount
+      const amount = (baValidation.totalPrizesInCents - baValidation.prevTotalPrizesInCents) / 100;
 
       // prettier-ignore
       await BillingAccount.lockAmount(baValidation.billingAccountId, rollback ? -amount : amount);
     } else if (baValidation.status === ChallengeStatuses.Completed) {
-      // Challenge completed, set consumed amount
-      amount = baValidation.totalPrizesInCents / 100;
+      // Challenge completed, unlock previous locked amount, and increase consumed amount
+      const lockedAmount = baValidation.prevTotalPrizesInCents / 100;
+      const consumedAmount = baValidation.totalPrizesInCents / 100;
 
       // prettier-ignore
-      await BillingAccount.consumeAmount(baValidation.billingAccountId, rollback ? -amount : amount);
+      await BillingAccount.consumeAmount(baValidation.billingAccountId, rollback ? -lockedAmount : lockedAmount, rollback ? -consumedAmount : consumedAmount);
     } else if (
       baValidation.status === ChallengeStatuses.Deleted ||
       baValidation.status === ChallengeStatuses.Canceled ||
@@ -567,11 +567,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       baValidation.status === ChallengeStatuses.CancelledZeroRegistrations ||
       baValidation.status === ChallengeStatuses.CancelledPaymentFailed
     ) {
-      // Challenge canceled, update lock amount
-      amount = baValidation.prevTotalPrizesInCents / 100;
+      // Challenge canceled, unlock previous locked amount
+      const lockedAmount = baValidation.prevTotalPrizesInCents / 100;
 
       // prettier-ignore
-      await BillingAccount.lockAmount(baValidation.billingAccountId, rollback ? amount : -amount);
+      await BillingAccount.lockAmount(baValidation.billingAccountId, rollback ? lockedAmount : -lockedAmount);
     }
   }
 

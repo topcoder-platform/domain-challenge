@@ -68,8 +68,8 @@ export async function lockAmount(billingAccountId: number, amount: number) {
   }
 }
 
-export async function consumeAmount(billingAccountId: number, amount: number) {
-  if (amount === 0 || _.includes(TGBillingAccounts, billingAccountId)) {
+export async function consumeAmount(billingAccountId: number, unlockAmount: number, consumedAmount: number) {
+  if ((consumedAmount === 0 && unlockAmount === 0) || _.includes(TGBillingAccounts, billingAccountId)) {
     return;
   }
 
@@ -79,7 +79,10 @@ export async function consumeAmount(billingAccountId: number, amount: number) {
     await axios.patch(
       `${V3_BA_API_URL}/${billingAccountId}/consume-amount`,
       {
-        param: amount,
+        param: {
+            "unlockedAmount": unlockAmount,
+            "consumedAmount": consumedAmount
+        },
       },
       {
         headers: {
