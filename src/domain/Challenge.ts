@@ -29,7 +29,7 @@ import ElasticSearch from "../helpers/ElasticSearch";
 import { LookupCriteria, ScanCriteria } from "../models/common/common";
 import legacyMapper from "../util/LegacyMapper";
 import ChallengeScheduler from "../util/ChallengeScheduler";
-import * as BillingAccount from "../api/BillingAccount";
+import { BAValidation, lockConsumeAmount } from "../api/BillingAccount";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
   throw new Error("Missing required configurations GRPC_ACL_SERVER_HOST and GRPC_ACL_SERVER_PORT");
@@ -153,7 +153,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       totalPrizesInCents,
       prevTotalPrizesInCents: 0,
     };
-    await this.lockConsumeAmount(baValidation);
+    await lockConsumeAmount(baValidation);
     let newChallenge;
     try {
       // Begin Anti-Corruption Layer
@@ -209,7 +209,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       newChallenge = await super.create(challenge, metadata);
     } catch (err) {
       // Rollback lock amount
-      await this.lockConsumeAmount(baValidation, true);
+      await lockConsumeAmount(baValidation, true);
       throw err;
     }
 
@@ -245,7 +245,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       prevTotalPrizesInCents,
     };
 
-    await this.lockConsumeAmount(baValidation);
+    await lockConsumeAmount(baValidation);
     try {
       // Begin Anti-Corruption Layer
       let legacyId: number | null = null;
@@ -362,7 +362,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         metadata
       );
     } catch (err) {
-      await this.lockConsumeAmount(baValidation, true);
+      await lockConsumeAmount(baValidation, true);
       throw err;
     }
 
@@ -457,7 +457,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       prevTotalPrizesInCents,
     };
 
-    await this.lockConsumeAmount(baValidation);
+    await lockConsumeAmount(baValidation);
     const dynamoUpdate = _.omit(data, [
       "currentPhase",
       "currentPhaseNames",
@@ -470,7 +470,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     try {
       await super.update(scanCriteria, dynamoUpdate);
     } catch (err) {
-      await this.lockConsumeAmount(baValidation, true);
+      await lockConsumeAmount(baValidation, true);
       throw err;
     }
 
@@ -521,67 +521,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       totalPrizesInCents: prevTotalPrizesInCents,
     };
 
-    await this.lockConsumeAmount(baValidation);
+    await lockConsumeAmount(baValidation);
 
     try {
       return super.delete(lookupCriteria);
     } catch (err) {
-      await this.lockConsumeAmount(baValidation, true);
+      await lockConsumeAmount(baValidation, true);
       throw err;
-    }
-  }
-
-  private async lockConsumeAmount(
-    baValidation: BAValidation,
-    rollback: boolean = false
-  ): Promise<void> {
-    console.log("Update BA validation:", baValidation);
-    if (!_.isNumber(baValidation.billingAccountId)) {
-      return;
-    }
-
-    if (
-      baValidation.status === baValidation.prevStatus ||
-      baValidation.status === ChallengeStatuses.New ||
-      baValidation.status === ChallengeStatuses.Draft ||
-      baValidation.status === ChallengeStatuses.Active ||
-      baValidation.status === ChallengeStatuses.Approved
-    ) {
-      // Update lock amount by increase the delta amount
-      const amount = (baValidation.totalPrizesInCents - baValidation.prevTotalPrizesInCents) / 100;
-
-      // prettier-ignore
-      await BillingAccount.lockAmount(baValidation.billingAccountId, rollback ? -amount : amount);
-    } else if (baValidation.status === ChallengeStatuses.Completed) {
-      // Challenge completed, unlock previous locked amount, and increase consumed amount
-      const lockedAmount = baValidation.prevTotalPrizesInCents / 100;
-      const consumedAmount = baValidation.totalPrizesInCents / 100;
-
-      // prettier-ignore
-      const dto = {
-        challengeId: baValidation.challengeId!,
-        markup: baValidation.markup,
-        consumedAmount: rollback ? -consumedAmount : consumedAmount,
-        unlockedAmount: rollback ? -lockedAmount : lockedAmount,
-      };
-      await BillingAccount.consumeAmount(baValidation.billingAccountId, dto);
-    } else if (
-      baValidation.status === ChallengeStatuses.Deleted ||
-      baValidation.status === ChallengeStatuses.Canceled ||
-      baValidation.status === ChallengeStatuses.CancelledFailedReview ||
-      baValidation.status === ChallengeStatuses.CancelledFailedScreening ||
-      baValidation.status === ChallengeStatuses.CancelledZeroSubmissions ||
-      baValidation.status === ChallengeStatuses.CancelledWinnerUnresponsive ||
-      baValidation.status === ChallengeStatuses.CancelledClientRequest ||
-      baValidation.status === ChallengeStatuses.CancelledRequirementsInfeasible ||
-      baValidation.status === ChallengeStatuses.CancelledZeroRegistrations ||
-      baValidation.status === ChallengeStatuses.CancelledPaymentFailed
-    ) {
-      // Challenge canceled, unlock previous locked amount
-      const lockedAmount = baValidation.prevTotalPrizesInCents / 100;
-
-      // prettier-ignore
-      await BillingAccount.lockAmount(baValidation.billingAccountId, rollback ? lockedAmount : -lockedAmount);
     }
   }
 
@@ -622,16 +568,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     // Use scheduler only for legacy code F2Fs
     return challenge?.legacy?.subTrack === "FIRST_2_FINISH" && !challenge?.legacy.pureV5Task;
   }
-}
-
-interface BAValidation {
-  challengeId?: string;
-  billingAccountId?: number;
-  markup?: number;
-  prevStatus?: string;
-  status?: string;
-  prevTotalPrizesInCents: number;
-  totalPrizesInCents: number;
 }
 
 interface IUpdateDataFromACL {
