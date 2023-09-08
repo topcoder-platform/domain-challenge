@@ -8,8 +8,8 @@ import { ChallengeStatuses, TGBillingAccounts } from "../common/Constants";
 
 const { V3_BA_API_URL } = process.env;
 
-async function lockAmount(billingAccountId: number, amount: number) {
-  if (amount === 0 || _.includes(TGBillingAccounts, billingAccountId)) {
+async function lockAmount(billingAccountId: number, dto: LockAmountDTO) {
+  if (_.includes(TGBillingAccounts, billingAccountId)) {
     return;
   }
 
@@ -19,7 +19,7 @@ async function lockAmount(billingAccountId: number, amount: number) {
     await axios.patch(
       `${V3_BA_API_URL}/${billingAccountId}/lock-amount`,
       {
-        param: amount,
+        param: dto,
       },
       {
         headers: {
@@ -36,9 +36,9 @@ async function lockAmount(billingAccountId: number, amount: number) {
   }
 }
 
-async function consumeAmount(billingAccountId: number, dto: ConsumedAmountDTO) {
+async function consumeAmount(billingAccountId: number, dto: ConsumeAmountDTO) {
   // prettier-ignore
-  if ((dto.consumedAmount === 0 && dto.unlockedAmount === 0) || _.includes(TGBillingAccounts, billingAccountId)) {
+  if (_.includes(TGBillingAccounts, billingAccountId)) {
     return;
   }
 
@@ -65,11 +65,14 @@ async function consumeAmount(billingAccountId: number, dto: ConsumedAmountDTO) {
   }
 }
 
-interface ConsumedAmountDTO {
+interface LockAmountDTO {
   challengeId: string;
+  lockAmount: number;
+}
+interface ConsumeAmountDTO {
+  challengeId: string;
+  actualSpent: number;
   markup?: number;
-  consumedAmount: number;
-  unlockedAmount: number;
 }
 
 // prettier-ignore
@@ -80,28 +83,33 @@ export async function lockConsumeAmount(baValidation: BAValidation, rollback: bo
   }
 
   if (
-    baValidation.status === baValidation.prevStatus ||
     baValidation.status === ChallengeStatuses.New ||
     baValidation.status === ChallengeStatuses.Draft ||
     baValidation.status === ChallengeStatuses.Active ||
     baValidation.status === ChallengeStatuses.Approved
   ) {
-    // Update lock amount by increase the delta amount
-    const amount = (baValidation.totalPrizesInCents - baValidation.prevTotalPrizesInCents) / 100;
+    // Update lock amount
+    const currAmount = baValidation.totalPrizesInCents / 100;
+    const prevAmount = baValidation.prevTotalPrizesInCents / 100;
 
-    await lockAmount(baValidation.billingAccountId, rollback ? -amount : amount);
+    if (currAmount !== prevAmount) {
+      await lockAmount(baValidation.billingAccountId, {
+        challengeId: baValidation.challengeId!,
+        lockAmount: rollback ? prevAmount : currAmount,
+      });
+    }
   } else if (baValidation.status === ChallengeStatuses.Completed) {
-    // Challenge completed, unlock previous locked amount, and increase consumed amount
-    const lockedAmount = baValidation.prevTotalPrizesInCents / 100;
-    const consumedAmount = baValidation.totalPrizesInCents / 100;
+    // Note an already completed challenge could still be updated with prizes
+    const currAmount = baValidation.totalPrizesInCents / 100;
+    const prevAmount = baValidation.prevStatus === ChallengeStatuses.Completed ? baValidation.prevTotalPrizesInCents / 100 : 0;
 
-    const dto: ConsumedAmountDTO = {
-      challengeId: baValidation.challengeId!,
-      markup: baValidation.markup,
-      consumedAmount: rollback ? -consumedAmount : consumedAmount,
-      unlockedAmount: rollback ? -lockedAmount : lockedAmount,
-    };
-    await consumeAmount(baValidation.billingAccountId, dto);
+    if (currAmount !== prevAmount) {
+      await consumeAmount(baValidation.billingAccountId, {
+        challengeId: baValidation.challengeId!,
+        actualSpent: rollback ? prevAmount : currAmount,
+        markup: baValidation.markup,
+      });
+    }
   } else if (
     baValidation.status === ChallengeStatuses.Deleted ||
     baValidation.status === ChallengeStatuses.Canceled ||
@@ -115,9 +123,15 @@ export async function lockConsumeAmount(baValidation: BAValidation, rollback: bo
     baValidation.status === ChallengeStatuses.CancelledPaymentFailed
   ) {
     // Challenge canceled, unlock previous locked amount
-    const lockedAmount = baValidation.prevTotalPrizesInCents / 100;
+    const currAmount = 0;
+    const prevAmount = baValidation.prevTotalPrizesInCents / 100;
 
-    await lockAmount(baValidation.billingAccountId, rollback ? lockedAmount : -lockedAmount);
+    if (currAmount !== prevAmount) {
+      await lockAmount(baValidation.billingAccountId, {
+        challengeId: baValidation.challengeId!,
+        lockAmount: rollback ? prevAmount : 0,
+      });
+    }
   }
 }
 
