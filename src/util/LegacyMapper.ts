@@ -23,6 +23,7 @@ import {
 } from "@topcoder-framework/domain-acl";
 import { getRequest } from "../api/v5Api";
 import m2mToken from "../helpers/MachineToMachineToken";
+import DateUtil from "./DateUtil";
 
 class LegacyMapper {
   // To be used on challenge:update calls that change state from New -> Draft
@@ -153,7 +154,7 @@ class LegacyMapper {
       3: "1", // Component Version
       4: "0",
       7: "1.0",
-      9: "On", // Turn Auto Pilot On
+      9: [V4_SUBTRACKS.FIRST_2_FINISH].indexOf(subTrack) !== -1 ? "Off" : "On", // Turn Auto Pilot Off for F2F. Next in line: V4_SUBTRACKS.DEVELOPMENT, V4_SUBTRACKS.CODE
       78: "Development", // Forum Type - value doesn't matter
       10: "On", // Turn status notification on
       11: "On", // Turn timeline notification on
@@ -242,6 +243,9 @@ class LegacyMapper {
     }
     if (input.billing?.billingAccountId != null) {
       projectInfo[32] = input.billing?.billingAccountId!.toString();
+    }
+    if (input.status === ChallengeStatuses.Completed) {
+      projectInfo[21] = DateUtil.formatDateForIfx(new Date().toISOString(), "MM.DD.YYYY HH:mm z")!; // project_info 21 is Completion Timestamp; and it has a different date format
     }
 
     const map = {
@@ -439,7 +443,7 @@ class LegacyMapper {
     const token = await m2mToken.getM2MToken();
     for (const groupId of groups) {
       const group = await getRequest(`${process.env.TOPCODER_API_URL}/groups/${groupId}`, token);
-      if (group != null && !group.oldId) {
+      if (group != null && group.oldId) {
         oldGroupIds.push(group.oldId);
       }
     }
