@@ -328,6 +328,11 @@ class LegacyMapper {
         constraint.name === "View Response During Appeals"
     );
 
+    const maxRegistrantsConstraint = phase.constraints?.find(
+      (constraint: { name: string; value: number }) =>
+        constraint.name === "Number of Max Registrants"
+    );
+
     const map = {
       1:
         scorecardConstraint?.value.toString() ??
@@ -365,6 +370,10 @@ class LegacyMapper {
           : phase.name === PhaseNames.SpecificationReview
           ? "1"
           : undefined), // Reviewer Number
+      7:
+        phase.name === PhaseNames.Registration
+          ? maxRegistrantsConstraint?.toString() ?? "1"
+          : undefined, // Maximum Registrants Number
     };
 
     return Object.fromEntries(Object.entries(map).filter(([_, v]) => v !== undefined)) as { [key: number]: string };
