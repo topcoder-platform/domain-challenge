@@ -1,6 +1,6 @@
 import { ChallengeDomain as LegacyChallengeDomain } from "@topcoder-framework/domain-acl";
 import { DomainHelper, PhaseFactRequest, PhaseFactResponse } from "@topcoder-framework/lib-common";
-import xss from "xss";
+import { sanitize } from "../helpers/Sanitizer";
 import CoreOperations from "../common/CoreOperations";
 import { Value } from "../dal/models/nosql/parti_ql";
 import IdGenerator from "../helpers/IdGenerator";
@@ -129,7 +129,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   }
 
   public async create(input: CreateChallengeInput, metadata: Metadata): Promise<Challenge> {
-    input.name = xss(input.name);
+    input.name = sanitize(input.name);
 
     // prettier-ignore
     const handle = metadata?.get("handle").length > 0 ? metadata?.get("handle")?.[0].toString() : "tcwebservice";
@@ -137,7 +137,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     if (Array.isArray(input.discussions)) {
       for (const discussion of input.discussions) {
         discussion.id = IdGenerator.generateUUID();
-        discussion.name = xss(discussion.name.substring(0, 100));
+        discussion.name = sanitize(discussion.name.substring(0, 100));
       }
     }
 
@@ -151,6 +151,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     // End Anti-Corruption Layer
 
+    // prettier-ignore
     const challenge: Challenge = {
       id: IdGenerator.generateUUID(),
       created: now,
@@ -177,8 +178,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       legacy,
       phases,
       legacyId: legacyChallengeId != null ? legacyChallengeId : undefined,
-      description: xss(input.description ?? ""),
-      privateDescription: xss(input.privateDescription ?? ""),
+      description: sanitize(input.description ?? "", input.descriptionFormat),
+      privateDescription: sanitize(input.privateDescription ?? "", input.descriptionFormat),
       metadata:
         input.metadata.map((m) => {
           let parsedValue = m.value;
@@ -286,14 +287,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       scanCriteria,
       // prettier-ignore
       {
-        name: input.name != null ? xss(input.name) : undefined,
+        name: input.name != null ? sanitize(input.name) : undefined,
         typeId: input.typeId != null ? input.typeId : undefined,
         trackId: input.trackId != null ? input.trackId : undefined,
         timelineTemplateId: input.timelineTemplateId != null ? input.timelineTemplateId : undefined,
         legacy: input.legacy != null ? input.legacy : undefined,
         billing: input.billing != null ? input.billing : undefined,
-        description: input.description != null ? xss(input.description) : undefined,
-        privateDescription: input.privateDescription != null ? xss(input.privateDescription) : undefined,
+        description: input.description != null ? sanitize(input.description, input.descriptionFormat ?? challenge.descriptionFormat) : undefined,
+        privateDescription: input.privateDescription != null ? sanitize(input.privateDescription, input.descriptionFormat ?? challenge.descriptionFormat) : undefined,
         descriptionFormat: input.descriptionFormat != null ? input.descriptionFormat : undefined,
         task: input.task != null ? input.task : undefined,
         winners: input.winnerUpdate != null ? input.winnerUpdate.winners : undefined,
