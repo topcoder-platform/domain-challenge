@@ -372,7 +372,7 @@ class LegacyMapper {
           : undefined), // Reviewer Number
       8:
         phase.name === PhaseNames.Registration
-          ? maxRegistrantsConstraint?.toString()
+          ? maxRegistrantsConstraint?.value.toString()
           : undefined, // Maximum Registrants Number
     };
 
