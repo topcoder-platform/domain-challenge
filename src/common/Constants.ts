@@ -120,7 +120,7 @@ export const PhaseCriteriaIdToName = {
   3: "Number of Submissions",
   4: "View Response During Appeals",
   6: "Number of Reviewers",
-  8: "Number of Max Registrants"
+  8: "Allowed Registrants"
 };
 
 export const TGBillingAccounts = [80000062, 80002800];

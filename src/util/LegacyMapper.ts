@@ -11,6 +11,7 @@ import {
 import { V4_SUBTRACKS, V5_TO_V4 } from "../common/ConversionMap";
 import {
   Challenge_Phase,
+  Challenge_Phase_Constraint,
   Challenge_PrizeSet,
   CreateChallengeInput,
   UpdateChallengeInput_UpdateInput,
@@ -303,34 +304,34 @@ class LegacyMapper {
   }
 
   // prettier-ignore
-  private mapPhaseCriteria(subTrack: string, billingAccount:number | undefined, phase: Challenge_Phase): { [key: number]: string | undefined } {
+  private mapPhaseCriteria(subTrack: string, billingAccount:number | undefined, phase: Challenge_Phase): { [key: number]: string | string[] | undefined } {
     const scorecardConstraint = phase.constraints?.find(
-      (constraint: { name: string; value: number }) =>
+      (constraint: { name: string; value: Challenge_Phase_Constraint["value"] }) =>
         constraint.name === "Scorecard"
     );
 
     const reviewPhaseConstraint = phase.constraints?.find(
-      (constraint: { name: string; value: number }) =>
+      (constraint: { name: string; value: Challenge_Phase_Constraint["value"] }) =>
         constraint.name === "Number of Reviewers"
     );
 
     const submissionPhaseConstraint = phase.constraints?.find(
-      (constraint: { name: string; value: number }) => constraint.name === "Number of Submissions"
+      (constraint: { name: string; value: Challenge_Phase_Constraint["value"] }) => constraint.name === "Number of Submissions"
     );
 
     const registrationPhaseConstraint = phase.constraints?.find(
-      (constraint: { name: string; value: number }) =>
+      (constraint: { name: string; value: Challenge_Phase_Constraint["value"] }) =>
         constraint.name === "Number of Registrants"
     );
 
     const viewResponseDuringAppealsConstraint = phase.constraints?.find(
-      (constraint: { name: string; value: number }) =>
+      (constraint: { name: string; value: Challenge_Phase_Constraint["value"] }) =>
         constraint.name === "View Response During Appeals"
     );
 
-    const maxRegistrantsConstraint = phase.constraints?.find(
-      (constraint: { name: string; value: number }) =>
-        constraint.name === "Number of Max Registrants"
+    const allowedRegistrantsConstraint = phase.constraints?.find(
+      (constraint: { name: string; value: Challenge_Phase_Constraint["value"] }) =>
+        constraint.name === "Allowed Registrants"
     );
 
     const map = {
@@ -372,11 +373,11 @@ class LegacyMapper {
           : undefined), // Reviewer Number
       8:
         phase.name === PhaseNames.Registration
-          ? maxRegistrantsConstraint?.value.toString()
-          : undefined, // Maximum Registrants Number
+          ? allowedRegistrantsConstraint
+          : undefined, //Allowed Registrants
     };
 
-    return Object.fromEntries(Object.entries(map).filter(([_, v]) => v !== undefined)) as { [key: number]: string };
+    return Object.fromEntries(Object.entries(map).filter(([_, v]) => v !== undefined)) as { [key: number]: string | string[]};
   }
 
   // prettier-ignore

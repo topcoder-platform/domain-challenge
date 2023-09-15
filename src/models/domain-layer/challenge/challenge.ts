@@ -102,7 +102,7 @@ export interface Challenge_Phase {
 
 export interface Challenge_Phase_Constraint {
   name: string;
-  value: number;
+  value: number | string[];
 }
 
 export interface Challenge_Winner {
