@@ -30,6 +30,7 @@ const protoConfig = [
   `--ts_proto_opt=outputServerImpl=false`,
   `--ts_proto_out=${MODEL_DIR}`,
   `--proto_path ${PROTO_DIR} ${PROTO_DIR}/*.proto`,
+  `--experimental_allow_proto3_optional`
 ];
 
 // https://github.com/stephenh/ts-proto#usage
