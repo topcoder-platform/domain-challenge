@@ -75,7 +75,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     trackId: string,
     typeId: string,
     tags: string[],
-    metadata: Metadata = new Metadata()
+    metadata: Metadata = new Metadata(),
+    id: string = "",
   ) {
     let legacyChallengeId: number | null = null;
 
@@ -102,7 +103,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       if (status === ChallengeStatuses.Draft) {
         try {
           // prettier-ignore
-          const legacyChallengeCreateInput = LegacyCreateChallengeInput.fromPartial(await legacyMapper.mapChallengeDraftUpdateInput(input));
+          const legacyChallengeCreateInput = LegacyCreateChallengeInput.fromPartial(await legacyMapper.mapChallengeDraftUpdateInput(input, id));
           // prettier-ignore
           const legacyChallengeCreateResponse = await legacyChallengeDomain.create(legacyChallengeCreateInput, metadata);
 
@@ -242,7 +243,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         };
 
         // prettier-ignore
-        const { legacy, legacyChallengeId, phases } = await this.createLegacyChallenge(createChallengeInput, input.status, challenge!.trackId, challenge!.typeId, challenge!.tags, metadata);
+        const { legacy, legacyChallengeId, phases } = await this.createLegacyChallenge(createChallengeInput, input.status, challenge!.trackId, challenge!.typeId, challenge!.tags, metadata, challenge.id);
 
         input.legacy = legacy;
         input.phaseUpdate = { phases };
