@@ -102,7 +102,7 @@ export interface Challenge_Phase {
 
 export interface Challenge_Phase_Constraint {
   name: string;
-  value: number | string[];
+  value?: { $case: "intValue"; intValue: number } | { $case: "stringValue"; stringValue: string };
 }
 
 export interface Challenge_Winner {
@@ -1648,7 +1648,7 @@ export const Challenge_Phase = {
 };
 
 function createBaseChallenge_Phase_Constraint(): Challenge_Phase_Constraint {
-  return { name: "", value: 0 };
+  return { name: "", value: undefined };
 }
 
 export const Challenge_Phase_Constraint = {
@@ -1656,8 +1656,13 @@ export const Challenge_Phase_Constraint = {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-    if (message.value !== 0) {
-      writer.uint32(16).int32(message.value);
+    switch (message.value?.$case) {
+      case "intValue":
+        writer.uint32(16).int32(message.value.intValue);
+        break;
+      case "stringValue":
+        writer.uint32(26).string(message.value.stringValue);
+        break;
     }
     return writer;
   },
@@ -1681,7 +1686,14 @@ export const Challenge_Phase_Constraint = {
             break;
           }
 
-          message.value = reader.int32();
+          message.value = { $case: "intValue", intValue: reader.int32() };
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.value = { $case: "stringValue", stringValue: reader.string() };
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -1695,14 +1707,19 @@ export const Challenge_Phase_Constraint = {
   fromJSON(object: any): Challenge_Phase_Constraint {
     return {
       name: isSet(object.name) ? String(object.name) : "",
-      value: isSet(object.value) ? Number(object.value) : 0,
+      value: isSet(object.intValue)
+        ? { $case: "intValue", intValue: Number(object.intValue) }
+        : isSet(object.stringValue)
+        ? { $case: "stringValue", stringValue: String(object.stringValue) }
+        : undefined,
     };
   },
 
   toJSON(message: Challenge_Phase_Constraint): unknown {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
-    message.value !== undefined && (obj.value = Math.round(message.value));
+    message.value?.$case === "intValue" && (obj.intValue = Math.round(message.value?.intValue));
+    message.value?.$case === "stringValue" && (obj.stringValue = message.value?.stringValue);
     return obj;
   },
 
@@ -1713,7 +1730,16 @@ export const Challenge_Phase_Constraint = {
   fromPartial<I extends Exact<DeepPartial<Challenge_Phase_Constraint>, I>>(object: I): Challenge_Phase_Constraint {
     const message = createBaseChallenge_Phase_Constraint();
     message.name = object.name ?? "";
-    message.value = object.value ?? 0;
+    if (object.value?.$case === "intValue" && object.value?.intValue !== undefined && object.value?.intValue !== null) {
+      message.value = { $case: "intValue", intValue: object.value.intValue };
+    }
+    if (
+      object.value?.$case === "stringValue" &&
+      object.value?.stringValue !== undefined &&
+      object.value?.stringValue !== null
+    ) {
+      message.value = { $case: "stringValue", stringValue: object.value.stringValue };
+    }
     return message;
   },
 };
