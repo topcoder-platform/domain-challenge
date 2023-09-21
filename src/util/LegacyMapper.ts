@@ -295,72 +295,88 @@ class LegacyMapper {
         (p) => p.phaseTypeId === PhaseNameToTypeId[phase.name as keyof typeof PhaseNameToTypeId]
       );
       phase.constraints = _.map(_.entries(legacyPhase?.phaseCriteria), ([k, v]) => {
+        // return {
+        //   name: PhaseCriteriaIdToName[_.toNumber(k) as keyof typeof PhaseCriteriaIdToName],
+        //   value: _.toNumber(k) === 4 ? (v.toLowerCase() === "yes" ? 1 : 0) : _.toNumber(v),
+        // };
+
+        let value: Challenge_Phase_Constraint["value"];
+
+        if (_.toNumber(k) === 4) {
+          value = v.toLowerCase() === "yes" ? { $case: "intValue", intValue: 1 } : { $case: "intValue", intValue: 0 };
+        } else {
+          value = { $case: "intValue", intValue: _.toNumber(v) };
+        }
+
         return {
           name: PhaseCriteriaIdToName[_.toNumber(k) as keyof typeof PhaseCriteriaIdToName],
-          value: _.toNumber(k) === 4 ? (v.toLowerCase() === "yes" ? 1 : 0) : _.toNumber(v),
+          value,
         };
       });
     }
   }
 
   // prettier-ignore
-  private mapPhaseCriteria(subTrack: string, billingAccount:number | undefined, phase: Challenge_Phase): { [key: number]: string | string[] | undefined } {
+  private mapPhaseCriteria(subTrack: string, billingAccount:number | undefined, phase: Challenge_Phase): { [key: number]: string | undefined } {
     const scorecardConstraint = phase.constraints?.find(
-      (constraint: { name: string; value: Challenge_Phase_Constraint["value"] }) =>
-        constraint.name === "Scorecard"
+      (constraint) => constraint.name === "Scorecard" && constraint.value?.$case === "intValue"
     );
 
     const reviewPhaseConstraint = phase.constraints?.find(
-      (constraint: { name: string; value: Challenge_Phase_Constraint["value"] }) =>
-        constraint.name === "Number of Reviewers"
+      (constraint) => constraint.name === "Number of Reviewers" && constraint.value?.$case === "intValue"
     );
 
     const submissionPhaseConstraint = phase.constraints?.find(
-      (constraint: { name: string; value: Challenge_Phase_Constraint["value"] }) => constraint.name === "Number of Submissions"
+      (constraint) => constraint.name === "Number of Submissions" && constraint.value?.$case === "intValue"
     );
 
     const registrationPhaseConstraint = phase.constraints?.find(
-      (constraint: { name: string; value: Challenge_Phase_Constraint["value"] }) =>
-        constraint.name === "Number of Registrants"
+      (constraint) => constraint.name === "Number of Registrants" && constraint.value?.$case === "intValue"
     );
 
     const viewResponseDuringAppealsConstraint = phase.constraints?.find(
-      (constraint: { name: string; value: Challenge_Phase_Constraint["value"] }) =>
-        constraint.name === "View Response During Appeals"
+      (constraint) => constraint.name === "View Response During Appeals" && constraint.value?.$case === "intValue"
     );
 
     const allowedRegistrantsConstraint = phase.constraints?.find(
-      (constraint: { name: string; value: Challenge_Phase_Constraint["value"] }) =>
-        constraint.name === "Allowed Registrants"
+      (constraint) => constraint.name === "Allowed Registrants" && constraint.value?.$case === "stringValue"
     );
 
     const map = {
       1:
-        scorecardConstraint?.value.toString() ??
-        this.mapScorecard(
+        scorecardConstraint?.value?.$case === "intValue"
+        ? scorecardConstraint?.value.intValue.toString()
+        :this.mapScorecard(
           subTrack,
           billingAccount,
           PhaseNameToTypeId[phase.name as keyof typeof PhaseNameToTypeId]
         ), // Scorecard ID
       2:
         phase.name === PhaseNames.Registration
-          ? (registrationPhaseConstraint?.value.toString() ?? "1")
+          ? registrationPhaseConstraint?.value?.$case === "intValue"
+            ? registrationPhaseConstraint?.value.intValue.toString()
+            : "1"
           : undefined, // Registration Number
       3:
         phase.name === PhaseNames.Submission
-          ? (submissionPhaseConstraint?.value.toString() ?? // if we have a submission phase constraint use it
-            (reviewPhaseConstraint?.value != null
-            ? "1"
-            : undefined)) // otherwise if we have a review phase constraint use 1
+          ? submissionPhaseConstraint?.value?.$case === "intValue"
+            ? submissionPhaseConstraint?.value.intValue.toString()
+            : reviewPhaseConstraint?.value?.$case === "intValue"
+              ? "1"
+              : undefined// otherwise if we have a review phase constraint use 1
           : undefined,
       4:
         phase.name === PhaseNames.Appeals
-          ? viewResponseDuringAppealsConstraint?.value.toString() === "1"
-            ? "Yes"
-            : "No"
+          ? viewResponseDuringAppealsConstraint?.value?.$case === "intValue"
+            ? viewResponseDuringAppealsConstraint?.value.intValue.toString() === "1"
+              ? "Yes"
+              : "No"
+            : undefined
           : undefined, // View Response During Appeals
       6:
-        reviewPhaseConstraint?.value.toString() ?? (phase.name === PhaseNames.Review
+        reviewPhaseConstraint?.value?.$case === "intValue"
+          ? reviewPhaseConstraint?.value.intValue.toString() 
+          : (phase.name === PhaseNames.Review
           ? "2"
           : phase.name === PhaseNames.IterativeReview
           ? "1"
@@ -373,11 +389,13 @@ class LegacyMapper {
           : undefined), // Reviewer Number
       8:
         phase.name === PhaseNames.Registration
-          ? allowedRegistrantsConstraint
+          ? allowedRegistrantsConstraint?.value?.$case === "stringValue"
+            ? allowedRegistrantsConstraint?.value.stringValue
+            : undefined
           : undefined, //Allowed Registrants
     };
 
-    return Object.fromEntries(Object.entries(map).filter(([_, v]) => v !== undefined)) as { [key: number]: string | string[]};
+    return Object.fromEntries(Object.entries(map).filter(([_, v]) => v !== undefined)) as { [key: number]: string};
   }
 
   // prettier-ignore
