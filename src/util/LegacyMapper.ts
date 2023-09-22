@@ -28,7 +28,8 @@ import DateUtil from "./DateUtil";
 class LegacyMapper {
   // To be used on challenge:update calls that change state from New -> Draft
   public mapChallengeDraftUpdateInput = async (
-    input: CreateChallengeInput
+    input: CreateChallengeInput,
+    id: string
   ): Promise<LegacyChallengeCreateInput> => {
     const prizeSets = this.mapPrizeSets(input.prizeSets);
     const projectInfo = this.mapProjectInfo(input, prizeSets, input.legacy?.subTrack!);
@@ -51,6 +52,7 @@ class LegacyMapper {
       reviewType: input.legacy?.reviewType ?? "INTERNAL",
       confidentialityType: input.legacy?.confidentialityType ?? "public",
       projectInfo,
+      id
     };
   };
 
