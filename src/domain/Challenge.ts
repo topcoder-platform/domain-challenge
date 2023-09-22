@@ -326,6 +326,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           totalPrizesInCents,
         } : undefined,
         legacyId: legacyId != null ? legacyId : undefined,
+        constraints: input.constraints != null ? input.constraints : undefined,
       },
       metadata
     );
