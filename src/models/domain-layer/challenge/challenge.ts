@@ -1033,7 +1033,7 @@ export const Challenge_Billing = {
       writer.uint32(8).int32(message.billingAccountId);
     }
     if (message.markup !== 0) {
-      writer.uint32(21).float(message.markup);
+      writer.uint32(17).double(message.markup);
     }
     return writer;
   },
@@ -1053,11 +1053,11 @@ export const Challenge_Billing = {
           message.billingAccountId = reader.int32();
           continue;
         case 2:
-          if (tag !== 21) {
+          if (tag !== 17) {
             break;
           }
 
-          message.markup = reader.float();
+          message.markup = reader.double();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
