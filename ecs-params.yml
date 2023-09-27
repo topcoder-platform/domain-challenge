@@ -7,7 +7,7 @@ task_definition:
       mem_limit: 1G
     informix-access-layer:
       cpu_shares: 1000
-      mem_limit: 1G
+      mem_limit: 3G
     anticorruption-layer:
       cpu_shares: 100
       mem_limit: 1G
