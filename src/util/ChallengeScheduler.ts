@@ -124,10 +124,10 @@ export default new (class {
     this.#client
       .send(invokeCommand)
       .then((data) => {
-        console.log("Success", data);
+        console.log("invokeSchedulerLambda Success", JSON.stringify(data.$metadata));
       })
       .catch((error) => {
-        console.log("Error", error);
+        console.log("invokeSchedulerLambda Error", error);
       });
   }
 
