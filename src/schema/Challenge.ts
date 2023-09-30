@@ -153,6 +153,13 @@ export const ChallengeSchema: Schema = {
         totalPrizesInCents: { type: DataType.DATA_TYPE_NUMBER, format: "integer" },
       },
     },
+    constraints: {
+      type: DataType.DATA_TYPE_MAP,
+      itemType: DataType.DATA_TYPE_MAP,
+      items: {
+        allowedRegistrants: { type: DataType.DATA_TYPE_LIST, itemType: DataType.DATA_TYPE_STRING },
+      },
+    },
   },
   indices: {
     legacyId: {
