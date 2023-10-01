@@ -23,7 +23,7 @@ export interface CreateChallengeTrackInput {
 
 export interface UpdateChallengeTrackInput {
   filterCriteria: ScanCriteria[];
-  updateInput?: UpdateChallengeTrackInput_UpdateInput;
+  updateInput?: UpdateChallengeTrackInput_UpdateInput | undefined;
 }
 
 export interface UpdateChallengeTrackInput_UpdateInput {
@@ -120,18 +120,27 @@ export const ChallengeTrack = {
 
   toJSON(message: ChallengeTrack): unknown {
     const obj: any = {};
-    message.id !== undefined && (obj.id = message.id);
-    message.name !== undefined && (obj.name = message.name);
-    message.description !== undefined && (obj.description = message.description);
-    message.isActive !== undefined && (obj.isActive = message.isActive);
-    message.abbreviation !== undefined && (obj.abbreviation = message.abbreviation);
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.description !== undefined) {
+      obj.description = message.description;
+    }
+    if (message.isActive === true) {
+      obj.isActive = message.isActive;
+    }
+    if (message.abbreviation !== "") {
+      obj.abbreviation = message.abbreviation;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<ChallengeTrack>, I>>(base?: I): ChallengeTrack {
-    return ChallengeTrack.fromPartial(base ?? {});
+    return ChallengeTrack.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<ChallengeTrack>, I>>(object: I): ChallengeTrack {
     const message = createBaseChallengeTrack();
     message.id = object.id ?? "";
@@ -179,23 +188,22 @@ export const ChallengeTrackList = {
   },
 
   fromJSON(object: any): ChallengeTrackList {
-    return { items: Array.isArray(object?.items) ? object.items.map((e: any) => ChallengeTrack.fromJSON(e)) : [] };
+    return {
+      items: globalThis.Array.isArray(object?.items) ? object.items.map((e: any) => ChallengeTrack.fromJSON(e)) : [],
+    };
   },
 
   toJSON(message: ChallengeTrackList): unknown {
     const obj: any = {};
-    if (message.items) {
-      obj.items = message.items.map((e) => e ? ChallengeTrack.toJSON(e) : undefined);
-    } else {
-      obj.items = [];
+    if (message.items?.length) {
+      obj.items = message.items.map((e) => ChallengeTrack.toJSON(e));
     }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<ChallengeTrackList>, I>>(base?: I): ChallengeTrackList {
-    return ChallengeTrackList.fromPartial(base ?? {});
+    return ChallengeTrackList.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<ChallengeTrackList>, I>>(object: I): ChallengeTrackList {
     const message = createBaseChallengeTrackList();
     message.items = object.items?.map((e) => ChallengeTrack.fromPartial(e)) || [];
@@ -279,17 +287,24 @@ export const CreateChallengeTrackInput = {
 
   toJSON(message: CreateChallengeTrackInput): unknown {
     const obj: any = {};
-    message.name !== undefined && (obj.name = message.name);
-    message.description !== undefined && (obj.description = message.description);
-    message.isActive !== undefined && (obj.isActive = message.isActive);
-    message.abbreviation !== undefined && (obj.abbreviation = message.abbreviation);
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.description !== undefined) {
+      obj.description = message.description;
+    }
+    if (message.isActive === true) {
+      obj.isActive = message.isActive;
+    }
+    if (message.abbreviation !== "") {
+      obj.abbreviation = message.abbreviation;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<CreateChallengeTrackInput>, I>>(base?: I): CreateChallengeTrackInput {
-    return CreateChallengeTrackInput.fromPartial(base ?? {});
+    return CreateChallengeTrackInput.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<CreateChallengeTrackInput>, I>>(object: I): CreateChallengeTrackInput {
     const message = createBaseCreateChallengeTrackInput();
     message.name = object.name ?? "";
@@ -347,7 +362,7 @@ export const UpdateChallengeTrackInput = {
 
   fromJSON(object: any): UpdateChallengeTrackInput {
     return {
-      filterCriteria: Array.isArray(object?.filterCriteria)
+      filterCriteria: globalThis.Array.isArray(object?.filterCriteria)
         ? object.filterCriteria.map((e: any) => ScanCriteria.fromJSON(e))
         : [],
       updateInput: isSet(object.updateInput)
@@ -358,21 +373,18 @@ export const UpdateChallengeTrackInput = {
 
   toJSON(message: UpdateChallengeTrackInput): unknown {
     const obj: any = {};
-    if (message.filterCriteria) {
-      obj.filterCriteria = message.filterCriteria.map((e) => e ? ScanCriteria.toJSON(e) : undefined);
-    } else {
-      obj.filterCriteria = [];
+    if (message.filterCriteria?.length) {
+      obj.filterCriteria = message.filterCriteria.map((e) => ScanCriteria.toJSON(e));
     }
-    message.updateInput !== undefined && (obj.updateInput = message.updateInput
-      ? UpdateChallengeTrackInput_UpdateInput.toJSON(message.updateInput)
-      : undefined);
+    if (message.updateInput !== undefined) {
+      obj.updateInput = UpdateChallengeTrackInput_UpdateInput.toJSON(message.updateInput);
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<UpdateChallengeTrackInput>, I>>(base?: I): UpdateChallengeTrackInput {
-    return UpdateChallengeTrackInput.fromPartial(base ?? {});
+    return UpdateChallengeTrackInput.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<UpdateChallengeTrackInput>, I>>(object: I): UpdateChallengeTrackInput {
     const message = createBaseUpdateChallengeTrackInput();
     message.filterCriteria = object.filterCriteria?.map((e) => ScanCriteria.fromPartial(e)) || [];
@@ -459,19 +471,26 @@ export const UpdateChallengeTrackInput_UpdateInput = {
 
   toJSON(message: UpdateChallengeTrackInput_UpdateInput): unknown {
     const obj: any = {};
-    message.name !== undefined && (obj.name = message.name);
-    message.description !== undefined && (obj.description = message.description);
-    message.isActive !== undefined && (obj.isActive = message.isActive);
-    message.abbreviation !== undefined && (obj.abbreviation = message.abbreviation);
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.description !== undefined) {
+      obj.description = message.description;
+    }
+    if (message.isActive === true) {
+      obj.isActive = message.isActive;
+    }
+    if (message.abbreviation !== "") {
+      obj.abbreviation = message.abbreviation;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<UpdateChallengeTrackInput_UpdateInput>, I>>(
     base?: I,
   ): UpdateChallengeTrackInput_UpdateInput {
-    return UpdateChallengeTrackInput_UpdateInput.fromPartial(base ?? {});
+    return UpdateChallengeTrackInput_UpdateInput.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<UpdateChallengeTrackInput_UpdateInput>, I>>(
     object: I,
   ): UpdateChallengeTrackInput_UpdateInput {
