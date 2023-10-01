@@ -34,6 +34,7 @@
     "grpc-server-reflection": "^0.1.5",
     "http-aws-es": "^6.0.0",
     "lodash": "^4.17.21",
+    "long": "^5.2.3",
     "moment": "^2.29.4",
     "source-map-support": "^0.5.21",
     "tc-core-library-js": "appirio-tech/tc-core-library-js.git#v2.6.4",
@@ -50,9 +51,9 @@
   "devDependencies": {
     "@types/elasticsearch": "^5.0.40",
     "@types/lodash": "^4.14.191",
-    "@types/node": "^18.11.17",
+    "@types/node": "^20.8.0",
     "ts-node-dev": "^2.0.0",
-    "ts-proto": "^1.126.1",
-    "typescript": "^4.9.4"
+    "ts-proto": "^1.159.1",
+    "typescript": "^5.2.2"
   }
 }

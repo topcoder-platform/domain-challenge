@@ -76,7 +76,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     typeId: string,
     tags: string[],
     metadata: Metadata = new Metadata(),
-    id: string = "",
+    id: string = ""
   ) {
     let legacyChallengeId: number | null = null;
 
@@ -160,6 +160,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       updated: now,
       updatedBy: handle,
       winners: [],
+      payments: [],
       overview: {
         totalPrizes: totalPrizes / 100,
         totalPrizesInCents: totalPrizes,
