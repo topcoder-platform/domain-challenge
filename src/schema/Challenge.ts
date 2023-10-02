@@ -130,6 +130,16 @@ export const ChallengeSchema: Schema = {
         type: { type: DataType.DATA_TYPE_STRING },
       },
     },
+    payments: {
+      type: DataType.DATA_TYPE_LIST,
+      itemType: DataType.DATA_TYPE_MAP,
+      items: {
+        handle: { type: DataType.DATA_TYPE_STRING },
+        amount: { type: DataType.DATA_TYPE_NUMBER, format: "float" },
+        userId: { type: DataType.DATA_TYPE_NUMBER, format: "integer" },
+        type: { type: DataType.DATA_TYPE_STRING },
+      },
+    },
     discussions: {
       type: DataType.DATA_TYPE_LIST,
       itemType: DataType.DATA_TYPE_MAP,
