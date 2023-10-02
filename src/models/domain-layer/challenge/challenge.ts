@@ -212,10 +212,15 @@ export interface UpdateChallengeInput_UpdateInput {
   status?: string | undefined;
   overview?: Challenge_Overview | undefined;
   constraints?: Challenge_Constraint | undefined;
+  paymentUpdate?: UpdateChallengeInput_UpdateInput_PaymentUpdate | undefined;
 }
 
 export interface UpdateChallengeInput_UpdateInput_WinnerUpdate {
   winners: Challenge_Winner[];
+}
+
+export interface UpdateChallengeInput_UpdateInput_PaymentUpdate {
+  payments: Challenge_Payment[];
 }
 
 export interface UpdateChallengeInput_UpdateInput_DiscussionUpdate {
@@ -275,6 +280,7 @@ export interface UpdateChallengeInputForACL_UpdateInputForACL {
   overview?: Challenge_Overview | undefined;
   winners?: UpdateChallengeInputForACL_WinnersACL | undefined;
   phaseToClose?: string | undefined;
+  payments?: UpdateChallengeInputForACL_PaymentsACL | undefined;
 }
 
 export interface UpdateChallengeInputForACL_PhasesACL {
@@ -302,6 +308,17 @@ export interface UpdateChallengeInputForACL_WinnerACL {
   handle: string;
   placement: number;
   userId: number;
+}
+
+export interface UpdateChallengeInputForACL_PaymentsACL {
+  payments: UpdateChallengeInputForACL_PaymentACL[];
+}
+
+export interface UpdateChallengeInputForACL_PaymentACL {
+  handle: string;
+  amount: number;
+  userId: number;
+  type: string;
 }
 
 function createBaseChallenge(): Challenge {
@@ -3088,6 +3105,7 @@ function createBaseUpdateChallengeInput_UpdateInput(): UpdateChallengeInput_Upda
     status: undefined,
     overview: undefined,
     constraints: undefined,
+    paymentUpdate: undefined,
   };
 }
 
@@ -3174,6 +3192,9 @@ export const UpdateChallengeInput_UpdateInput = {
     }
     if (message.constraints !== undefined) {
       Challenge_Constraint.encode(message.constraints, writer.uint32(210).fork()).ldelim();
+    }
+    if (message.paymentUpdate !== undefined) {
+      UpdateChallengeInput_UpdateInput_PaymentUpdate.encode(message.paymentUpdate, writer.uint32(218).fork()).ldelim();
     }
     return writer;
   },
@@ -3367,6 +3388,13 @@ export const UpdateChallengeInput_UpdateInput = {
 
           message.constraints = Challenge_Constraint.decode(reader, reader.uint32());
           continue;
+        case 27:
+          if (tag !== 218) {
+            break;
+          }
+
+          message.paymentUpdate = UpdateChallengeInput_UpdateInput_PaymentUpdate.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3424,6 +3452,9 @@ export const UpdateChallengeInput_UpdateInput = {
       status: isSet(object.status) ? String(object.status) : undefined,
       overview: isSet(object.overview) ? Challenge_Overview.fromJSON(object.overview) : undefined,
       constraints: isSet(object.constraints) ? Challenge_Constraint.fromJSON(object.constraints) : undefined,
+      paymentUpdate: isSet(object.paymentUpdate)
+        ? UpdateChallengeInput_UpdateInput_PaymentUpdate.fromJSON(object.paymentUpdate)
+        : undefined,
     };
   },
 
@@ -3507,6 +3538,9 @@ export const UpdateChallengeInput_UpdateInput = {
     if (message.constraints !== undefined) {
       obj.constraints = Challenge_Constraint.toJSON(message.constraints);
     }
+    if (message.paymentUpdate !== undefined) {
+      obj.paymentUpdate = UpdateChallengeInput_UpdateInput_PaymentUpdate.toJSON(message.paymentUpdate);
+    }
     return obj;
   },
 
@@ -3575,6 +3609,9 @@ export const UpdateChallengeInput_UpdateInput = {
     message.constraints = (object.constraints !== undefined && object.constraints !== null)
       ? Challenge_Constraint.fromPartial(object.constraints)
       : undefined;
+    message.paymentUpdate = (object.paymentUpdate !== undefined && object.paymentUpdate !== null)
+      ? UpdateChallengeInput_UpdateInput_PaymentUpdate.fromPartial(object.paymentUpdate)
+      : undefined;
     return message;
   },
 };
@@ -3640,6 +3677,74 @@ export const UpdateChallengeInput_UpdateInput_WinnerUpdate = {
   ): UpdateChallengeInput_UpdateInput_WinnerUpdate {
     const message = createBaseUpdateChallengeInput_UpdateInput_WinnerUpdate();
     message.winners = object.winners?.map((e) => Challenge_Winner.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseUpdateChallengeInput_UpdateInput_PaymentUpdate(): UpdateChallengeInput_UpdateInput_PaymentUpdate {
+  return { payments: [] };
+}
+
+export const UpdateChallengeInput_UpdateInput_PaymentUpdate = {
+  encode(
+    message: UpdateChallengeInput_UpdateInput_PaymentUpdate,
+    writer: _m0.Writer = _m0.Writer.create(),
+  ): _m0.Writer {
+    for (const v of message.payments) {
+      Challenge_Payment.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeInput_UpdateInput_PaymentUpdate {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateChallengeInput_UpdateInput_PaymentUpdate();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.payments.push(Challenge_Payment.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateChallengeInput_UpdateInput_PaymentUpdate {
+    return {
+      payments: globalThis.Array.isArray(object?.payments)
+        ? object.payments.map((e: any) => Challenge_Payment.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: UpdateChallengeInput_UpdateInput_PaymentUpdate): unknown {
+    const obj: any = {};
+    if (message.payments?.length) {
+      obj.payments = message.payments.map((e) => Challenge_Payment.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateChallengeInput_UpdateInput_PaymentUpdate>, I>>(
+    base?: I,
+  ): UpdateChallengeInput_UpdateInput_PaymentUpdate {
+    return UpdateChallengeInput_UpdateInput_PaymentUpdate.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UpdateChallengeInput_UpdateInput_PaymentUpdate>, I>>(
+    object: I,
+  ): UpdateChallengeInput_UpdateInput_PaymentUpdate {
+    const message = createBaseUpdateChallengeInput_UpdateInput_PaymentUpdate();
+    message.payments = object.payments?.map((e) => Challenge_Payment.fromPartial(e)) || [];
     return message;
   },
 };
@@ -4326,6 +4431,7 @@ function createBaseUpdateChallengeInputForACL_UpdateInputForACL(): UpdateChallen
     overview: undefined,
     winners: undefined,
     phaseToClose: undefined,
+    payments: undefined,
   };
 }
 
@@ -4376,6 +4482,9 @@ export const UpdateChallengeInputForACL_UpdateInputForACL = {
     }
     if (message.phaseToClose !== undefined) {
       writer.uint32(122).string(message.phaseToClose);
+    }
+    if (message.payments !== undefined) {
+      UpdateChallengeInputForACL_PaymentsACL.encode(message.payments, writer.uint32(130).fork()).ldelim();
     }
     return writer;
   },
@@ -4492,6 +4601,13 @@ export const UpdateChallengeInputForACL_UpdateInputForACL = {
 
           message.phaseToClose = reader.string();
           continue;
+        case 16:
+          if (tag !== 130) {
+            break;
+          }
+
+          message.payments = UpdateChallengeInputForACL_PaymentsACL.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4528,6 +4644,7 @@ export const UpdateChallengeInputForACL_UpdateInputForACL = {
       overview: isSet(object.overview) ? Challenge_Overview.fromJSON(object.overview) : undefined,
       winners: isSet(object.winners) ? UpdateChallengeInputForACL_WinnersACL.fromJSON(object.winners) : undefined,
       phaseToClose: isSet(object.phaseToClose) ? String(object.phaseToClose) : undefined,
+      payments: isSet(object.payments) ? UpdateChallengeInputForACL_PaymentsACL.fromJSON(object.payments) : undefined,
     };
   },
 
@@ -4578,6 +4695,9 @@ export const UpdateChallengeInputForACL_UpdateInputForACL = {
     if (message.phaseToClose !== undefined) {
       obj.phaseToClose = message.phaseToClose;
     }
+    if (message.payments !== undefined) {
+      obj.payments = UpdateChallengeInputForACL_PaymentsACL.toJSON(message.payments);
+    }
     return obj;
   },
 
@@ -4619,6 +4739,9 @@ export const UpdateChallengeInputForACL_UpdateInputForACL = {
       ? UpdateChallengeInputForACL_WinnersACL.fromPartial(object.winners)
       : undefined;
     message.phaseToClose = object.phaseToClose ?? undefined;
+    message.payments = (object.payments !== undefined && object.payments !== null)
+      ? UpdateChallengeInputForACL_PaymentsACL.fromPartial(object.payments)
+      : undefined;
     return message;
   },
 };
@@ -5053,6 +5176,179 @@ export const UpdateChallengeInputForACL_WinnerACL = {
     message.handle = object.handle ?? "";
     message.placement = object.placement ?? 0;
     message.userId = object.userId ?? 0;
+    return message;
+  },
+};
+
+function createBaseUpdateChallengeInputForACL_PaymentsACL(): UpdateChallengeInputForACL_PaymentsACL {
+  return { payments: [] };
+}
+
+export const UpdateChallengeInputForACL_PaymentsACL = {
+  encode(message: UpdateChallengeInputForACL_PaymentsACL, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.payments) {
+      UpdateChallengeInputForACL_PaymentACL.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeInputForACL_PaymentsACL {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateChallengeInputForACL_PaymentsACL();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.payments.push(UpdateChallengeInputForACL_PaymentACL.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateChallengeInputForACL_PaymentsACL {
+    return {
+      payments: globalThis.Array.isArray(object?.payments)
+        ? object.payments.map((e: any) => UpdateChallengeInputForACL_PaymentACL.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: UpdateChallengeInputForACL_PaymentsACL): unknown {
+    const obj: any = {};
+    if (message.payments?.length) {
+      obj.payments = message.payments.map((e) => UpdateChallengeInputForACL_PaymentACL.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateChallengeInputForACL_PaymentsACL>, I>>(
+    base?: I,
+  ): UpdateChallengeInputForACL_PaymentsACL {
+    return UpdateChallengeInputForACL_PaymentsACL.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UpdateChallengeInputForACL_PaymentsACL>, I>>(
+    object: I,
+  ): UpdateChallengeInputForACL_PaymentsACL {
+    const message = createBaseUpdateChallengeInputForACL_PaymentsACL();
+    message.payments = object.payments?.map((e) => UpdateChallengeInputForACL_PaymentACL.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseUpdateChallengeInputForACL_PaymentACL(): UpdateChallengeInputForACL_PaymentACL {
+  return { handle: "", amount: 0, userId: 0, type: "" };
+}
+
+export const UpdateChallengeInputForACL_PaymentACL = {
+  encode(message: UpdateChallengeInputForACL_PaymentACL, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.handle !== "") {
+      writer.uint32(10).string(message.handle);
+    }
+    if (message.amount !== 0) {
+      writer.uint32(17).double(message.amount);
+    }
+    if (message.userId !== 0) {
+      writer.uint32(24).int32(message.userId);
+    }
+    if (message.type !== "") {
+      writer.uint32(34).string(message.type);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeInputForACL_PaymentACL {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateChallengeInputForACL_PaymentACL();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.handle = reader.string();
+          continue;
+        case 2:
+          if (tag !== 17) {
+            break;
+          }
+
+          message.amount = reader.double();
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.userId = reader.int32();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateChallengeInputForACL_PaymentACL {
+    return {
+      handle: isSet(object.handle) ? String(object.handle) : "",
+      amount: isSet(object.amount) ? Number(object.amount) : 0,
+      userId: isSet(object.userId) ? Number(object.userId) : 0,
+      type: isSet(object.type) ? String(object.type) : "",
+    };
+  },
+
+  toJSON(message: UpdateChallengeInputForACL_PaymentACL): unknown {
+    const obj: any = {};
+    if (message.handle !== "") {
+      obj.handle = message.handle;
+    }
+    if (message.amount !== 0) {
+      obj.amount = message.amount;
+    }
+    if (message.userId !== 0) {
+      obj.userId = Math.round(message.userId);
+    }
+    if (message.type !== "") {
+      obj.type = message.type;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateChallengeInputForACL_PaymentACL>, I>>(
+    base?: I,
+  ): UpdateChallengeInputForACL_PaymentACL {
+    return UpdateChallengeInputForACL_PaymentACL.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UpdateChallengeInputForACL_PaymentACL>, I>>(
+    object: I,
+  ): UpdateChallengeInputForACL_PaymentACL {
+    const message = createBaseUpdateChallengeInputForACL_PaymentACL();
+    message.handle = object.handle ?? "";
+    message.amount = object.amount ?? 0;
+    message.userId = object.userId ?? 0;
+    message.type = object.type ?? "";
     return message;
   },
 };

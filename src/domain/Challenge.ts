@@ -12,6 +12,7 @@ import {
   Challenge_Phase,
   Challenge_PrizeSet,
   CreateChallengeInput,
+  UpdateChallengeInputForACL_PaymentACL,
   UpdateChallengeInputForACL_UpdateInputForACL,
   UpdateChallengeInputForACL_WinnerACL,
   UpdateChallengeInput_UpdateInput,
@@ -54,6 +55,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       "prizeSets",
       "tags",
       "winners",
+      "payments",
       "discussions",
       "overview",
       "groups",
@@ -300,6 +302,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         descriptionFormat: input.descriptionFormat != null ? input.descriptionFormat : undefined,
         task: input.task != null ? input.task : undefined,
         winners: input.winnerUpdate != null ? input.winnerUpdate.winners : undefined,
+        payments: input.paymentUpdate != null ? input.paymentUpdate.payments : undefined,
         discussions: input.discussionUpdate != null ? input.discussionUpdate.discussions : undefined,
         metadata: input.metadataUpdate != null ? input.metadataUpdate.metadata : undefined,
         phases: input.phaseUpdate != null ? input.phaseUpdate.phases : undefined,
@@ -408,6 +411,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     if (!_.isUndefined(input.winners)) {
       data.winners = input.winners.winners;
+
+      if (!_.isUndefined(input.payments)) {
+        data.payments = input.payments.payments;
+      }
+
       raiseEvent = true;
     }
 
@@ -510,6 +518,7 @@ interface IUpdateDataFromACL {
   prizeSets?: Challenge_PrizeSet[] | undefined;
   overview?: Challenge_Overview | undefined;
   winners?: UpdateChallengeInputForACL_WinnerACL[] | undefined;
+  payments?: UpdateChallengeInputForACL_PaymentACL[] | undefined;
   updated?: Date;
   updatedBy?: string;
 }
