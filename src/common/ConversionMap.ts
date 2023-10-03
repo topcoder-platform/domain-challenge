@@ -16,7 +16,7 @@ const V5_TRACK_NAMES_TO_IDS = {
   "COMPETITIVE PROGRAMMING": V5_TRACK_IDS.CMP,
 };
 
-const V5_TRACK_IDS_TO_NAMES = {
+export const V5_TRACK_IDS_TO_NAMES = {
   [V5_TRACK_IDS.DATA_SCIENCE]: "Data Science",
   [V5_TRACK_IDS.DESIGN]: "Design",
   [V5_TRACK_IDS.DEVELOPMENT]: "Development",
@@ -41,7 +41,7 @@ const V5_TYPE_NAMES_TO_IDS = {
   TASK: V5_TYPE_IDS.TASK,
 };
 
-const V5_TYPE_IDS_TO_NAMES = {
+export const V5_TYPE_IDS_TO_NAMES = {
   [V5_TYPE_IDS.CHALLENGE]: "Challenge",
   [V5_TYPE_IDS.TASK]: "Task",
   [V5_TYPE_IDS.FIRST_2_FINISH]: "First2Finish",
@@ -110,12 +110,7 @@ const TEST_SCENARIOS_TAG = "Test Scenarios";
 const TESTING_COMPETITION_TAG = "Testing Competition";
 
 // Helper methodS to simply avoid writing too much
-const buildV4Data = (
-  track: string,
-  subTrack: string,
-  isTask: boolean,
-  technologies: string[]
-) => ({
+const buildV4Data = (track: string, subTrack: string, isTask: boolean, technologies: string[]) => ({
   track,
   subTrack,
   isTask,
@@ -133,158 +128,74 @@ const buildV5Data = (trackId: string, typeId: string, tags: string[] = []) => ({
 export const V5_TO_V4 = {
   [V5_TRACK_IDS.DATA_SCIENCE]: {
     [V5_TYPE_IDS.CHALLENGE]: (tags: string[]) => {
-      if (
-        _.includes(tags, MARATHON_MATCH_TAG) ||
-        _.includes(tags, DATA_SCIENCE_TAG)
-      ) {
-        return buildV4Data(
-          V4_TRACKS.DATA_SCIENCE,
-          V4_SUBTRACKS.MARATHON_MATCH,
-          false,
-          []
-        );
+      if (_.includes(tags, MARATHON_MATCH_TAG) || _.includes(tags, DATA_SCIENCE_TAG)) {
+        return buildV4Data(V4_TRACKS.DATA_SCIENCE, V4_SUBTRACKS.MARATHON_MATCH, false, []);
       } else {
-        return buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, [
-          DATA_SCIENCE_TAG,
-        ]);
+        return buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, [DATA_SCIENCE_TAG]);
       }
     },
     [V5_TYPE_IDS.FIRST_2_FINISH]: () =>
       buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.FIRST_2_FINISH, false, []),
-    [V5_TYPE_IDS.TASK]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.FIRST_2_FINISH, true, []),
+    [V5_TYPE_IDS.TASK]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.FIRST_2_FINISH, true, []),
     [V5_TYPE_IDS.PC]: () =>
-      buildV4Data(
-        V4_TRACKS.DATA_SCIENCE,
-        V4_SUBTRACKS.MARATHON_MATCH,
-        false,
-        []
-      ),
+      buildV4Data(V4_TRACKS.DATA_SCIENCE, V4_SUBTRACKS.MARATHON_MATCH, false, []),
     [V5_TYPE_IDS.MM]: () =>
-      buildV4Data(
-        V4_TRACKS.DATA_SCIENCE,
-        V4_SUBTRACKS.MARATHON_MATCH,
-        false,
-        []
-      ),
-    [V5_TYPE_IDS.RDM]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
+      buildV4Data(V4_TRACKS.DATA_SCIENCE, V4_SUBTRACKS.MARATHON_MATCH, false, []),
+    [V5_TYPE_IDS.RDM]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
     [V5_TYPE_IDS.SKL]: () =>
-      buildV4Data(
-        V4_TRACKS.DATA_SCIENCE,
-        V4_SUBTRACKS.MARATHON_MATCH,
-        false,
-        []
-      ),
+      buildV4Data(V4_TRACKS.DATA_SCIENCE, V4_SUBTRACKS.MARATHON_MATCH, false, []),
     [V5_TYPE_IDS.MA]: () =>
-      buildV4Data(
-        V4_TRACKS.DATA_SCIENCE,
-        V4_SUBTRACKS.MARATHON_MATCH,
-        false,
-        []
-      ),
+      buildV4Data(V4_TRACKS.DATA_SCIENCE, V4_SUBTRACKS.MARATHON_MATCH, false, []),
   },
   [V5_TRACK_IDS.DESIGN]: {
     [V5_TYPE_IDS.CHALLENGE]: () =>
       buildV4Data(V4_TRACKS.DESIGN, V4_SUBTRACKS.WEB_DESIGNS, false, []),
     [V5_TYPE_IDS.FIRST_2_FINISH]: () =>
-      buildV4Data(
-        V4_TRACKS.DESIGN,
-        V4_SUBTRACKS.DESIGN_FIRST_2_FINISH,
-        false,
-        []
-      ),
+      buildV4Data(V4_TRACKS.DESIGN, V4_SUBTRACKS.DESIGN_FIRST_2_FINISH, false, []),
     [V5_TYPE_IDS.TASK]: () =>
-      buildV4Data(
-        V4_TRACKS.DESIGN,
-        V4_SUBTRACKS.DESIGN_FIRST_2_FINISH,
-        true,
-        []
-      ),
-    [V5_TYPE_IDS.PC]: () =>
-      buildV4Data(V4_TRACKS.DESIGN, V4_SUBTRACKS.WEB_DESIGNS, false, []),
+      buildV4Data(V4_TRACKS.DESIGN, V4_SUBTRACKS.DESIGN_FIRST_2_FINISH, true, []),
+    [V5_TYPE_IDS.PC]: () => buildV4Data(V4_TRACKS.DESIGN, V4_SUBTRACKS.WEB_DESIGNS, false, []),
     [V5_TYPE_IDS.MM]: () =>
-      buildV4Data(
-        V4_TRACKS.DATA_SCIENCE,
-        V4_SUBTRACKS.MARATHON_MATCH,
-        false,
-        []
-      ),
-    [V5_TYPE_IDS.RDM]: () =>
-      buildV4Data(V4_TRACKS.DESIGN, V4_SUBTRACKS.WEB_DESIGNS, false, []),
-    [V5_TYPE_IDS.SKL]: () =>
-      buildV4Data(V4_TRACKS.DESIGN, V4_SUBTRACKS.WEB_DESIGNS, false, []),
-    [V5_TYPE_IDS.MA]: () =>
-      buildV4Data(V4_TRACKS.DESIGN, V4_SUBTRACKS.WEB_DESIGNS, false, []),
+      buildV4Data(V4_TRACKS.DATA_SCIENCE, V4_SUBTRACKS.MARATHON_MATCH, false, []),
+    [V5_TYPE_IDS.RDM]: () => buildV4Data(V4_TRACKS.DESIGN, V4_SUBTRACKS.WEB_DESIGNS, false, []),
+    [V5_TYPE_IDS.SKL]: () => buildV4Data(V4_TRACKS.DESIGN, V4_SUBTRACKS.WEB_DESIGNS, false, []),
+    [V5_TYPE_IDS.MA]: () => buildV4Data(V4_TRACKS.DESIGN, V4_SUBTRACKS.WEB_DESIGNS, false, []),
   },
   [V5_TRACK_IDS.DEVELOPMENT]: {
-    [V5_TYPE_IDS.CHALLENGE]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
+    [V5_TYPE_IDS.CHALLENGE]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
     [V5_TYPE_IDS.FIRST_2_FINISH]: () =>
       buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.FIRST_2_FINISH, false, []),
-    [V5_TYPE_IDS.TASK]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.FIRST_2_FINISH, true, []),
-    [V5_TYPE_IDS.PC]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
+    [V5_TYPE_IDS.TASK]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.FIRST_2_FINISH, true, []),
+    [V5_TYPE_IDS.PC]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
     [V5_TYPE_IDS.MM]: () =>
-      buildV4Data(
-        V4_TRACKS.DATA_SCIENCE,
-        V4_SUBTRACKS.MARATHON_MATCH,
-        false,
-        []
-      ),
-    [V5_TYPE_IDS.RDM]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
-    [V5_TYPE_IDS.SKL]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
-    [V5_TYPE_IDS.MA]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
+      buildV4Data(V4_TRACKS.DATA_SCIENCE, V4_SUBTRACKS.MARATHON_MATCH, false, []),
+    [V5_TYPE_IDS.RDM]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
+    [V5_TYPE_IDS.SKL]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
+    [V5_TYPE_IDS.MA]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
   },
   [V5_TRACK_IDS.QA]: {
-    [V5_TYPE_IDS.CHALLENGE]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.BUG_HUNT, false, []),
+    [V5_TYPE_IDS.CHALLENGE]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.BUG_HUNT, false, []),
     [V5_TYPE_IDS.FIRST_2_FINISH]: () =>
       buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.FIRST_2_FINISH, false, []),
-    [V5_TYPE_IDS.TASK]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.FIRST_2_FINISH, true, []),
-    [V5_TYPE_IDS.PC]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
+    [V5_TYPE_IDS.TASK]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.FIRST_2_FINISH, true, []),
+    [V5_TYPE_IDS.PC]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
     [V5_TYPE_IDS.MM]: () =>
-      buildV4Data(
-        V4_TRACKS.DATA_SCIENCE,
-        V4_SUBTRACKS.MARATHON_MATCH,
-        false,
-        []
-      ),
-    [V5_TYPE_IDS.RDM]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
-    [V5_TYPE_IDS.SKL]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
-    [V5_TYPE_IDS.MA]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
+      buildV4Data(V4_TRACKS.DATA_SCIENCE, V4_SUBTRACKS.MARATHON_MATCH, false, []),
+    [V5_TYPE_IDS.RDM]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
+    [V5_TYPE_IDS.SKL]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
+    [V5_TYPE_IDS.MA]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
   },
   [V5_TRACK_IDS.CMP]: {
-    [V5_TYPE_IDS.CHALLENGE]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.BUG_HUNT, false, []),
+    [V5_TYPE_IDS.CHALLENGE]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.BUG_HUNT, false, []),
     [V5_TYPE_IDS.FIRST_2_FINISH]: () =>
       buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.FIRST_2_FINISH, false, []),
-    [V5_TYPE_IDS.TASK]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.FIRST_2_FINISH, true, []),
-    [V5_TYPE_IDS.PC]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
+    [V5_TYPE_IDS.TASK]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.FIRST_2_FINISH, true, []),
+    [V5_TYPE_IDS.PC]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
     [V5_TYPE_IDS.MM]: () =>
-      buildV4Data(
-        V4_TRACKS.DATA_SCIENCE,
-        V4_SUBTRACKS.MARATHON_MATCH,
-        false,
-        []
-      ),
-    [V5_TYPE_IDS.RDM]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
-    [V5_TYPE_IDS.SKL]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
-    [V5_TYPE_IDS.MA]: () =>
-      buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
+      buildV4Data(V4_TRACKS.DATA_SCIENCE, V4_SUBTRACKS.MARATHON_MATCH, false, []),
+    [V5_TYPE_IDS.RDM]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
+    [V5_TYPE_IDS.SKL]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
+    [V5_TYPE_IDS.MA]: () => buildV4Data(V4_TRACKS.DEVELOP, V4_SUBTRACKS.CODE, false, []),
   },
 };
 
@@ -292,20 +203,14 @@ export const V4_TO_V5 = {
   [V4_TRACKS.DATA_SCIENCE]: {
     // categorizes non competitive programming marathon matches as Data Science Match
     [V4_SUBTRACKS.MARATHON_MATCH]: () =>
-      buildV5Data(V5_TRACK_IDS.DATA_SCIENCE, V5_TYPE_IDS.CHALLENGE, [
-        DATA_SCIENCE_TAG,
-      ]),
+      buildV5Data(V5_TRACK_IDS.DATA_SCIENCE, V5_TYPE_IDS.CHALLENGE, [DATA_SCIENCE_TAG]),
   },
   [V4_TRACKS.DESIGN]: {
     [V4_SUBTRACKS.DESIGN_FIRST_2_FINISH]: (isTask: boolean) =>
-      buildV5Data(
-        V5_TRACK_IDS.DESIGN,
-        isTask ? V5_TYPE_IDS.TASK : V5_TYPE_IDS.FIRST_2_FINISH
-      ),
+      buildV5Data(V5_TRACK_IDS.DESIGN, isTask ? V5_TYPE_IDS.TASK : V5_TYPE_IDS.FIRST_2_FINISH),
     [V4_SUBTRACKS.APPLICATION_FRONT_END_DESIGN]: () =>
       buildV5Data(V5_TRACK_IDS.DESIGN, V5_TYPE_IDS.CHALLENGE, [FE_DESIGN_TAG]),
-    [V4_SUBTRACKS.WEB_DESIGNS]: () =>
-      buildV5Data(V5_TRACK_IDS.DESIGN, V5_TYPE_IDS.CHALLENGE),
+    [V4_SUBTRACKS.WEB_DESIGNS]: () => buildV5Data(V5_TRACK_IDS.DESIGN, V5_TYPE_IDS.CHALLENGE),
     [V4_SUBTRACKS.IDEA_GENERATION]: () =>
       buildV5Data(V5_TRACK_IDS.DESIGN, V5_TYPE_IDS.CHALLENGE, [IDEATION_TAG]),
     [V4_SUBTRACKS.WIDGET_OR_MOBILE_SCREEN_DESIGN]: () =>
@@ -314,23 +219,15 @@ export const V4_TO_V5 = {
       buildV5Data(V5_TRACK_IDS.DESIGN, V5_TYPE_IDS.CHALLENGE, [WIREFRAME_TAG]),
     [V4_SUBTRACKS.PRINT_OR_PRESENTATION]: () =>
       buildV5Data(V5_TRACK_IDS.DESIGN, V5_TYPE_IDS.CHALLENGE),
-    [V4_SUBTRACKS.STUDIO_OTHER]: () =>
-      buildV5Data(V5_TRACK_IDS.DESIGN, V5_TYPE_IDS.CHALLENGE),
-    [V4_SUBTRACKS.BANNERS_OR_ICONS]: () =>
-      buildV5Data(V5_TRACK_IDS.DESIGN, V5_TYPE_IDS.CHALLENGE),
-    [V4_SUBTRACKS.LOGO_DESIGN]: () =>
-      buildV5Data(V5_TRACK_IDS.DESIGN, V5_TYPE_IDS.CHALLENGE),
-    [V4_SUBTRACKS.FRONT_END_FLASH]: () =>
-      buildV5Data(V5_TRACK_IDS.DESIGN, V5_TYPE_IDS.CHALLENGE),
+    [V4_SUBTRACKS.STUDIO_OTHER]: () => buildV5Data(V5_TRACK_IDS.DESIGN, V5_TYPE_IDS.CHALLENGE),
+    [V4_SUBTRACKS.BANNERS_OR_ICONS]: () => buildV5Data(V5_TRACK_IDS.DESIGN, V5_TYPE_IDS.CHALLENGE),
+    [V4_SUBTRACKS.LOGO_DESIGN]: () => buildV5Data(V5_TRACK_IDS.DESIGN, V5_TYPE_IDS.CHALLENGE),
+    [V4_SUBTRACKS.FRONT_END_FLASH]: () => buildV5Data(V5_TRACK_IDS.DESIGN, V5_TYPE_IDS.CHALLENGE),
   },
   [V4_TRACKS.DEVELOP]: {
-    [V4_SUBTRACKS.DEVELOPMENT]: () =>
-      buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
+    [V4_SUBTRACKS.DEVELOPMENT]: () => buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
     [V4_SUBTRACKS.FIRST_2_FINISH]: (isTask: boolean) =>
-      buildV5Data(
-        V5_TRACK_IDS.DEVELOPMENT,
-        isTask ? V5_TYPE_IDS.TASK : V5_TYPE_IDS.FIRST_2_FINISH
-      ),
+      buildV5Data(V5_TRACK_IDS.DEVELOPMENT, isTask ? V5_TYPE_IDS.TASK : V5_TYPE_IDS.FIRST_2_FINISH),
     [V4_SUBTRACKS.CODE]: (isTask: boolean, tags: string[]) => {
       if (_.includes(tags, MARATHON_MATCH_TAG)) {
         return buildV5Data(V5_TRACK_IDS.DATA_SCIENCE, V5_TYPE_IDS.CHALLENGE);
@@ -345,15 +242,12 @@ export const V4_TO_V5 = {
     [V4_SUBTRACKS.BUG_HUNT]: () =>
       buildV5Data(V5_TRACK_IDS.QA, V5_TYPE_IDS.CHALLENGE, [BUG_HUNT_TAG]),
     [V4_SUBTRACKS.DEVELOP_MARATHON_MATCH]: () =>
-      buildV5Data(V5_TRACK_IDS.DATA_SCIENCE, V5_TYPE_IDS.CHALLENGE, [
-        MARATHON_MATCH_TAG,
-      ]),
+      buildV5Data(V5_TRACK_IDS.DATA_SCIENCE, V5_TYPE_IDS.CHALLENGE, [MARATHON_MATCH_TAG]),
     [V4_SUBTRACKS.TEST_SUITES]: () =>
       buildV5Data(V5_TRACK_IDS.QA, V5_TYPE_IDS.CHALLENGE, [TEST_SUITES_TAG]),
     [V4_SUBTRACKS.UI_PROTOTYPE_COMPETITION]: () =>
       buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
-    [V4_SUBTRACKS.ARCHITECTURE]: () =>
-      buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
+    [V4_SUBTRACKS.ARCHITECTURE]: () => buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
     [V4_SUBTRACKS.ASSEMBLY_COMPETITION]: () =>
       buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
     [V4_SUBTRACKS.SPECIFICATION]: () =>
@@ -364,28 +258,20 @@ export const V4_TO_V5 = {
       buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
     [V4_SUBTRACKS.CONTENT_CREATION]: () =>
       buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
-    [V4_SUBTRACKS.DESIGN]: () =>
-      buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
+    [V4_SUBTRACKS.DESIGN]: () => buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
     [V4_SUBTRACKS.RIA_BUILD_COMPETITION]: () =>
       buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
     [V4_SUBTRACKS.RIA_COMPONENT_COMPETITION]: () =>
       buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
-    [V4_SUBTRACKS.REPORTING]: () =>
-      buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
-    [V4_SUBTRACKS.PROCESS]: () =>
-      buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
-    [V4_SUBTRACKS.LEGACY]: () =>
-      buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
+    [V4_SUBTRACKS.REPORTING]: () => buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
+    [V4_SUBTRACKS.PROCESS]: () => buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
+    [V4_SUBTRACKS.LEGACY]: () => buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
     [V4_SUBTRACKS.TESTING_COMPETITION]: () =>
-      buildV5Data(V5_TRACK_IDS.QA, V5_TYPE_IDS.CHALLENGE, [
-        TESTING_COMPETITION_TAG,
-      ]),
-    [V4_SUBTRACKS.DEPLOYMENT]: () =>
-      buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
+      buildV5Data(V5_TRACK_IDS.QA, V5_TYPE_IDS.CHALLENGE, [TESTING_COMPETITION_TAG]),
+    [V4_SUBTRACKS.DEPLOYMENT]: () => buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
     [V4_SUBTRACKS.COMPONENT_PRODUCTION]: () =>
       buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
-    [V4_SUBTRACKS.SECURITY]: () =>
-      buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
+    [V4_SUBTRACKS.SECURITY]: () => buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
     [V4_SUBTRACKS.AUTOMATED_TESTING]: () =>
       buildV5Data(V5_TRACK_IDS.DEVELOPMENT, V5_TYPE_IDS.CHALLENGE),
   },

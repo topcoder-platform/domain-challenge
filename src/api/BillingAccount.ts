@@ -27,9 +27,12 @@ async function lockAmount(billingAccountId: number, dto: LockAmountDTO) {
       }
     );
   } catch (err: any) {
+    console.error(err);
     throw new StatusBuilder()
       .withCode(Status.INTERNAL)
-      .withDetails(err.response?.data?.result?.content ?? "Failed to lock challenge amount")
+      .withDetails(
+        `Budget Error: Requested amount $${dto.lockAmount} exceeds available budget for Billing Account #${billingAccountId}. Please contact the Topcoder Project Manager for further assistance.`
+      )
       .build();
   }
 }

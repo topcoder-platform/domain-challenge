@@ -23,7 +23,6 @@ import {
 } from "../dal/models/nosql/parti_ql";
 import { DataTypeDefinition, Schema } from "./Interfaces";
 import _ from "lodash";
-import { PhaseFactRequest, PhaseFactResponse } from "@topcoder-framework/lib-common";
 
 abstract class CoreOperations<T extends { [key: string]: any }, I extends { [key: string]: any }> {
   #tableAttributes: Attribute[];

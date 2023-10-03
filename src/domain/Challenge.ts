@@ -1,4 +1,7 @@
-import { ChallengeDomain as LegacyChallengeDomain } from "@topcoder-framework/domain-acl";
+import {
+  ChallengeDomain as LegacyChallengeDomain,
+  CreateChallengeInput as LegacyCreateChallengeInput,
+} from "@topcoder-framework/domain-acl";
 import { DomainHelper, PhaseFactRequest, PhaseFactResponse } from "@topcoder-framework/lib-common";
 import { sanitize } from "../helpers/Sanitizer";
 import CoreOperations from "../common/CoreOperations";
@@ -19,10 +22,8 @@ import {
 } from "../models/domain-layer/challenge/challenge";
 
 import { ChallengeSchema } from "../schema/Challenge";
-
 import { Metadata, StatusBuilder } from "@grpc/grpc-js";
 import { Status } from "@grpc/grpc-js/build/src/constants";
-import { CreateChallengeInput as LegacyCreateChallengeInput } from "@topcoder-framework/domain-acl";
 import _ from "lodash";
 import { ChallengeStatuses, ES_INDEX, ES_REFRESH, Topics } from "../common/Constants";
 import BusApi from "../helpers/BusApi";
@@ -31,6 +32,8 @@ import { LookupCriteria, ScanCriteria } from "../models/common/common";
 import legacyMapper from "../util/LegacyMapper";
 import ChallengeScheduler from "../util/ChallengeScheduler";
 import { BAValidation, lockConsumeAmount } from "../api/BillingAccount";
+import { ChallengeEstimator } from "../util/ChallengeEstimator";
+import { V5_TRACK_IDS_TO_NAMES, V5_TYPE_IDS_TO_NAMES } from "../common/ConversionMap";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
   throw new Error("Missing required configurations GRPC_ACL_SERVER_HOST and GRPC_ACL_SERVER_PORT");
@@ -40,6 +43,8 @@ const legacyChallengeDomain = new LegacyChallengeDomain(
   process.env.GRPC_ACL_SERVER_HOST,
   process.env.GRPC_ACL_SERVER_PORT
 );
+
+const EXPECTED_REVIEWS_PER_REVIEWER = 3;
 
 class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   private esClient = ElasticSearch.getESClient();
@@ -144,8 +149,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         discussion.name = sanitize(discussion.name.substring(0, 100));
       }
     }
+    const track = V5_TRACK_IDS_TO_NAMES[input.trackId];
+    const type = V5_TYPE_IDS_TO_NAMES[input.typeId];
 
-    const totalPrizesInCents = this.calculateTotalPrizesInCents(input.prizeSets ?? []);
+    const totalPrizesInCents = new ChallengeEstimator(input.prizeSets ?? [], {
+      track,
+      type,
+    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1);
+
     const now = new Date().getTime();
     const challengeId = IdGenerator.generateUUID();
 
@@ -236,11 +247,20 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const challenge = items[0] as Challenge;
     let updatedChallenge;
 
-    // prettier-ignore
-    const prevTotalPrizesInCents = this.calculateTotalPrizesInCents(challenge?.prizeSets ?? []);
+    const track = V5_TRACK_IDS_TO_NAMES[challenge.trackId];
+    const type = V5_TYPE_IDS_TO_NAMES[challenge.typeId];
 
-    // prettier-ignore
-    const totalPrizesInCents = _.isArray(input.prizeSetUpdate?.prizeSets) ? this.calculateTotalPrizesInCents(input.prizeSetUpdate?.prizeSets!) : prevTotalPrizesInCents;
+    const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
+      track,
+      type,
+    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1); // These are estimates, fetch reviewer number using constraint in review phase
+
+    const totalPrizesInCents = _.isArray(input.prizeSetUpdate?.prizeSets)
+      ? new ChallengeEstimator(input.prizeSetUpdate?.prizeSets! ?? [], {
+          track,
+          type,
+        }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1) // These are estimates, fetch reviewer number using constraint in review phase
+      : prevTotalPrizesInCents;
 
     const baValidation: BAValidation = {
       challengeId: challenge?.id,
@@ -457,10 +477,20 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     data.updated = new Date();
     data.updatedBy = updatedBy;
 
-    // prettier-ignore
-    const prevTotalPrizesInCents = this.calculateTotalPrizesInCents(challenge?.prizeSets ?? []);
-    // prettier-ignore
-    const totalPrizesInCents = _.isArray(data.prizeSets) ? this.calculateTotalPrizesInCents(data.prizeSets!) : prevTotalPrizesInCents;
+    const track = V5_TRACK_IDS_TO_NAMES[challenge?.trackId ?? ""];
+    const type = V5_TYPE_IDS_TO_NAMES[challenge?.typeId ?? ""];
+
+    const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
+      track,
+      type,
+    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1); // These are estimates, fetch reviewer number using constraint in review phase
+
+    const totalPrizesInCents = _.isArray(data.prizeSets)
+      ? new ChallengeEstimator(data.prizeSets ?? [], {
+          track,
+          type,
+        }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1) // These are estimates, fetch reviewer number using constraint in review phase
+      : prevTotalPrizesInCents;
 
     const baValidation: BAValidation = {
       challengeId: challenge?.id,
@@ -523,8 +553,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   public async delete(lookupCriteria: LookupCriteria): Promise<ChallengeList> {
     const challenge = await this.lookup(lookupCriteria);
 
-    // prettier-ignore
-    const prevTotalPrizesInCents = this.calculateTotalPrizesInCents(challenge?.prizeSets ?? []);
+    const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
+      track: V5_TRACK_IDS_TO_NAMES[challenge?.trackId ?? ""],
+      type: V5_TYPE_IDS_TO_NAMES[challenge?.typeId ?? ""],
+    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1);
 
     const baValidation: BAValidation = {
       challengeId: challenge?.id,
@@ -539,7 +571,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     await lockConsumeAmount(baValidation);
 
     try {
-      return super.delete(lookupCriteria);
+      const result = await super.delete(lookupCriteria);
+      return result;
     } catch (err) {
       await lockConsumeAmount(baValidation, true);
       throw err;
@@ -549,21 +582,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   public async getPhaseFacts(phaseFactRequest: PhaseFactRequest): Promise<PhaseFactResponse> {
     // Just a pass through to the legacy domain - this is fine for now, but ideally these should be handled in the "future" review-api
     return legacyChallengeDomain.getPhaseFacts(phaseFactRequest);
-  }
-
-  private calculateTotalPrizesInCents(prizeSets: Challenge_PrizeSet[]): number {
-    let totalPrizes = 0;
-    if (prizeSets) {
-      for (const { prizes, type } of prizeSets) {
-        if (_.toLower(type) === "placement") {
-          for (const { amountInCents } of prizes) {
-            totalPrizes += amountInCents!;
-          }
-        }
-      }
-    }
-
-    return totalPrizes;
   }
 
   private cleanPrizeSets(prizeSets?: Challenge_PrizeSet[], overview?: Challenge_Overview) {
