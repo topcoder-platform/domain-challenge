@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { handleUnaryCall, UntypedServiceImplementation } from "@grpc/grpc-js";
+import type { handleUnaryCall, UntypedServiceImplementation } from "@grpc/grpc-js";
 import { LookupCriteria, PhaseFactRequest, PhaseFactResponse, ScanRequest, ScanResult } from "../../../common/common";
 import { Empty } from "../../../google/protobuf/empty";
 import {

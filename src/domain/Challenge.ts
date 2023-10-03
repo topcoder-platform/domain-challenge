@@ -12,6 +12,7 @@ import {
   Challenge_Phase,
   Challenge_PrizeSet,
   CreateChallengeInput,
+  UpdateChallengeInputForACL_PaymentACL,
   UpdateChallengeInputForACL_UpdateInputForACL,
   UpdateChallengeInputForACL_WinnerACL,
   UpdateChallengeInput_UpdateInput,
@@ -55,6 +56,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       "prizeSets",
       "tags",
       "winners",
+      "payments",
       "discussions",
       "overview",
       "groups",
@@ -76,7 +78,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     trackId: string,
     typeId: string,
     tags: string[],
-    metadata: Metadata = new Metadata()
+    metadata: Metadata = new Metadata(),
+    id: string = ""
   ) {
     let legacyChallengeId: number | null = null;
 
@@ -103,7 +106,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       if (status === ChallengeStatuses.Draft) {
         try {
           // prettier-ignore
-          const legacyChallengeCreateInput = LegacyCreateChallengeInput.fromPartial(await legacyMapper.mapChallengeDraftUpdateInput(input));
+          const legacyChallengeCreateInput = LegacyCreateChallengeInput.fromPartial(await legacyMapper.mapChallengeDraftUpdateInput(input, id));
           // prettier-ignore
           const legacyChallengeCreateResponse = await legacyChallengeDomain.create(legacyChallengeCreateInput, metadata);
 
@@ -156,7 +159,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       prevTotalPrizesInCents: 0,
     };
     await lockConsumeAmount(baValidation);
-    let newChallenge;
+
+    let newChallenge: Challenge;
     try {
       // Begin Anti-Corruption Layer
 
@@ -172,6 +176,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         updated: now,
         updatedBy: handle,
         winners: [],
+        payments: [],
         overview: {
           totalPrizes: totalPrizesInCents / 100,
           totalPrizesInCents,
@@ -240,7 +245,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const baValidation: BAValidation = {
       challengeId: challenge?.id,
       billingAccountId: input.billing?.billingAccountId ?? challenge?.billing?.billingAccountId,
-      markup: input.billing?.markup !== undefined && input.billing?.markup !== null ? input.billing?.markup : challenge?.billing?.markup,
+      markup:
+        input.billing?.markup !== undefined && input.billing?.markup !== null
+          ? input.billing?.markup
+          : challenge?.billing?.markup,
       status: input.status ?? challenge?.status,
       prevStatus: challenge?.status,
       totalPrizesInCents,
@@ -438,6 +446,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     if (!_.isUndefined(input.winners)) {
       data.winners = input.winners.winners;
+
+      if (!_.isUndefined(input.payments)) {
+        data.payments = input.payments.payments;
+      }
+
       raiseEvent = true;
     }
 
@@ -587,6 +600,7 @@ interface IUpdateDataFromACL {
   prizeSets?: Challenge_PrizeSet[] | undefined;
   overview?: Challenge_Overview | undefined;
   winners?: UpdateChallengeInputForACL_WinnerACL[] | undefined;
+  payments?: UpdateChallengeInputForACL_PaymentACL[] | undefined;
   updated?: Date;
   updatedBy?: string;
 }

@@ -6,7 +6,7 @@ import { Status } from "@grpc/grpc-js/build/src/constants";
 import m2m from "../helpers/MachineToMachineToken";
 import { ChallengeStatuses, TGBillingAccounts } from "../common/Constants";
 
-const { V3_BA_API_URL } = process.env;
+const { V3_BA_API_URL = "https://api.topcoder-dev.com/v3/billing-accounts" } = process.env;
 
 async function lockAmount(billingAccountId: number, dto: LockAmountDTO) {
   console.log("BA validation lock amount:", billingAccountId, dto);
