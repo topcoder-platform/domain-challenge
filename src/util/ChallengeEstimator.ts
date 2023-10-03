@@ -26,6 +26,10 @@ export class ChallengeEstimator {
     this.prizeSets = prizeSets;
     this.challengeType = challengeType;
     this.defaultParams = this.computeDefaultParams();
+
+    console.log("Prize Sets", this.prizeSets);
+    console.log("Challenge type", this.challengeType);
+    console.log("Default params", this.defaultParams);
   }
 
   private computeDefaultParams(): DefaultPaymentParams {
@@ -106,7 +110,7 @@ export class ChallengeEstimator {
 
   private calculateReviewerPaymentCents(estimatedReviewsPerReviewer: number): number {
     const placementPrizeSet = this.prizeSets.find((p) => p.type === "placement");
-    if (!placementPrizeSet) throw new Error("Placement prize set not found");
+    if (!placementPrizeSet) return 0;
 
     let firstPrize = placementPrizeSet.prizes[0];
     if (!firstPrize || firstPrize.type !== "USD") {
