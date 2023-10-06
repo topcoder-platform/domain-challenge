@@ -969,10 +969,10 @@
     topcoder-interface "0.1.0-PLAT-3491.3"
     tslib "^2.4.1"
 
-"@topcoder-framework/domain-acl@0.22.1-PLAT-3491.3":
-  version "0.22.1-PLAT-3491.3"
-  resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com/npm/topcoder-framework/@topcoder-framework/domain-acl/-/domain-acl-0.22.1-PLAT-3491.3.tgz#6da7ec6e40214ac5ab005d585c608c7bd10ced41"
-  integrity sha512-CvFk70TZrUVyBrIayGrc8NySja9deJJTmolSyv8clsU4OyBnfEr5h+sg8JZxI3iIu5QbJAxnLhQ1+0XYOCif9w==
+"@topcoder-framework/domain-acl@0.22.1-PLAT-3491.4":
+  version "0.22.1-PLAT-3491.4"
+  resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com/npm/topcoder-framework/@topcoder-framework/domain-acl/-/domain-acl-0.22.1-PLAT-3491.4.tgz#e8a5f90224475a7abbf39567913cd9c1531337a4"
+  integrity sha512-dqyt63Qr84ro1plWX1FrwW5U76UOaT0GFzV+UTBxRw5OJBFUNDB9ddn8udQdRi0Hfkx+F4DViel8V4v+EM+Gyw==
   dependencies:
     "@grpc/grpc-js" "^1.8.7"
     "@topcoder-framework/client-relational" "^0.22.1-PLAT-3491.2"

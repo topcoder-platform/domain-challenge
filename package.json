@@ -23,7 +23,7 @@
     "@aws-sdk/util-utf8-node": "^3.259.0",
     "@grpc/grpc-js": "^1.7.1",
     "@opensearch-project/opensearch": "^2.2.0",
-    "@topcoder-framework/domain-acl": "0.22.1-PLAT-3491.3",
+    "@topcoder-framework/domain-acl": "0.22.1-PLAT-3491.4",
     "@topcoder-framework/lib-common": "0.22.1-PLAT-3491.2",
     "topcoder-interface": "0.1.0-PLAT-3491.3",
     "@types/uuid": "^9.0.1",
