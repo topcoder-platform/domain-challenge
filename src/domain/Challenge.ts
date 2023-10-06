@@ -477,32 +477,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     data.updated = new Date();
     data.updatedBy = updatedBy;
 
-    const track = V5_TRACK_IDS_TO_NAMES[challenge?.trackId ?? ""];
-    const type = V5_TYPE_IDS_TO_NAMES[challenge?.typeId ?? ""];
-
-    const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
-      track,
-      type,
-    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1); // These are estimates, fetch reviewer number using constraint in review phase
-
-    const totalPrizesInCents = _.isArray(data.prizeSets)
-      ? new ChallengeEstimator(data.prizeSets ?? [], {
-          track,
-          type,
-        }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1) // These are estimates, fetch reviewer number using constraint in review phase
-      : prevTotalPrizesInCents;
-
-    const baValidation: BAValidation = {
-      challengeId: challenge?.id,
-      billingAccountId: challenge?.billing?.billingAccountId,
-      markup: challenge?.billing?.markup,
-      status: input.status ?? challenge?.status,
-      prevStatus: challenge?.status,
-      totalPrizesInCents,
-      prevTotalPrizesInCents,
-    };
-
-    await lockConsumeAmount(baValidation);
     const dynamoUpdate = _.omit(data, [
       "currentPhase",
       "currentPhaseNames",
@@ -512,11 +486,46 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       "submissionEndDate",
     ]);
 
-    try {
+    const challengeStatus = input.status ?? challenge?.status;
+    if (challengeStatus != ChallengeStatuses.Completed) {
+      const track = V5_TRACK_IDS_TO_NAMES[challenge?.trackId ?? ""];
+      const type = V5_TYPE_IDS_TO_NAMES[challenge?.typeId ?? ""];
+
+      const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
+        track,
+        type,
+      }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1); // These are estimates, fetch reviewer number using constraint in review phase
+
+      const totalPrizesInCents = _.isArray(data.prizeSets)
+        ? new ChallengeEstimator(data.prizeSets ?? [], {
+            track,
+            type,
+          }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1) // These are estimates, fetch reviewer number using constraint in review phase
+        : prevTotalPrizesInCents;
+
+      const baValidation: BAValidation = {
+        challengeId: challenge?.id,
+        billingAccountId: challenge?.billing?.billingAccountId,
+        markup: challenge?.billing?.markup,
+        status: input.status ?? challenge?.status,
+        prevStatus: challenge?.status,
+        totalPrizesInCents,
+        prevTotalPrizesInCents,
+      };
+
+      await lockConsumeAmount(baValidation);
+      try {
+        await super.update(scanCriteria, dynamoUpdate);
+      } catch (err) {
+        await lockConsumeAmount(baValidation, true);
+        throw err;
+      }
+    } else {
       await super.update(scanCriteria, dynamoUpdate);
-    } catch (err) {
-      await lockConsumeAmount(baValidation, true);
-      throw err;
+      console.log("Challenge Completed");
+      const completedChallenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
+      console.log("Payments to Generate", completedChallenge.payments);
+      console.log("Unlock Consumed Amount");
     }
 
     if (input.phases?.phases && input.phases.phases.length && this.shouldUseScheduler(challenge!)) {
