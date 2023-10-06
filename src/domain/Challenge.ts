@@ -34,6 +34,7 @@ import ChallengeScheduler from "../util/ChallengeScheduler";
 import { BAValidation, lockConsumeAmount } from "../api/BillingAccount";
 import { ChallengeEstimator } from "../util/ChallengeEstimator";
 import { V5_TRACK_IDS_TO_NAMES, V5_TYPE_IDS_TO_NAMES } from "../common/ConversionMap";
+import PaymentCreator, { PaymentDetail } from "../util/PaymentCreator";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
   throw new Error("Missing required configurations GRPC_ACL_SERVER_HOST and GRPC_ACL_SERVER_PORT");
@@ -487,32 +488,32 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     ]);
 
     const challengeStatus = input.status ?? challenge?.status;
+    const track = V5_TRACK_IDS_TO_NAMES[challenge?.trackId ?? ""];
+    const type = V5_TYPE_IDS_TO_NAMES[challenge?.typeId ?? ""];
+
+    const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
+      track,
+      type,
+    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1); // These are estimates, fetch reviewer number using constraint in review phase
+
+    const totalPrizesInCents = _.isArray(data.prizeSets)
+      ? new ChallengeEstimator(data.prizeSets ?? [], {
+          track,
+          type,
+        }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1) // These are estimates, fetch reviewer number using constraint in review phase
+      : prevTotalPrizesInCents;
+
+    const baValidation: BAValidation = {
+      challengeId: challenge?.id,
+      billingAccountId: challenge?.billing?.billingAccountId,
+      markup: challenge?.billing?.markup,
+      status: challengeStatus,
+      prevStatus: challenge?.status,
+      totalPrizesInCents,
+      prevTotalPrizesInCents,
+    };
+
     if (challengeStatus != ChallengeStatuses.Completed) {
-      const track = V5_TRACK_IDS_TO_NAMES[challenge?.trackId ?? ""];
-      const type = V5_TYPE_IDS_TO_NAMES[challenge?.typeId ?? ""];
-
-      const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
-        track,
-        type,
-      }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1); // These are estimates, fetch reviewer number using constraint in review phase
-
-      const totalPrizesInCents = _.isArray(data.prizeSets)
-        ? new ChallengeEstimator(data.prizeSets ?? [], {
-            track,
-            type,
-          }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1) // These are estimates, fetch reviewer number using constraint in review phase
-        : prevTotalPrizesInCents;
-
-      const baValidation: BAValidation = {
-        challengeId: challenge?.id,
-        billingAccountId: challenge?.billing?.billingAccountId,
-        markup: challenge?.billing?.markup,
-        status: input.status ?? challenge?.status,
-        prevStatus: challenge?.status,
-        totalPrizesInCents,
-        prevTotalPrizesInCents,
-      };
-
       await lockConsumeAmount(baValidation);
       try {
         await super.update(scanCriteria, dynamoUpdate);
@@ -523,8 +524,19 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     } else {
       await super.update(scanCriteria, dynamoUpdate);
       console.log("Challenge Completed");
+
       const completedChallenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
+
       console.log("Payments to Generate", completedChallenge.payments);
+      const totalAmount = await this.generatePayments(
+        completedChallenge.id,
+        completedChallenge.name,
+        completedChallenge.payments
+      );
+
+      baValidation.totalPrizesInCents = totalAmount * 100;
+      console.log("Unlock", baValidation.totalPrizesInCents);
+      await lockConsumeAmount(baValidation);
       console.log("Unlock Consumed Amount");
     }
 
@@ -609,6 +621,80 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   private shouldUseScheduler(challenge: Challenge) {
     // Use scheduler only for legacy code F2Fs
     return challenge?.legacy?.subTrack === "FIRST_2_FINISH" && !challenge?.legacy.pureV5Task;
+  }
+
+  private async generatePayments(
+    challengeId: string,
+    title: string,
+    payments: UpdateChallengeInputForACL_PaymentACL[]
+  ): Promise<number> {
+    let totalAmount = 0;
+    // TODO: Make this list exhaustive
+    const mapType = (type: string) => {
+      if (type === "placement") return "CONTEST_PAYMENT";
+      if (type === "reviewer") return "REVIEW_BOARD_PAYMENT";
+      if (type === "copilot") return "COPILOT_PAYMENT";
+
+      // TODO: Default to "OTHER_PAYMENT" - at the moment payment api lacks this type
+      return "CONTEST_PAYMENT";
+    };
+
+    const paymentPromises = payments.map((payment) => {
+      let details: PaymentDetail[] = [];
+
+      // TODO: Make this a more dynamic calculation
+      // TODO: splitRatio should be from challenge data
+      if (payment.type === "placement") {
+        const grossAmount1 = payment.amount * 0.75;
+        const grossAmount2 = payment.amount * 0.25;
+        details = [
+          {
+            totalAmount: payment.amount,
+            grossAmount: grossAmount1,
+            installmentNumber: 1,
+            currency: "USD",
+          },
+          {
+            totalAmount: payment.amount,
+            grossAmount: grossAmount2,
+            installmentNumber: 2,
+            currency: "USD",
+          },
+        ];
+      } else {
+        details = [
+          {
+            totalAmount: payment.amount,
+            grossAmount: payment.amount,
+            installmentNumber: 1,
+            currency: "USD",
+          },
+        ];
+      }
+
+      totalAmount += payment.amount;
+
+      const payload = {
+        winnerId: payment.userId.toString(),
+        type: "PAYMENT",
+        origin: "Topcoder",
+        category: mapType(payment.type),
+        title,
+        description: title,
+        externalId: challengeId,
+        details,
+      };
+      return PaymentCreator.createPayment(payload);
+    });
+
+    // 2. Use Promise.all to execute the promises
+    try {
+      await Promise.all(paymentPromises);
+    } catch (error) {
+      console.error("Failed to create payments", error);
+    }
+
+    return totalAmount;
   }
 }
 
