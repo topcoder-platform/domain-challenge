@@ -139,6 +139,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   }
 
   public async create(input: CreateChallengeInput, metadata: Metadata): Promise<Challenge> {
+    metadata.remove("content-length");
     input.name = sanitize(input.name);
 
     // prettier-ignore
@@ -244,6 +245,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     input: UpdateChallengeInput_UpdateInput,
     metadata: Metadata
   ): Promise<ChallengeList> {
+    metadata.remove("content-length");
     const { items } = await this.scan(scanCriteria, undefined);
     const challenge = items[0] as Challenge;
     let updatedChallenge;
