@@ -948,7 +948,7 @@
 
 "@topcoder-framework/client-relational@^0.23.1-PLAT-3614.0":
   version "0.23.1-PLAT-3614.0"
-  resolved "https://topcoder-811668436784.d.codeartifact.us-east-1.amazonaws.com/npm/topcoder-framework/@topcoder-framework/client-relational/-/client-relational-0.23.1-PLAT-3614.0.tgz#1f658d534ab0e1ba0ca93f5c73980d27e678cdeb"
+  resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com/npm/topcoder-framework/@topcoder-framework/client-relational/-/client-relational-0.23.1-PLAT-3614.0.tgz#1f658d534ab0e1ba0ca93f5c73980d27e678cdeb"
   integrity sha512-iCKPgDZvefywhUjPai5yadlcZua52Tl6KaVFSrmAaXEODBP8KeqJAlpT73bQqBdt/PqVSkvUUiEo4Xt9QU7Z/w==
   dependencies:
     "@grpc/grpc-js" "^1.8.0"
@@ -958,7 +958,7 @@
 
 "@topcoder-framework/domain-acl@^0.23.1-PLAT-3614.0":
   version "0.23.1-PLAT-3614.0"
-  resolved "https://topcoder-811668436784.d.codeartifact.us-east-1.amazonaws.com/npm/topcoder-framework/@topcoder-framework/domain-acl/-/domain-acl-0.23.1-PLAT-3614.0.tgz#31c6c4e240e1ec60b976d008bb364dcfa37484c4"
+  resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com/npm/topcoder-framework/@topcoder-framework/domain-acl/-/domain-acl-0.23.1-PLAT-3614.0.tgz#31c6c4e240e1ec60b976d008bb364dcfa37484c4"
   integrity sha512-rXV6CFOHwfsJ6WfDT48wnpIby/aylIwfLW3G8jgviUuq0YnbvcWNOdo3cJ+EoZhf+Ko51n238DRl2G+iKGDMEA==
   dependencies:
     "@grpc/grpc-js" "^1.8.7"
@@ -969,7 +969,7 @@
 
 "@topcoder-framework/lib-common@^0.23.1-PLAT-3614.0":
   version "0.23.1-PLAT-3614.0"
-  resolved "https://topcoder-811668436784.d.codeartifact.us-east-1.amazonaws.com/npm/topcoder-framework/@topcoder-framework/lib-common/-/lib-common-0.23.1-PLAT-3614.0.tgz#087d9abda8671e1ef3116af7f6fb5911f08d81c3"
+  resolved "https://topcoder-409275337247.d.codeartifact.us-east-1.amazonaws.com/npm/topcoder-framework/@topcoder-framework/lib-common/-/lib-common-0.23.1-PLAT-3614.0.tgz#087d9abda8671e1ef3116af7f6fb5911f08d81c3"
   integrity sha512-+ynrGjT7hnZ9fKudqPwyYx1v7e1YHjS1nfUFfeFW4Bvj7a3aAlCLeL6ElMHgquMndea4pmOYlUpGxdqbRnce+A==
   dependencies:
     "@grpc/grpc-js" "^1.8.0"
