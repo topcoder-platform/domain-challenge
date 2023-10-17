@@ -204,12 +204,12 @@ class LegacyMapper {
       44:
         input.metadata.find((m) => m.name == "postMortemRequired")?.value == "false"
           ? "false"
-          : "true", // Post-mortem required (set to false - new Autopilot will handle this)
+          : "true" ?? "true", // Post-mortem required (set to false - new Autopilot will handle this)
       45: "false", // Reliability bonus eligible
       46: "true", // Member Payments Eligible
       48: "false", // Track Late Deliverables
       52: "false", // Allow Stock Art
-      57: input.billing?.markup!.toString(), // Contest Fee Percentage
+      57: "0.5", // Contest Fee Percentage
       59: "false", // Review Feedback Flag
       88: input.metadata.find((m) => m.name == "effortHoursEstimate")?.value ?? undefined, // Effort Hours Estimate
       89: input.metadata.find((m) => m.name == "offshoreEfforts")?.value ?? undefined, // Estimate Efforts Days Offshore (extract from metadata)
@@ -244,12 +244,8 @@ class LegacyMapper {
       };
     }
     if (input.billing?.billingAccountId != null) {
-      projectInfo[32] = input.billing?.billingAccountId.toString();
+      projectInfo[32] = input.billing?.billingAccountId!.toString();
     }
-    if (input.billing?.markup != null) {
-      projectInfo[5] = input.billing?.markup.toString();
-    }
-    
     if (input.status === ChallengeStatuses.Completed) {
       projectInfo[21] = DateUtil.formatDateForIfx(new Date().toISOString(), "MM.DD.YYYY HH:mm z")!; // project_info 21 is Completion Timestamp; and it has a different date format
     }
