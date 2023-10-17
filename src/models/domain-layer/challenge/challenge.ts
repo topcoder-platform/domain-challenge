@@ -37,6 +37,7 @@ export interface Challenge {
   updated?: number | undefined;
   overview?: Challenge_Overview;
   constraints?: Challenge_Constraint | undefined;
+  skills: Challenge_Skill[];
 }
 
 export interface Challenge_Legacy {
@@ -141,6 +142,17 @@ export interface Challenge_Constraint {
   allowedRegistrants: string[];
 }
 
+export interface Challenge_Skill {
+  name: string;
+  id: string;
+  category?: Challenge_Skill_SkillCategory;
+}
+
+export interface Challenge_Skill_SkillCategory {
+  name: string;
+  id: string;
+}
+
 export interface ChallengeList {
   items: Challenge[];
 }
@@ -170,6 +182,7 @@ export interface CreateChallengeInput {
   groups: string[];
   discussions: Challenge_Discussion[];
   constraints?: Challenge_Constraint | undefined;
+  skills: Challenge_Skill[];
 }
 
 export interface UpdateChallengeInput {
@@ -204,6 +217,7 @@ export interface UpdateChallengeInput_UpdateInput {
   status?: string | undefined;
   overview?: Challenge_Overview | undefined;
   constraints?: Challenge_Constraint | undefined;
+  skillUpdate?: UpdateChallengeInput_UpdateInput_SkillUpdate | undefined;
 }
 
 export interface UpdateChallengeInput_UpdateInput_WinnerUpdate {
@@ -244,6 +258,10 @@ export interface UpdateChallengeInput_UpdateInput_AttachmentsUpdate {
 
 export interface UpdateChallengeInput_UpdateInput_GroupsUpdate {
   groups: string[];
+}
+
+export interface UpdateChallengeInput_UpdateInput_SkillUpdate {
+  skills: Challenge_Skill[];
 }
 
 export interface UpdateChallengeInputForACL {
@@ -330,6 +348,7 @@ function createBaseChallenge(): Challenge {
     updated: undefined,
     overview: undefined,
     constraints: undefined,
+    skills: [],
   };
 }
 
@@ -430,6 +449,9 @@ export const Challenge = {
     }
     if (message.constraints !== undefined) {
       Challenge_Constraint.encode(message.constraints, writer.uint32(258).fork()).ldelim();
+    }
+    for (const v of message.skills) {
+      Challenge_Skill.encode(v!, writer.uint32(266).fork()).ldelim();
     }
     return writer;
   },
@@ -665,6 +687,13 @@ export const Challenge = {
 
           message.constraints = Challenge_Constraint.decode(reader, reader.uint32());
           continue;
+        case 33:
+          if (tag !== 266) {
+            break;
+          }
+
+          message.skills.push(Challenge_Skill.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -712,6 +741,7 @@ export const Challenge = {
       updated: isSet(object.updated) ? Number(object.updated) : undefined,
       overview: isSet(object.overview) ? Challenge_Overview.fromJSON(object.overview) : undefined,
       constraints: isSet(object.constraints) ? Challenge_Constraint.fromJSON(object.constraints) : undefined,
+      skills: Array.isArray(object?.skills) ? object.skills.map((e: any) => Challenge_Skill.fromJSON(e)) : [],
     };
   },
 
@@ -792,6 +822,11 @@ export const Challenge = {
       (obj.overview = message.overview ? Challenge_Overview.toJSON(message.overview) : undefined);
     message.constraints !== undefined &&
       (obj.constraints = message.constraints ? Challenge_Constraint.toJSON(message.constraints) : undefined);
+    if (message.skills) {
+      obj.skills = message.skills.map((e) => e ? Challenge_Skill.toJSON(e) : undefined);
+    } else {
+      obj.skills = [];
+    }
     return obj;
   },
 
@@ -843,6 +878,7 @@ export const Challenge = {
     message.constraints = (object.constraints !== undefined && object.constraints !== null)
       ? Challenge_Constraint.fromPartial(object.constraints)
       : undefined;
+    message.skills = object.skills?.map((e) => Challenge_Skill.fromPartial(e)) || [];
     return message;
   },
 };
@@ -1057,7 +1093,7 @@ export const Challenge_Billing = {
       writer.uint32(8).int32(message.billingAccountId);
     }
     if (message.markup !== 0) {
-      writer.uint32(21).float(message.markup);
+      writer.uint32(17).double(message.markup);
     }
     return writer;
   },
@@ -1077,11 +1113,11 @@ export const Challenge_Billing = {
           message.billingAccountId = reader.int32();
           continue;
         case 2:
-          if (tag !== 21) {
+          if (tag !== 17) {
             break;
           }
 
-          message.markup = reader.float();
+          message.markup = reader.double();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -2230,6 +2266,163 @@ export const Challenge_Constraint = {
   },
 };
 
+function createBaseChallenge_Skill(): Challenge_Skill {
+  return { name: "", id: "", category: undefined };
+}
+
+export const Challenge_Skill = {
+  encode(message: Challenge_Skill, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.id !== "") {
+      writer.uint32(18).string(message.id);
+    }
+    if (message.category !== undefined) {
+      Challenge_Skill_SkillCategory.encode(message.category, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Challenge_Skill {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseChallenge_Skill();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.category = Challenge_Skill_SkillCategory.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Challenge_Skill {
+    return {
+      name: isSet(object.name) ? String(object.name) : "",
+      id: isSet(object.id) ? String(object.id) : "",
+      category: isSet(object.category) ? Challenge_Skill_SkillCategory.fromJSON(object.category) : undefined,
+    };
+  },
+
+  toJSON(message: Challenge_Skill): unknown {
+    const obj: any = {};
+    message.name !== undefined && (obj.name = message.name);
+    message.id !== undefined && (obj.id = message.id);
+    message.category !== undefined &&
+      (obj.category = message.category ? Challenge_Skill_SkillCategory.toJSON(message.category) : undefined);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Challenge_Skill>, I>>(base?: I): Challenge_Skill {
+    return Challenge_Skill.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Challenge_Skill>, I>>(object: I): Challenge_Skill {
+    const message = createBaseChallenge_Skill();
+    message.name = object.name ?? "";
+    message.id = object.id ?? "";
+    message.category = (object.category !== undefined && object.category !== null)
+      ? Challenge_Skill_SkillCategory.fromPartial(object.category)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseChallenge_Skill_SkillCategory(): Challenge_Skill_SkillCategory {
+  return { name: "", id: "" };
+}
+
+export const Challenge_Skill_SkillCategory = {
+  encode(message: Challenge_Skill_SkillCategory, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.id !== "") {
+      writer.uint32(18).string(message.id);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Challenge_Skill_SkillCategory {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseChallenge_Skill_SkillCategory();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Challenge_Skill_SkillCategory {
+    return { name: isSet(object.name) ? String(object.name) : "", id: isSet(object.id) ? String(object.id) : "" };
+  },
+
+  toJSON(message: Challenge_Skill_SkillCategory): unknown {
+    const obj: any = {};
+    message.name !== undefined && (obj.name = message.name);
+    message.id !== undefined && (obj.id = message.id);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Challenge_Skill_SkillCategory>, I>>(base?: I): Challenge_Skill_SkillCategory {
+    return Challenge_Skill_SkillCategory.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Challenge_Skill_SkillCategory>, I>>(
+    object: I,
+  ): Challenge_Skill_SkillCategory {
+    const message = createBaseChallenge_Skill_SkillCategory();
+    message.name = object.name ?? "";
+    message.id = object.id ?? "";
+    return message;
+  },
+};
+
 function createBaseChallengeList(): ChallengeList {
   return { items: [] };
 }
@@ -2316,6 +2509,7 @@ function createBaseCreateChallengeInput(): CreateChallengeInput {
     groups: [],
     discussions: [],
     constraints: undefined,
+    skills: [],
   };
 }
 
@@ -2392,6 +2586,9 @@ export const CreateChallengeInput = {
     }
     if (message.constraints !== undefined) {
       Challenge_Constraint.encode(message.constraints, writer.uint32(194).fork()).ldelim();
+    }
+    for (const v of message.skills) {
+      Challenge_Skill.encode(v!, writer.uint32(202).fork()).ldelim();
     }
     return writer;
   },
@@ -2571,6 +2768,13 @@ export const CreateChallengeInput = {
 
           message.constraints = Challenge_Constraint.decode(reader, reader.uint32());
           continue;
+        case 25:
+          if (tag !== 202) {
+            break;
+          }
+
+          message.skills.push(Challenge_Skill.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2610,6 +2814,7 @@ export const CreateChallengeInput = {
         ? object.discussions.map((e: any) => Challenge_Discussion.fromJSON(e))
         : [],
       constraints: isSet(object.constraints) ? Challenge_Constraint.fromJSON(object.constraints) : undefined,
+      skills: Array.isArray(object?.skills) ? object.skills.map((e: any) => Challenge_Skill.fromJSON(e)) : [],
     };
   },
 
@@ -2677,6 +2882,11 @@ export const CreateChallengeInput = {
     }
     message.constraints !== undefined &&
       (obj.constraints = message.constraints ? Challenge_Constraint.toJSON(message.constraints) : undefined);
+    if (message.skills) {
+      obj.skills = message.skills.map((e) => e ? Challenge_Skill.toJSON(e) : undefined);
+    } else {
+      obj.skills = [];
+    }
     return obj;
   },
 
@@ -2718,6 +2928,7 @@ export const CreateChallengeInput = {
     message.constraints = (object.constraints !== undefined && object.constraints !== null)
       ? Challenge_Constraint.fromPartial(object.constraints)
       : undefined;
+    message.skills = object.skills?.map((e) => Challenge_Skill.fromPartial(e)) || [];
     return message;
   },
 };
@@ -2834,6 +3045,7 @@ function createBaseUpdateChallengeInput_UpdateInput(): UpdateChallengeInput_Upda
     status: undefined,
     overview: undefined,
     constraints: undefined,
+    skillUpdate: undefined,
   };
 }
 
@@ -2920,6 +3132,9 @@ export const UpdateChallengeInput_UpdateInput = {
     }
     if (message.constraints !== undefined) {
       Challenge_Constraint.encode(message.constraints, writer.uint32(210).fork()).ldelim();
+    }
+    if (message.skillUpdate !== undefined) {
+      UpdateChallengeInput_UpdateInput_SkillUpdate.encode(message.skillUpdate, writer.uint32(218).fork()).ldelim();
     }
     return writer;
   },
@@ -3113,6 +3328,13 @@ export const UpdateChallengeInput_UpdateInput = {
 
           message.constraints = Challenge_Constraint.decode(reader, reader.uint32());
           continue;
+        case 27:
+          if (tag !== 218) {
+            break;
+          }
+
+          message.skillUpdate = UpdateChallengeInput_UpdateInput_SkillUpdate.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3170,6 +3392,9 @@ export const UpdateChallengeInput_UpdateInput = {
       status: isSet(object.status) ? String(object.status) : undefined,
       overview: isSet(object.overview) ? Challenge_Overview.fromJSON(object.overview) : undefined,
       constraints: isSet(object.constraints) ? Challenge_Constraint.fromJSON(object.constraints) : undefined,
+      skillUpdate: isSet(object.skillUpdate)
+        ? UpdateChallengeInput_UpdateInput_SkillUpdate.fromJSON(object.skillUpdate)
+        : undefined,
     };
   },
 
@@ -3224,6 +3449,9 @@ export const UpdateChallengeInput_UpdateInput = {
       (obj.overview = message.overview ? Challenge_Overview.toJSON(message.overview) : undefined);
     message.constraints !== undefined &&
       (obj.constraints = message.constraints ? Challenge_Constraint.toJSON(message.constraints) : undefined);
+    message.skillUpdate !== undefined && (obj.skillUpdate = message.skillUpdate
+      ? UpdateChallengeInput_UpdateInput_SkillUpdate.toJSON(message.skillUpdate)
+      : undefined);
     return obj;
   },
 
@@ -3292,6 +3520,9 @@ export const UpdateChallengeInput_UpdateInput = {
       : undefined;
     message.constraints = (object.constraints !== undefined && object.constraints !== null)
       ? Challenge_Constraint.fromPartial(object.constraints)
+      : undefined;
+    message.skillUpdate = (object.skillUpdate !== undefined && object.skillUpdate !== null)
+      ? UpdateChallengeInput_UpdateInput_SkillUpdate.fromPartial(object.skillUpdate)
       : undefined;
     return message;
   },
@@ -3957,6 +4188,70 @@ export const UpdateChallengeInput_UpdateInput_GroupsUpdate = {
   ): UpdateChallengeInput_UpdateInput_GroupsUpdate {
     const message = createBaseUpdateChallengeInput_UpdateInput_GroupsUpdate();
     message.groups = object.groups?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseUpdateChallengeInput_UpdateInput_SkillUpdate(): UpdateChallengeInput_UpdateInput_SkillUpdate {
+  return { skills: [] };
+}
+
+export const UpdateChallengeInput_UpdateInput_SkillUpdate = {
+  encode(message: UpdateChallengeInput_UpdateInput_SkillUpdate, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.skills) {
+      Challenge_Skill.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): UpdateChallengeInput_UpdateInput_SkillUpdate {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateChallengeInput_UpdateInput_SkillUpdate();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.skills.push(Challenge_Skill.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateChallengeInput_UpdateInput_SkillUpdate {
+    return { skills: Array.isArray(object?.skills) ? object.skills.map((e: any) => Challenge_Skill.fromJSON(e)) : [] };
+  },
+
+  toJSON(message: UpdateChallengeInput_UpdateInput_SkillUpdate): unknown {
+    const obj: any = {};
+    if (message.skills) {
+      obj.skills = message.skills.map((e) => e ? Challenge_Skill.toJSON(e) : undefined);
+    } else {
+      obj.skills = [];
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateChallengeInput_UpdateInput_SkillUpdate>, I>>(
+    base?: I,
+  ): UpdateChallengeInput_UpdateInput_SkillUpdate {
+    return UpdateChallengeInput_UpdateInput_SkillUpdate.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<UpdateChallengeInput_UpdateInput_SkillUpdate>, I>>(
+    object: I,
+  ): UpdateChallengeInput_UpdateInput_SkillUpdate {
+    const message = createBaseUpdateChallengeInput_UpdateInput_SkillUpdate();
+    message.skills = object.skills?.map((e) => Challenge_Skill.fromPartial(e)) || [];
     return message;
   },
 };
