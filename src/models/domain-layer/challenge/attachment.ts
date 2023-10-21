@@ -124,12 +124,12 @@ export const Attachment = {
 
   fromJSON(object: any): Attachment {
     return {
-      id: isSet(object.id) ? String(object.id) : "",
-      url: isSet(object.url) ? String(object.url) : "",
-      fileSize: isSet(object.fileSize) ? Number(object.fileSize) : 0,
-      name: isSet(object.name) ? String(object.name) : "",
-      challengeId: isSet(object.challengeId) ? String(object.challengeId) : "",
-      description: isSet(object.description) ? String(object.description) : undefined,
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      url: isSet(object.url) ? globalThis.String(object.url) : "",
+      fileSize: isSet(object.fileSize) ? globalThis.Number(object.fileSize) : 0,
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      challengeId: isSet(object.challengeId) ? globalThis.String(object.challengeId) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : undefined,
     };
   },
 
@@ -307,11 +307,11 @@ export const CreateAttachmentInput = {
 
   fromJSON(object: any): CreateAttachmentInput {
     return {
-      url: isSet(object.url) ? String(object.url) : "",
-      fileSize: isSet(object.fileSize) ? Number(object.fileSize) : 0,
-      name: isSet(object.name) ? String(object.name) : "",
-      challengeId: isSet(object.challengeId) ? String(object.challengeId) : "",
-      description: isSet(object.description) ? String(object.description) : undefined,
+      url: isSet(object.url) ? globalThis.String(object.url) : "",
+      fileSize: isSet(object.fileSize) ? globalThis.Number(object.fileSize) : 0,
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      challengeId: isSet(object.challengeId) ? globalThis.String(object.challengeId) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : undefined,
     };
   },
 
@@ -506,11 +506,11 @@ export const UpdateAttachmentInput_UpdateInput = {
 
   fromJSON(object: any): UpdateAttachmentInput_UpdateInput {
     return {
-      url: isSet(object.url) ? String(object.url) : "",
-      fileSize: isSet(object.fileSize) ? Number(object.fileSize) : 0,
-      name: isSet(object.name) ? String(object.name) : "",
-      challengeId: isSet(object.challengeId) ? String(object.challengeId) : "",
-      description: isSet(object.description) ? String(object.description) : undefined,
+      url: isSet(object.url) ? globalThis.String(object.url) : "",
+      fileSize: isSet(object.fileSize) ? globalThis.Number(object.fileSize) : 0,
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      challengeId: isSet(object.challengeId) ? globalThis.String(object.challengeId) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : undefined,
     };
   },
 
@@ -555,7 +555,8 @@ export const UpdateAttachmentInput_UpdateInput = {
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;

@@ -5,15 +5,12 @@ const { execSync } = require("child_process");
 
 const PROTO_DIR = path.join(
   __dirname,
-  "../node_modules/topcoder-interface/data-access-layer/nosql"
+  "../node_modules/topcoder-proto-registry/data-access-layer/nosql"
 );
 const MODEL_DIR = path.join(__dirname, "../src/dal/models/nosql/");
 
 const PROTOC_PATH = "protoc";
-const PLUGIN_PATH = path.join(
-  __dirname,
-  "../node_modules/.bin/protoc-gen-ts_proto"
-);
+const PLUGIN_PATH = path.join(__dirname, "../node_modules/.bin/protoc-gen-ts_proto");
 
 rimraf.sync(`${MODEL_DIR}/*`, {
   glob: { ignore: `${MODEL_DIR}/tsconfig.json` },

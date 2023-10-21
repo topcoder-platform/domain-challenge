@@ -708,7 +708,9 @@ export const StringSet = {
   },
 
   fromJSON(object: any): StringSet {
-    return { values: globalThis.Array.isArray(object?.values) ? object.values.map((e: any) => String(e)) : [] };
+    return {
+      values: globalThis.Array.isArray(object?.values) ? object.values.map((e: any) => globalThis.String(e)) : [],
+    };
   },
 
   toJSON(message: StringSet): unknown {
@@ -777,7 +779,9 @@ export const NumberSet = {
   },
 
   fromJSON(object: any): NumberSet {
-    return { values: globalThis.Array.isArray(object?.values) ? object.values.map((e: any) => Number(e)) : [] };
+    return {
+      values: globalThis.Array.isArray(object?.values) ? object.values.map((e: any) => globalThis.Number(e)) : [],
+    };
   },
 
   toJSON(message: NumberSet): unknown {
@@ -923,7 +927,7 @@ export const MapValue_ValuesEntry = {
 
   fromJSON(object: any): MapValue_ValuesEntry {
     return {
-      key: isSet(object.key) ? String(object.key) : "",
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
       value: isSet(object.value) ? Value.fromJSON(object.value) : undefined,
     };
   },
@@ -1127,7 +1131,7 @@ export const Value = {
   fromJSON(object: any): Value {
     return {
       kind: isSet(object.boolean)
-        ? { $case: "boolean", boolean: Boolean(object.boolean) }
+        ? { $case: "boolean", boolean: globalThis.Boolean(object.boolean) }
         : isSet(object.binary)
         ? { $case: "binary", binary: Buffer.from(bytesFromBase64(object.binary)) }
         : isSet(object.listValue)
@@ -1137,11 +1141,11 @@ export const Value = {
         : isSet(object.nullValue)
         ? { $case: "nullValue", nullValue: nullValueFromJSON(object.nullValue) }
         : isSet(object.numberValue)
-        ? { $case: "numberValue", numberValue: Number(object.numberValue) }
+        ? { $case: "numberValue", numberValue: globalThis.Number(object.numberValue) }
         : isSet(object.numberSetValue)
         ? { $case: "numberSetValue", numberSetValue: NumberSet.fromJSON(object.numberSetValue) }
         : isSet(object.stringValue)
-        ? { $case: "stringValue", stringValue: String(object.stringValue) }
+        ? { $case: "stringValue", stringValue: globalThis.String(object.stringValue) }
         : isSet(object.stringSetValue)
         ? { $case: "stringSetValue", stringSetValue: StringSet.fromJSON(object.stringSetValue) }
         : undefined,
@@ -1279,7 +1283,7 @@ export const Attribute = {
 
   fromJSON(object: any): Attribute {
     return {
-      name: isSet(object.name) ? String(object.name) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
       type: isSet(object.type) ? dataTypeFromJSON(object.type) : DataType.DATA_TYPE_UNSPECIFIED,
     };
   },
@@ -1363,7 +1367,7 @@ export const Filter = {
 
   fromJSON(object: any): Filter {
     return {
-      name: isSet(object.name) ? String(object.name) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
       operator: isSet(object.operator) ? operatorFromJSON(object.operator) : Operator.OPERATOR_UNSPECIFIED,
       value: isSet(object.value) ? Value.fromJSON(object.value) : undefined,
     };
@@ -1546,11 +1550,13 @@ export const SelectQuery = {
 
   fromJSON(object: any): SelectQuery {
     return {
-      table: isSet(object.table) ? String(object.table) : "",
-      index: isSet(object.index) ? String(object.index) : undefined,
-      attributes: globalThis.Array.isArray(object?.attributes) ? object.attributes.map((e: any) => String(e)) : [],
+      table: isSet(object.table) ? globalThis.String(object.table) : "",
+      index: isSet(object.index) ? globalThis.String(object.index) : undefined,
+      attributes: globalThis.Array.isArray(object?.attributes)
+        ? object.attributes.map((e: any) => globalThis.String(e))
+        : [],
       filters: globalThis.Array.isArray(object?.filters) ? object.filters.map((e: any) => Filter.fromJSON(e)) : [],
-      nextToken: isSet(object.nextToken) ? String(object.nextToken) : undefined,
+      nextToken: isSet(object.nextToken) ? globalThis.String(object.nextToken) : undefined,
     };
   },
 
@@ -1711,7 +1717,7 @@ export const InsertQuery = {
 
   fromJSON(object: any): InsertQuery {
     return {
-      table: isSet(object.table) ? String(object.table) : "",
+      table: isSet(object.table) ? globalThis.String(object.table) : "",
       attributes: globalThis.Array.isArray(object?.attributes)
         ? object.attributes.map((e: any) => AttributeAndValue.fromJSON(e))
         : [],
@@ -1918,7 +1924,7 @@ export const UpdateQuery = {
 
   fromJSON(object: any): UpdateQuery {
     return {
-      table: isSet(object.table) ? String(object.table) : "",
+      table: isSet(object.table) ? globalThis.String(object.table) : "",
       updates: globalThis.Array.isArray(object?.updates)
         ? object.updates.map((e: any) => UpdateOperation.fromJSON(e))
         : [],
@@ -2024,8 +2030,8 @@ export const DeleteQuery = {
 
   fromJSON(object: any): DeleteQuery {
     return {
-      table: isSet(object.table) ? String(object.table) : "",
-      index: isSet(object.index) ? String(object.index) : undefined,
+      table: isSet(object.table) ? globalThis.String(object.table) : "",
+      index: isSet(object.index) ? globalThis.String(object.index) : undefined,
       filters: globalThis.Array.isArray(object?.filters) ? object.filters.map((e: any) => Filter.fromJSON(e)) : [],
       returnValues: isSet(object.returnValues) ? returnValueFromJSON(object.returnValues) : undefined,
     };
@@ -2537,7 +2543,7 @@ export const Response = {
   fromJSON(object: any): Response {
     return {
       items: globalThis.Array.isArray(object?.items) ? [...object.items] : [],
-      nextToken: isSet(object.nextToken) ? String(object.nextToken) : undefined,
+      nextToken: isSet(object.nextToken) ? globalThis.String(object.nextToken) : undefined,
     };
   },
 
@@ -2682,7 +2688,7 @@ export const ResponseError = {
   },
 
   fromJSON(object: any): ResponseError {
-    return { message: isSet(object.message) ? String(object.message) : "" };
+    return { message: isSet(object.message) ? globalThis.String(object.message) : "" };
   },
 
   toJSON(message: ResponseError): unknown {
@@ -2857,7 +2863,8 @@ function base64FromBytes(arr: Uint8Array): string {
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;

@@ -111,11 +111,11 @@ export const Phase = {
 
   fromJSON(object: any): Phase {
     return {
-      id: isSet(object.id) ? String(object.id) : "",
-      name: isSet(object.name) ? String(object.name) : "",
-      description: isSet(object.description) ? String(object.description) : undefined,
-      isOpen: isSet(object.isOpen) ? Boolean(object.isOpen) : false,
-      duration: isSet(object.duration) ? Number(object.duration) : 0,
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : undefined,
+      isOpen: isSet(object.isOpen) ? globalThis.Boolean(object.isOpen) : false,
+      duration: isSet(object.duration) ? globalThis.Number(object.duration) : 0,
     };
   },
 
@@ -277,10 +277,10 @@ export const CreatePhaseInput = {
 
   fromJSON(object: any): CreatePhaseInput {
     return {
-      name: isSet(object.name) ? String(object.name) : "",
-      description: isSet(object.description) ? String(object.description) : undefined,
-      isOpen: isSet(object.isOpen) ? Boolean(object.isOpen) : false,
-      duration: isSet(object.duration) ? Number(object.duration) : 0,
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : undefined,
+      isOpen: isSet(object.isOpen) ? globalThis.Boolean(object.isOpen) : false,
+      duration: isSet(object.duration) ? globalThis.Number(object.duration) : 0,
     };
   },
 
@@ -459,10 +459,10 @@ export const UpdatePhaseInput_UpdateInput = {
 
   fromJSON(object: any): UpdatePhaseInput_UpdateInput {
     return {
-      name: isSet(object.name) ? String(object.name) : "",
-      description: isSet(object.description) ? String(object.description) : undefined,
-      isOpen: isSet(object.isOpen) ? Boolean(object.isOpen) : false,
-      duration: isSet(object.duration) ? Number(object.duration) : 0,
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : undefined,
+      isOpen: isSet(object.isOpen) ? globalThis.Boolean(object.isOpen) : false,
+      duration: isSet(object.duration) ? globalThis.Number(object.duration) : 0,
     };
   },
 
@@ -499,7 +499,8 @@ export const UpdatePhaseInput_UpdateInput = {
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;

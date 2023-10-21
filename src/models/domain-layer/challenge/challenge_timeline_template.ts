@@ -110,11 +110,11 @@ export const ChallengeTimelineTemplate = {
 
   fromJSON(object: any): ChallengeTimelineTemplate {
     return {
-      id: isSet(object.id) ? String(object.id) : "",
-      trackId: isSet(object.trackId) ? String(object.trackId) : "",
-      typeId: isSet(object.typeId) ? String(object.typeId) : "",
-      timelineTemplateId: isSet(object.timelineTemplateId) ? String(object.timelineTemplateId) : "",
-      isDefault: isSet(object.isDefault) ? Boolean(object.isDefault) : false,
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      trackId: isSet(object.trackId) ? globalThis.String(object.trackId) : "",
+      typeId: isSet(object.typeId) ? globalThis.String(object.typeId) : "",
+      timelineTemplateId: isSet(object.timelineTemplateId) ? globalThis.String(object.timelineTemplateId) : "",
+      isDefault: isSet(object.isDefault) ? globalThis.Boolean(object.isDefault) : false,
     };
   },
 
@@ -282,10 +282,10 @@ export const CreateChallengeTimelineTemplateInput = {
 
   fromJSON(object: any): CreateChallengeTimelineTemplateInput {
     return {
-      trackId: isSet(object.trackId) ? String(object.trackId) : "",
-      typeId: isSet(object.typeId) ? String(object.typeId) : "",
-      timelineTemplateId: isSet(object.timelineTemplateId) ? String(object.timelineTemplateId) : "",
-      isDefault: isSet(object.isDefault) ? Boolean(object.isDefault) : false,
+      trackId: isSet(object.trackId) ? globalThis.String(object.trackId) : "",
+      typeId: isSet(object.typeId) ? globalThis.String(object.typeId) : "",
+      timelineTemplateId: isSet(object.timelineTemplateId) ? globalThis.String(object.timelineTemplateId) : "",
+      isDefault: isSet(object.isDefault) ? globalThis.Boolean(object.isDefault) : false,
     };
   },
 
@@ -477,10 +477,10 @@ export const UpdateChallengeTimelineTemplateInput_UpdateInput = {
 
   fromJSON(object: any): UpdateChallengeTimelineTemplateInput_UpdateInput {
     return {
-      trackId: isSet(object.trackId) ? String(object.trackId) : undefined,
-      typeId: isSet(object.typeId) ? String(object.typeId) : undefined,
-      timelineTemplateId: isSet(object.timelineTemplateId) ? String(object.timelineTemplateId) : undefined,
-      isDefault: isSet(object.isDefault) ? Boolean(object.isDefault) : undefined,
+      trackId: isSet(object.trackId) ? globalThis.String(object.trackId) : undefined,
+      typeId: isSet(object.typeId) ? globalThis.String(object.typeId) : undefined,
+      timelineTemplateId: isSet(object.timelineTemplateId) ? globalThis.String(object.timelineTemplateId) : undefined,
+      isDefault: isSet(object.isDefault) ? globalThis.Boolean(object.isDefault) : undefined,
     };
   },
 
@@ -521,7 +521,8 @@ export const UpdateChallengeTimelineTemplateInput_UpdateInput = {
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;

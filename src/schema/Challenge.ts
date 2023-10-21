@@ -170,6 +170,21 @@ export const ChallengeSchema: Schema = {
         allowedRegistrants: { type: DataType.DATA_TYPE_LIST, itemType: DataType.DATA_TYPE_STRING },
       },
     },
+    skills: {
+      type: DataType.DATA_TYPE_LIST,
+      itemType: DataType.DATA_TYPE_MAP,
+      items: {
+        id: { type: DataType.DATA_TYPE_STRING },
+        name: { type: DataType.DATA_TYPE_STRING },
+        category: {
+          type: DataType.DATA_TYPE_MAP,
+          items: {
+            id: { type: DataType.DATA_TYPE_STRING },
+            name: { type: DataType.DATA_TYPE_STRING },
+          },
+        },
+      },
+    },
   },
   indices: {
     legacyId: {

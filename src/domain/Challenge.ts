@@ -307,6 +307,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             attachments: input.attachmentUpdate != null ? input.attachmentUpdate.attachments : challenge!.attachments,
             groups: input.groupUpdate != null ? input.groupUpdate.groups : challenge!.groups,
             discussions: input.discussionUpdate != null ? input.discussionUpdate.discussions : challenge!.discussions,
+            skills: input.skillUpdate != null ? input.skillUpdate.skills : challenge!.skills,
           };
 
           // prettier-ignore
@@ -380,6 +381,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             };
           }) : undefined,
           tags: input.tagUpdate != null ? input.tagUpdate.tags : undefined,
+          skills: input.skillUpdate != null ? input.skillUpdate.skills : undefined,
           status: input.status != null ? input.status : undefined,
           attachments: input.attachmentUpdate != null ? input.attachmentUpdate.attachments : undefined,
           groups: input.groupUpdate != null ? input.groupUpdate.groups : undefined,
@@ -391,6 +393,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             totalPrizesInCents,
           } : undefined,
           legacyId: legacyId != null ? legacyId : undefined,
+          constraints: input.constraints != null ? input.constraints : undefined,
         },
         metadata
       );

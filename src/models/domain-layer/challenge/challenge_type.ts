@@ -123,12 +123,12 @@ export const ChallengeType = {
 
   fromJSON(object: any): ChallengeType {
     return {
-      id: isSet(object.id) ? String(object.id) : "",
-      name: isSet(object.name) ? String(object.name) : "",
-      description: isSet(object.description) ? String(object.description) : undefined,
-      isActive: isSet(object.isActive) ? Boolean(object.isActive) : false,
-      isTask: isSet(object.isTask) ? Boolean(object.isTask) : false,
-      abbreviation: isSet(object.abbreviation) ? String(object.abbreviation) : "",
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : undefined,
+      isActive: isSet(object.isActive) ? globalThis.Boolean(object.isActive) : false,
+      isTask: isSet(object.isTask) ? globalThis.Boolean(object.isTask) : false,
+      abbreviation: isSet(object.abbreviation) ? globalThis.String(object.abbreviation) : "",
     };
   },
 
@@ -306,11 +306,11 @@ export const CreateChallengeTypeInput = {
 
   fromJSON(object: any): CreateChallengeTypeInput {
     return {
-      name: isSet(object.name) ? String(object.name) : "",
-      description: isSet(object.description) ? String(object.description) : undefined,
-      isActive: isSet(object.isActive) ? Boolean(object.isActive) : false,
-      isTask: isSet(object.isTask) ? Boolean(object.isTask) : false,
-      abbreviation: isSet(object.abbreviation) ? String(object.abbreviation) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : undefined,
+      isActive: isSet(object.isActive) ? globalThis.Boolean(object.isActive) : false,
+      isTask: isSet(object.isTask) ? globalThis.Boolean(object.isTask) : false,
+      abbreviation: isSet(object.abbreviation) ? globalThis.String(object.abbreviation) : "",
     };
   },
 
@@ -505,11 +505,11 @@ export const UpdateChallengeTypeInput_UpdateInput = {
 
   fromJSON(object: any): UpdateChallengeTypeInput_UpdateInput {
     return {
-      name: isSet(object.name) ? String(object.name) : "",
-      description: isSet(object.description) ? String(object.description) : undefined,
-      isActive: isSet(object.isActive) ? Boolean(object.isActive) : false,
-      isTask: isSet(object.isTask) ? Boolean(object.isTask) : false,
-      abbreviation: isSet(object.abbreviation) ? String(object.abbreviation) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : undefined,
+      isActive: isSet(object.isActive) ? globalThis.Boolean(object.isActive) : false,
+      isTask: isSet(object.isTask) ? globalThis.Boolean(object.isTask) : false,
+      abbreviation: isSet(object.abbreviation) ? globalThis.String(object.abbreviation) : "",
     };
   },
 
@@ -554,7 +554,8 @@ export const UpdateChallengeTypeInput_UpdateInput = {
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
