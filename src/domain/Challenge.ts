@@ -369,7 +369,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
               .build();
           }
         }
-
         const placementPrizes = challenge.prizeSets.find((p) => p.type === "placement")?.prizes;
         if (
           placementPrizes == null ||
