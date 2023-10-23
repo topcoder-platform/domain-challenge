@@ -35,6 +35,8 @@ import { BAValidation, lockConsumeAmount } from "../api/BillingAccount";
 import { ChallengeEstimator } from "../util/ChallengeEstimator";
 import { V5_TRACK_IDS_TO_NAMES, V5_TYPE_IDS_TO_NAMES } from "../common/ConversionMap";
 import PaymentCreator, { PaymentDetail } from "../util/PaymentCreator";
+import { getChallengeResources } from "../api/v5Api";
+import m2mToken from "../helpers/MachineToMachineToken";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
   throw new Error("Missing required configurations GRPC_ACL_SERVER_HOST and GRPC_ACL_SERVER_PORT");
@@ -46,6 +48,7 @@ const legacyChallengeDomain = new LegacyChallengeDomain(
 );
 
 const EXPECTED_REVIEWS_PER_REVIEWER = 3;
+const ROLE_COPILOT = process.env.ROLE_COPILOT ?? "cfe12b3f-2a24-4639-9d8b-ec86726f76bd";
 
 class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   private esClient = ElasticSearch.getESClient();
@@ -265,6 +268,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1) // These are estimates, fetch reviewer number using constraint in review phase
       : prevTotalPrizesInCents;
 
+    let generatePayments = false;
     const baValidation: BAValidation = {
       challengeId: challenge?.id,
       billingAccountId: input.billing?.billingAccountId ?? challenge?.billing?.billingAccountId,
@@ -279,10 +283,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     };
 
     await lockConsumeAmount(baValidation);
+
     try {
-      // Begin Anti-Corruption Layer
       let legacyId: number | null = null;
       if (challenge.legacy!.pureV5Task !== true) {
+        // Begin Anti-Corruption Layer
         if (input.status === ChallengeStatuses.Draft) {
           if (items.length === 0 || items[0] == null) {
             throw new StatusBuilder()
@@ -346,8 +351,75 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             }
           }
         }
+        // End Anti-Corruption Layer
+      } else {
+        // This is a Pure V5 Challenge
+        if (
+          input.status === ChallengeStatuses.Completed &&
+          challenge.status !== ChallengeStatuses.Completed
+        ) {
+          if (
+            input.winnerUpdate == null ||
+            input.winnerUpdate.winners == null ||
+            input.winnerUpdate.winners.length === 0
+          ) {
+            throw new StatusBuilder()
+              .withCode(Status.INVALID_ARGUMENT)
+              .withDetails("A Task can not be completed without winners")
+              .build();
+          }
+        }
+
+        const placementPrizes = challenge.prizeSets.find((p) => p.type === "placement")?.prizes;
+        if (
+          placementPrizes == null ||
+          placementPrizes.length === 0 ||
+          placementPrizes.length < input.winnerUpdate!.winners!.length
+        ) {
+          throw new StatusBuilder()
+            .withCode(Status.INVALID_ARGUMENT)
+            .withDetails("Task has incorrect number of placement prizes")
+            .build();
+        }
+
+        input.paymentUpdate = {
+          payments: input.winnerUpdate!.winners!.map((winner, i) => {
+            const index = winner.placement == null ? i : winner.placement - 1;
+            const prize = placementPrizes[index].amountInCents! / 100;
+
+            return {
+              amount: prize,
+              handle: winner.handle,
+              type: "placement",
+              userId: winner.userId,
+            };
+          }),
+        };
+
+        const copilotPrizes = challenge.prizeSets.find((p) => p.type === "copilot")?.prizes;
+        if (copilotPrizes != null && copilotPrizes.length > 0) {
+          const copilot = await getChallengeResources(
+            challenge.id,
+            ROLE_COPILOT,
+            await m2mToken.getM2MToken()
+          );
+          if (copilot.length === 0) {
+            throw new StatusBuilder()
+              .withCode(Status.INVALID_ARGUMENT)
+              .withDetails("Task has a copilot prize but no copilot")
+              .build();
+          }
+
+          input.paymentUpdate.payments.push({
+            amount: copilotPrizes[0].amountInCents! / 100,
+            type: "copilot",
+            handle: copilot[0].memberHandle,
+            userId: copilot[0].memberId,
+          });
+        }
+
+        generatePayments = input.paymentUpdate != null && input.paymentUpdate.payments.length > 0;
       }
-      // End Anti-Corruption Layer
 
       updatedChallenge = await super.update(
         scanCriteria,
@@ -364,6 +436,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           descriptionFormat: input.descriptionFormat != null ? input.descriptionFormat : undefined,
           task: input.task != null ? input.task : undefined,
           winners: input.winnerUpdate != null ? input.winnerUpdate.winners : undefined,
+          payments: input.paymentUpdate != null ? input.paymentUpdate.payments : undefined,
           discussions: input.discussionUpdate != null ? input.discussionUpdate.discussions : undefined,
           metadata: input.metadataUpdate != null ? input.metadataUpdate.metadata : undefined,
           phases: input.phaseUpdate != null ? input.phaseUpdate.phases : undefined,
@@ -408,6 +481,22 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       this.shouldUseScheduler(challenge)
     ) {
       await ChallengeScheduler.schedule(challenge.id, input.phaseUpdate.phases);
+    }
+
+    // TODO: This is temporary until we have a challenge processor that handles challenge completion events by subscribing to Harmony
+    if (generatePayments) {
+      const completedChallenge = updatedChallenge.items[0];
+      console.log("Task Completed", completedChallenge);
+
+      const totalAmount = await this.generatePayments(
+        completedChallenge.id,
+        completedChallenge.name,
+        completedChallenge.payments
+      );
+      baValidation.totalPrizesInCents = totalAmount * 100;
+      console.log("Unlock", baValidation.totalPrizesInCents);
+      await lockConsumeAmount(baValidation);
+      console.log("Unlock Consumed Amount");
     }
 
     return updatedChallenge;
