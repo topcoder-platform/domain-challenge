@@ -27,7 +27,7 @@ async function lockAmount(billingAccountId: number, dto: LockAmountDTO) {
       }
     );
   } catch (err: any) {
-    console.error(err);
+    console.error(err.response?.data?.result?.content ?? "Failed to lock challenge amount");
     throw new StatusBuilder()
       .withCode(Status.INTERNAL)
       .withDetails(

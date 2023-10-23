@@ -83,7 +83,7 @@ export class ChallengeEstimator {
     let totalCostCents = this.getFixedCost("placement");
 
     const copilotPrizeCents = this.getFixedCost("copilot");
-    if (copilotPrizeCents > 0) {
+    if (copilotPrizeCents >= 0) {
       totalCostCents += copilotPrizeCents;
     } else {
       totalCostCents += this.getDefaultCopilotFee();
