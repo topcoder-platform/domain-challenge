@@ -368,56 +368,57 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
               .withDetails("A Task can not be completed without winners")
               .build();
           }
-        }
-        const placementPrizes = challenge.prizeSets.find((p) => p.type === "placement")?.prizes;
-        if (
-          placementPrizes == null ||
-          placementPrizes.length === 0 ||
-          placementPrizes.length < input.winnerUpdate!.winners!.length
-        ) {
-          throw new StatusBuilder()
-            .withCode(Status.INVALID_ARGUMENT)
-            .withDetails("Task has incorrect number of placement prizes")
-            .build();
-        }
 
-        input.paymentUpdate = {
-          payments: input.winnerUpdate!.winners!.map((winner, i) => {
-            const index = winner.placement == null ? i : winner.placement - 1;
-            const prize = placementPrizes[index].amountInCents! / 100;
-
-            return {
-              amount: prize,
-              handle: winner.handle,
-              type: "placement",
-              userId: winner.userId,
-            };
-          }),
-        };
-
-        const copilotPrizes = challenge.prizeSets.find((p) => p.type === "copilot")?.prizes;
-        if (copilotPrizes != null && copilotPrizes.length > 0) {
-          const copilot = await getChallengeResources(
-            challenge.id,
-            ROLE_COPILOT,
-            await m2mToken.getM2MToken()
-          );
-          if (copilot.length === 0) {
+          const placementPrizes = challenge.prizeSets.find((p) => p.type === "placement")?.prizes;
+          if (
+            placementPrizes == null ||
+            placementPrizes.length === 0 ||
+            placementPrizes.length < input.winnerUpdate!.winners!.length
+          ) {
             throw new StatusBuilder()
               .withCode(Status.INVALID_ARGUMENT)
-              .withDetails("Task has a copilot prize but no copilot")
+              .withDetails("Task has incorrect number of placement prizes")
               .build();
           }
 
-          input.paymentUpdate.payments.push({
-            amount: copilotPrizes[0].amountInCents! / 100,
-            type: "copilot",
-            handle: copilot[0].memberHandle,
-            userId: copilot[0].memberId,
-          });
-        }
+          input.paymentUpdate = {
+            payments: input.winnerUpdate!.winners!.map((winner, i) => {
+              const index = winner.placement == null ? i : winner.placement - 1;
+              const prize = placementPrizes[index].amountInCents! / 100;
 
-        generatePayments = input.paymentUpdate != null && input.paymentUpdate.payments.length > 0;
+              return {
+                amount: prize,
+                handle: winner.handle,
+                type: "placement",
+                userId: winner.userId,
+              };
+            }),
+          };
+
+          const copilotPrizes = challenge.prizeSets.find((p) => p.type === "copilot")?.prizes;
+          if (copilotPrizes != null && copilotPrizes.length > 0) {
+            const copilot = await getChallengeResources(
+              challenge.id,
+              ROLE_COPILOT,
+              await m2mToken.getM2MToken()
+            );
+            if (copilot.length === 0) {
+              throw new StatusBuilder()
+                .withCode(Status.INVALID_ARGUMENT)
+                .withDetails("Task has a copilot prize but no copilot")
+                .build();
+            }
+
+            input.paymentUpdate.payments.push({
+              amount: copilotPrizes[0].amountInCents! / 100,
+              type: "copilot",
+              handle: copilot[0].memberHandle,
+              userId: copilot[0].memberId,
+            });
+          }
+
+          generatePayments = input.paymentUpdate != null && input.paymentUpdate.payments.length > 0;
+        }
       }
 
       updatedChallenge = await super.update(
