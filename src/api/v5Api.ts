@@ -12,7 +12,7 @@ export const getChallengeResources = async (
   token: string
 ): Promise<any> => {
   const resources = await getRequest(
-    `${process.env.TOPCODER_API_URL}/resources?challengeId=${challengeId}}&roleId=${roleId}`,
+    `${process.env.TOPCODER_API_URL}/resources?challengeId=${challengeId}&roleId=${roleId}`,
     token
   );
   return resources;
