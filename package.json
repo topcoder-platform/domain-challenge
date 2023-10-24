@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "build:proto:client:nosql": "node bin/nosql-client",
-    "build:proto:client": "node bin/nosql-client",
     "build:proto:server": "node bin/server",
+    "build:proto:client": "node bin/nosql-client",
     "build:proto": "node bin/nosql-client && node bin/server",
     "build:app": "rimraf dist && tsc -b",
     "build": "yarn build:proto:client && yarn build:proto:server && yarn build:app",
