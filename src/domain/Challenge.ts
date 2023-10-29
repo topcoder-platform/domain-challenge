@@ -25,7 +25,13 @@ import { ChallengeSchema } from "../schema/Challenge";
 import { Metadata, StatusBuilder } from "@grpc/grpc-js";
 import { Status } from "@grpc/grpc-js/build/src/constants";
 import _ from "lodash";
-import { ChallengeStatuses, ES_INDEX, ES_REFRESH, Topics } from "../common/Constants";
+import {
+  ChallengeStatuses,
+  ES_INDEX,
+  ES_REFRESH,
+  PrizeSetTypes,
+  Topics,
+} from "../common/Constants";
 import BusApi from "../helpers/BusApi";
 import ElasticSearch from "../helpers/ElasticSearch";
 import { LookupCriteria, ScanCriteria } from "../models/common/common";
@@ -47,6 +53,7 @@ const legacyChallengeDomain = new LegacyChallengeDomain(
   process.env.GRPC_ACL_SERVER_PORT
 );
 
+const NUM_REVIEWERS = 2;
 const EXPECTED_REVIEWS_PER_REVIEWER = 3;
 const ROLE_COPILOT = process.env.ROLE_COPILOT ?? "cfe12b3f-2a24-4639-9d8b-ec86726f76bd";
 
@@ -157,10 +164,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const track = V5_TRACK_IDS_TO_NAMES[input.trackId];
     const type = V5_TYPE_IDS_TO_NAMES[input.typeId];
 
-    const totalPrizesInCents = new ChallengeEstimator(input.prizeSets ?? [], {
+    const estimatedTotalInCents = new ChallengeEstimator(input.prizeSets ?? [], {
       track,
       type,
-    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1);
+    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS);
 
     const now = new Date().getTime();
     const challengeId = IdGenerator.generateUUID();
@@ -171,7 +178,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       challengeId,
       markup: input.billing?.markup,
       status: input.status,
-      totalPrizesInCents,
+      totalPrizesInCents: estimatedTotalInCents,
       prevTotalPrizesInCents: 0,
     };
     await lockConsumeAmount(baValidation);
@@ -185,6 +192,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
       // End Anti-Corruption Layer
 
+      const totalPlacementPrizeInCents = _.sumBy(
+        _.find(input.prizeSets ?? [], {
+          type: PrizeSetTypes.ChallengePrizes,
+        })?.prizes ?? [],
+        "amountInCents"
+      );
+
       const challenge: Challenge = {
         id: challengeId,
         created: now,
@@ -194,8 +208,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         winners: [],
         payments: [],
         overview: {
-          totalPrizes: totalPrizesInCents / 100,
-          totalPrizesInCents,
+          totalPrizes: totalPlacementPrizeInCents / 100,
+          totalPrizesInCents: totalPlacementPrizeInCents,
         },
         ...input,
         prizeSets: (input.prizeSets ?? []).map((prizeSet) => {
@@ -259,13 +273,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
       track,
       type,
-    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1); // These are estimates, fetch reviewer number using constraint in review phase
+    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS); // These are estimates, fetch reviewer number using constraint in review phase
 
     const totalPrizesInCents = _.isArray(input.prizeSetUpdate?.prizeSets)
       ? new ChallengeEstimator(input.prizeSetUpdate?.prizeSets! ?? [], {
           track,
           type,
-        }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1) // These are estimates, fetch reviewer number using constraint in review phase
+        }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS) // These are estimates, fetch reviewer number using constraint in review phase
       : prevTotalPrizesInCents;
 
     let generatePayments = false;
@@ -283,6 +297,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     };
 
     await lockConsumeAmount(baValidation);
+
+    const totalPlacementPrizeInCents = _.sumBy(
+      _.find(input.prizeSetUpdate?.prizeSets ?? [], {
+        type: PrizeSetTypes.ChallengePrizes,
+      })?.prizes ?? [],
+      "amountInCents"
+    );
 
     try {
       let legacyId: number | null = null;
@@ -462,8 +483,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           startDate: input.startDate != null ? input.startDate : undefined,
           endDate: input.endDate != null ? input.endDate : undefined,
           overview: input.overview != null ? {
-            totalPrizes: totalPrizesInCents / 100,
-            totalPrizesInCents,
+            totalPrizes: totalPlacementPrizeInCents / 100,
+            totalPrizesInCents: totalPlacementPrizeInCents,
           } : undefined,
           legacyId: legacyId != null ? legacyId : undefined,
           constraints: input.constraints != null ? input.constraints : undefined,
@@ -588,13 +609,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
       track,
       type,
-    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1); // These are estimates, fetch reviewer number using constraint in review phase
+    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS); // These are estimates, fetch reviewer number using constraint in review phase
 
     const totalPrizesInCents = _.isArray(data.prizeSets)
       ? new ChallengeEstimator(data.prizeSets ?? [], {
           track,
           type,
-        }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1) // These are estimates, fetch reviewer number using constraint in review phase
+        }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS) // These are estimates, fetch reviewer number using constraint in review phase
       : prevTotalPrizesInCents;
 
     const baValidation: BAValidation = {
@@ -671,7 +692,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
       track: V5_TRACK_IDS_TO_NAMES[challenge?.trackId ?? ""],
       type: V5_TYPE_IDS_TO_NAMES[challenge?.typeId ?? ""],
-    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, 1);
+    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS);
 
     const baValidation: BAValidation = {
       challengeId: challenge?.id,
@@ -726,7 +747,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     // TODO: Make this list exhaustive
     const mapType = (type: string) => {
       if (type === "placement") return "CONTEST_PAYMENT";
-      if (type === "reviewer") return "REVIEW_BOARD_PAYMENT";
+      if (type === "reviewer" || type === "iterative reviewer") return "REVIEW_BOARD_PAYMENT";
       if (type === "copilot") return "COPILOT_PAYMENT";
 
       // TODO: Default to "OTHER_PAYMENT" - at the moment payment api lacks this type
@@ -781,7 +802,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       return PaymentCreator.createPayment(payload);
     });
 
-    // 2. Use Promise.all to execute the promises
     try {
       await Promise.all(paymentPromises);
     } catch (error) {
