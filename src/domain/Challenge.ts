@@ -270,33 +270,39 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const track = V5_TRACK_IDS_TO_NAMES[challenge.trackId];
     const type = V5_TYPE_IDS_TO_NAMES[challenge.typeId];
 
-    const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
-      track,
-      type,
-    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS); // These are estimates, fetch reviewer number using constraint in review phase
-
-    const totalPrizesInCents = _.isArray(input.prizeSetUpdate?.prizeSets)
-      ? new ChallengeEstimator(input.prizeSetUpdate?.prizeSets! ?? [], {
-          track,
-          type,
-        }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS) // These are estimates, fetch reviewer number using constraint in review phase
-      : prevTotalPrizesInCents;
-
+    let shouldLockBudget = input.prizeSetUpdate != null;
     let generatePayments = false;
-    const baValidation: BAValidation = {
-      challengeId: challenge?.id,
-      billingAccountId: input.billing?.billingAccountId ?? challenge?.billing?.billingAccountId,
-      markup:
-        input.billing?.markup !== undefined && input.billing?.markup !== null
-          ? input.billing?.markup
-          : challenge?.billing?.markup,
-      status: input.status ?? challenge?.status,
-      prevStatus: challenge?.status,
-      totalPrizesInCents,
-      prevTotalPrizesInCents,
-    };
+    let baValidation: BAValidation | null = null;
 
-    await lockConsumeAmount(baValidation);
+    if (shouldLockBudget) {
+      // Lock budget only if prize set is updated
+      const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
+        track,
+        type,
+      }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS); // These are estimates, fetch reviewer number using constraint in review phase
+
+      const totalPrizesInCents = _.isArray(input.prizeSetUpdate?.prizeSets)
+        ? new ChallengeEstimator(input.prizeSetUpdate?.prizeSets! ?? [], {
+            track,
+            type,
+          }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS) // These are estimates, fetch reviewer number using constraint in review phase
+        : prevTotalPrizesInCents;
+
+      baValidation = {
+        challengeId: challenge?.id,
+        billingAccountId: input.billing?.billingAccountId ?? challenge?.billing?.billingAccountId,
+        markup:
+          input.billing?.markup !== undefined && input.billing?.markup !== null
+            ? input.billing?.markup
+            : challenge?.billing?.markup,
+        status: input.status ?? challenge?.status,
+        prevStatus: challenge?.status,
+        totalPrizesInCents,
+        prevTotalPrizesInCents,
+      };
+
+      await lockConsumeAmount(baValidation);
+    }
 
     const totalPlacementPrizeInCents = _.sumBy(
       _.find(input.prizeSetUpdate?.prizeSets ?? [], {
@@ -492,7 +498,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         metadata
       );
     } catch (err) {
-      await lockConsumeAmount(baValidation, true);
+      if (baValidation != null) {
+        await lockConsumeAmount(baValidation, true);
+      }
       throw err;
     }
 
@@ -505,19 +513,15 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     }
 
     // TODO: This is temporary until we have a challenge processor that handles challenge completion events by subscribing to Harmony
-    if (generatePayments) {
+    if (generatePayments && baValidation != null) {
       const completedChallenge = updatedChallenge.items[0];
-      console.log("Task Completed", completedChallenge);
-
       const totalAmount = await this.generatePayments(
         completedChallenge.id,
         completedChallenge.name,
         completedChallenge.payments
       );
       baValidation.totalPrizesInCents = totalAmount * 100;
-      console.log("Unlock", baValidation.totalPrizesInCents);
       await lockConsumeAmount(baValidation);
-      console.log("Unlock Consumed Amount");
     }
 
     return updatedChallenge;
