@@ -284,13 +284,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     let generatePayments = false;
     let baValidation: BAValidation | null = null;
 
-    if (shouldLockBudget) {
-      // Lock budget only if prize set is updated
-      const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
-        track,
-        type,
-      }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS); // These are estimates, fetch reviewer number using constraint in review phase
+    // Lock budget only if prize set is updated
+    const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
+      track,
+      type,
+    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS); // These are estimates, fetch reviewer number using constraint in review phase
 
+    if (shouldLockBudget) {
       const totalPrizesInCents = _.isArray(input.prizeSetUpdate?.prizeSets)
         ? new ChallengeEstimator(input.prizeSetUpdate?.prizeSets! ?? [], {
             track,
@@ -523,15 +523,29 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     }
 
     // TODO: This is temporary until we have a challenge processor that handles challenge completion events by subscribing to Harmony
-    if (generatePayments && baValidation != null) {
+    if (generatePayments) {
       const completedChallenge = updatedChallenge.items[0];
       const totalAmount = await this.generatePayments(
         completedChallenge.id,
         completedChallenge.name,
         completedChallenge.payments
       );
-      baValidation.totalPrizesInCents = totalAmount * 100;
-      baValidation.markup = challenge.billing?.clientBillingRate;
+      baValidation = {
+        challengeId: challenge?.id,
+        billingAccountId: input.billing?.billingAccountId ?? challenge?.billing?.billingAccountId,
+        markup:
+          input.billing?.markup !== undefined && input.billing?.markup !== null
+            ? input.billing?.markup
+            : challenge?.billing?.markup,
+        status: input.status ?? challenge?.status,
+        prevStatus: challenge?.status,
+        totalPrizesInCents: totalAmount * 100,
+        prevTotalPrizesInCents,
+      };
+      if (challenge.billing?.clientBillingRate != null) {
+        baValidation.markup = challenge.billing?.clientBillingRate;
+      }
+      console.log("Task Completed. Unlocking consumed budget", baValidation);
       await lockConsumeAmount(baValidation);
     }
 
@@ -665,9 +679,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       );
 
       baValidation.totalPrizesInCents = totalAmount * 100;
-      console.log("Unlock", baValidation.totalPrizesInCents);
       await lockConsumeAmount(baValidation);
-      console.log("Unlock Consumed Amount");
     }
 
     if (input.phases?.phases && input.phases.phases.length && this.shouldUseScheduler(challenge!)) {
