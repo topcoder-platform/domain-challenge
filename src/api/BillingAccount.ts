@@ -99,7 +99,7 @@ export async function lockConsumeAmount(baValidation: BAValidation, rollback: bo
     if (currAmount !== prevAmount) {
       await lockAmount(baValidation.billingAccountId, {
         challengeId: baValidation.challengeId!,
-        lockAmount: rollback ? prevAmount : currAmount,
+        lockAmount: (rollback ? prevAmount : currAmount) * (1 + baValidation.markup!),
       });
     }
   } else if (baValidation.status === ChallengeStatuses.Completed) {
@@ -110,7 +110,7 @@ export async function lockConsumeAmount(baValidation: BAValidation, rollback: bo
     if (currAmount !== prevAmount) {
       await consumeAmount(baValidation.billingAccountId, {
         challengeId: baValidation.challengeId!,
-        consumeAmount: rollback ? prevAmount : currAmount,
+        consumeAmount: (rollback ? prevAmount : currAmount) * (1 + baValidation.markup!),
         markup: baValidation.markup,
       });
     }

@@ -172,11 +172,20 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const now = new Date().getTime();
     const challengeId = IdGenerator.generateUUID();
 
+    let baValidationMarkup = input.billing?.markup;
+    if (
+      input.task?.isTask &&
+      input.status == ChallengeStatuses.Draft &&
+      input.billing?.clientBilingRate != null
+    ) {
+      baValidationMarkup = input.billing?.clientBilingRate;
+    }
+
     // Lock amount
     const baValidation: BAValidation = {
       billingAccountId: input.billing?.billingAccountId,
       challengeId,
-      markup: input.billing?.markup,
+      markup: baValidationMarkup,
       status: input.status,
       totalPrizesInCents: estimatedTotalInCents,
       prevTotalPrizesInCents: 0,
@@ -205,6 +214,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         createdBy: handle,
         updated: now,
         updatedBy: handle,
+        billing: input.billing ?? undefined,
         winners: [],
         payments: [],
         overview: {
@@ -250,7 +260,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       throw err;
     }
 
-    if (input.phases && input.phases.length && this.shouldUseScheduler(newChallenge)) {
+    if (input.phases.length && this.shouldUseScheduler(newChallenge)) {
       await ChallengeScheduler.schedule(newChallenge.id, input.phases);
     }
 
@@ -521,6 +531,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         completedChallenge.payments
       );
       baValidation.totalPrizesInCents = totalAmount * 100;
+      baValidation.markup = challenge.billing?.clientBilingRate;
       await lockConsumeAmount(baValidation);
     }
 

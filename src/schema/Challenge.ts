@@ -31,6 +31,7 @@ export const ChallengeSchema: Schema = {
       items: {
         billingAccountId: { type: DataType.DATA_TYPE_NUMBER, format: "integer" },
         markup: { type: DataType.DATA_TYPE_NUMBER, format: "float", precision: 2 },
+        clientBillingRate: { type: DataType.DATA_TYPE_NUMBER, format: "float", precision: 2 },
       },
     },
     description: { type: DataType.DATA_TYPE_STRING },
