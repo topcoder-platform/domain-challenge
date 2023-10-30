@@ -176,9 +176,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     if (
       input.task?.isTask &&
       input.status == ChallengeStatuses.Draft &&
-      input.billing?.clientBilingRate != null
+      input.billing?.clientBillingRate != null
     ) {
-      baValidationMarkup = input.billing?.clientBilingRate;
+      baValidationMarkup = input.billing?.clientBillingRate;
     }
 
     // Lock amount
