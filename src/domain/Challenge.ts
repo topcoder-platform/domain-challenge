@@ -531,7 +531,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         completedChallenge.payments
       );
       baValidation.totalPrizesInCents = totalAmount * 100;
-      baValidation.markup = challenge.billing?.clientBilingRate;
+      baValidation.markup = challenge.billing?.clientBillingRate;
       await lockConsumeAmount(baValidation);
     }
 
