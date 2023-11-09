@@ -100,11 +100,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     let legacyChallengeId: number | null = null;
 
     if (input.legacy == null || input.legacy.pureV5Task !== true) {
-      const { track, subTrack, isTask, technologies } = legacyMapper.mapTrackAndType(
-        trackId,
-        typeId,
-        tags
-      );
+      const { track, subTrack, isTask } = legacyMapper.mapTrackAndType(trackId, typeId, tags);
       const directProjectId = input.legacy == null ? 0 : input.legacy.directProjectId; // v5 API can set directProjectId
       const reviewType = input.legacy == null ? "INTERNAL" : input.legacy.reviewType; // v5 API can set reviewType
       const confidentialityType =
@@ -281,6 +277,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const type = V5_TYPE_IDS_TO_NAMES[challenge.typeId];
 
     let shouldLockBudget = input.prizeSetUpdate != null;
+    const shouldUnlockBudget =
+      input.status === ChallengeStatuses.Deleted || input.status === ChallengeStatuses.Canceled;
     let generatePayments = false;
     let baValidation: BAValidation | null = null;
 
@@ -290,7 +288,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       type,
     }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS); // These are estimates, fetch reviewer number using constraint in review phase
 
-    if (shouldLockBudget) {
+    if (shouldLockBudget || shouldUnlockBudget) {
       const totalPrizesInCents = _.isArray(input.prizeSetUpdate?.prizeSets)
         ? new ChallengeEstimator(input.prizeSetUpdate?.prizeSets! ?? [], {
             track,
@@ -307,7 +305,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             : challenge?.billing?.markup,
         status: input.status ?? challenge?.status,
         prevStatus: challenge?.status,
-        totalPrizesInCents,
+        totalPrizesInCents: shouldUnlockBudget ? 0 : totalPrizesInCents,
         prevTotalPrizesInCents,
       };
 
@@ -728,7 +726,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       status: ChallengeStatuses.Deleted,
       prevStatus: challenge?.status,
       prevTotalPrizesInCents,
-      totalPrizesInCents: prevTotalPrizesInCents,
+      totalPrizesInCents: 0,
     };
 
     await lockConsumeAmount(baValidation);
