@@ -277,8 +277,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const type = V5_TYPE_IDS_TO_NAMES[challenge.typeId];
 
     let shouldLockBudget = input.prizeSetUpdate != null;
-    const shouldUnlockBudget =
-      input.status === ChallengeStatuses.Deleted || input.status === ChallengeStatuses.Canceled;
+    const isCancelled = input.status?.toLowerCase().indexOf("cancelled") !== -1;
     let generatePayments = false;
     let baValidation: BAValidation | null = null;
 
@@ -288,7 +287,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       type,
     }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS); // These are estimates, fetch reviewer number using constraint in review phase
 
-    if (shouldLockBudget || shouldUnlockBudget) {
+    if (shouldLockBudget || isCancelled) {
       const totalPrizesInCents = _.isArray(input.prizeSetUpdate?.prizeSets)
         ? new ChallengeEstimator(input.prizeSetUpdate?.prizeSets! ?? [], {
             track,
@@ -305,7 +304,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             : challenge?.billing?.markup,
         status: input.status ?? challenge?.status,
         prevStatus: challenge?.status,
-        totalPrizesInCents: shouldUnlockBudget ? 0 : totalPrizesInCents,
+        totalPrizesInCents,
         prevTotalPrizesInCents,
       };
 
