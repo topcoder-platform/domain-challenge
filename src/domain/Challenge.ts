@@ -778,7 +778,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       return "CONTEST_PAYMENT";
     };
 
-    const paymentPromises = payments.map((payment) => {
+    const paymentPromises = payments.map(async (payment) => {
       let details: PaymentDetail[] = [];
 
       // TODO: Make this a more dynamic calculation
@@ -823,7 +823,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         externalId: challengeId,
         details,
       };
-      return PaymentCreator.createPayment(payload);
+      return PaymentCreator.createPayment(payload, await m2mToken.getM2MToken());
     });
 
     try {
