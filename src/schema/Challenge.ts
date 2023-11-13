@@ -31,6 +31,7 @@ export const ChallengeSchema: Schema = {
       items: {
         billingAccountId: { type: DataType.DATA_TYPE_NUMBER, format: "integer" },
         markup: { type: DataType.DATA_TYPE_NUMBER, format: "float", precision: 2 },
+        clientBillingRate: { type: DataType.DATA_TYPE_NUMBER, format: "float", precision: 2 },
       },
     },
     description: { type: DataType.DATA_TYPE_STRING },
@@ -126,6 +127,16 @@ export const ChallengeSchema: Schema = {
       items: {
         handle: { type: DataType.DATA_TYPE_STRING },
         placement: { type: DataType.DATA_TYPE_NUMBER, format: "integer" },
+        userId: { type: DataType.DATA_TYPE_NUMBER, format: "integer" },
+        type: { type: DataType.DATA_TYPE_STRING },
+      },
+    },
+    payments: {
+      type: DataType.DATA_TYPE_LIST,
+      itemType: DataType.DATA_TYPE_MAP,
+      items: {
+        handle: { type: DataType.DATA_TYPE_STRING },
+        amount: { type: DataType.DATA_TYPE_NUMBER, format: "float" },
         userId: { type: DataType.DATA_TYPE_NUMBER, format: "integer" },
         type: { type: DataType.DATA_TYPE_STRING },
       },

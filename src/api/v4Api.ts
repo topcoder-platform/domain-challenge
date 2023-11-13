@@ -1,5 +1,4 @@
-const { V4_TECHNOLOGIES_API_URL, V4_PLATFORMS_API_URL, V4_CHALLENGE_API_URL } =
-  process.env;
+const { V4_TECHNOLOGIES_API_URL, V4_PLATFORMS_API_URL } = process.env;
 
 import _ from "lodash";
 import axios from "axios";
@@ -17,11 +16,7 @@ import { V5_TO_V4 } from "../common/ConversionMap";
 
 // TODO: Create RPC calls in anticorruption-layer
 class V4Api {
-  public getLegacyTrackInformation(
-    trackId: string,
-    typeId: string,
-    tags: string[]
-  ) {
+  public getLegacyTrackInformation(trackId: string, typeId: string, tags: string[]) {
     return V5_TO_V4[trackId][typeId](tags);
   }
 
@@ -45,9 +40,7 @@ class V4Api {
         reviewType: _.get(payload, "legacy.reviewType", "INTERNAL"),
         projectId,
         status:
-          payload.status === CancelledPaymentFailed
-            ? CancelledFailedScreening
-            : payload.status,
+          payload.status === CancelledPaymentFailed ? CancelledFailedScreening : payload.status,
         billingAccountId: null,
         forumId: null,
         copilotId: null,
@@ -68,16 +61,11 @@ class V4Api {
       if (payload.copilotId) {
         data.copilotId = payload.copilotId;
       }
-      data.confidentialityType = _.get(
-        payload,
-        "legacy.confidentialityType",
-        "public"
-      );
+      data.confidentialityType = _.get(payload, "legacy.confidentialityType", "public");
 
       if (payload.privateDescription) {
         data.detailedRequirements += "\n\r";
-        data.detailedRequirements +=
-          "V5 Challenge - Additional Details: " + payload.id;
+        data.detailedRequirements += "V5 Challenge - Additional Details: " + payload.id;
       }
 
       const SECONDS_TO_MILLIS = 1000;
@@ -85,18 +73,12 @@ class V4Api {
         const registrationPhase = _.find(payload.phases, (p) => {
           return p.phaseId == REGISTRATION_PHASE_ID;
         });
-        const submissionPhase = _.find(
-          payload.phases,
-          (p) => p.phaseId == SUBMISSION_PHASE_ID
-        );
-        const startDate = payload.startDate
-          ? new Date(payload.startDate)
-          : new Date();
+        const submissionPhase = _.find(payload.phases, (p) => p.phaseId == SUBMISSION_PHASE_ID);
+        const startDate = payload.startDate ? new Date(payload.startDate) : new Date();
 
         data.registrationStartsAt = startDate.toISOString();
         data.registrationEndsAt = new Date(
-          startDate.getTime() +
-            (registrationPhase || submissionPhase).duration * SECONDS_TO_MILLIS
+          startDate.getTime() + (registrationPhase || submissionPhase).duration * SECONDS_TO_MILLIS
         ).toISOString();
         data.registrationDuration =
           (registrationPhase || submissionPhase).duration * SECONDS_TO_MILLIS;
@@ -115,8 +97,7 @@ class V4Api {
           data.checkpointSubmissionEndsAt = new Date(
             startDate.getTime() + checkpointPhase.duration * SECONDS_TO_MILLIS
           ).toISOString();
-          data.checkpointSubmissionDuration =
-            checkpointPhase.duration * SECONDS_TO_MILLIS;
+          data.checkpointSubmissionDuration = checkpointPhase.duration * SECONDS_TO_MILLIS;
         } else {
           data.checkpointSubmissionStartsAt = null;
           data.checkpointSubmissionEndsAt = null;
@@ -144,9 +125,7 @@ class V4Api {
         if (!challengePrizes) {
           throw new Error("Challenge prize information is invalid.");
         }
-        data.prizes = _.map(challengePrizes.prizes, "value").sort(
-          (a, b) => b - a
-        );
+        data.prizes = _.map(challengePrizes.prizes, "value").sort((a, b) => b - a);
       }
       if (payload.tags) {
         const techResult = await this.getTechnologies(m2mToken);
@@ -155,30 +134,19 @@ class V4Api {
         );
 
         if (data.technologies.length < 1) {
-          data.technologies = _.filter(
-            techResult.result.content,
-            (e) => e.name === "Other"
-          );
+          data.technologies = _.filter(techResult.result.content, (e) => e.name === "Other");
         }
 
         const platResult = await this.getPlatforms(m2mToken);
-        data.platforms = _.filter(platResult.result.content, (e) =>
-          payload.tags.includes(e.name)
-        );
+        data.platforms = _.filter(platResult.result.content, (e) => payload.tags.includes(e.name));
 
         if (data.platforms.length < 1) {
-          data.platforms = _.filter(
-            platResult.result.content,
-            (e) => e.name === "Other"
-          );
+          data.platforms = _.filter(platResult.result.content, (e) => e.name === "Other");
         }
       }
 
       if (payload.metadata && payload.metadata.length > 0) {
-        const fileTypes = _.find(
-          payload.metadata,
-          (meta) => meta.name === "fileTypes"
-        );
+        const fileTypes = _.find(payload.metadata, (meta) => meta.name === "fileTypes");
         if (fileTypes) {
           if (_.isArray(fileTypes.value)) {
             data.fileTypes = fileTypes.value;
@@ -206,43 +174,7 @@ class V4Api {
     }
   }
 
-  public async createLegacyChallenge(payload: any, m2mToken: string) {
-    const data = await this.getV4ChallengePayload(payload, m2mToken);
-    try {
-      const result = await axios.post(
-        `${V4_CHALLENGE_API_URL}?filter=skipForum=true`,
-        {
-          param: data,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${m2mToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      const {
-        data: {
-          result: { content: legacyChallenge },
-        },
-      } = result;
-
-      return {
-        legacyId: legacyChallenge.id,
-        track: legacyChallenge.track,
-        subTrack: legacyChallenge.subTrack,
-        isTask: payload.task || false,
-        forumId: legacyChallenge.forumId || 0,
-      };
-    } catch (err) {
-      throw err;
-    }
-  }
-
-  async getTechnologies(
-    m2mToken: string
-  ): Promise<{ result: { content: { name: string }[] } }> {
+  async getTechnologies(m2mToken: string): Promise<{ result: { content: { name: string }[] } }> {
     const response = await axios.get(V4_TECHNOLOGIES_API_URL!, {
       headers: {
         Authorization: `Bearer ${m2mToken}`,
@@ -252,9 +184,7 @@ class V4Api {
     return response.data;
   }
 
-  async getPlatforms(
-    m2mToken: string
-  ): Promise<{ result: { content: { name: string }[] } }> {
+  async getPlatforms(m2mToken: string): Promise<{ result: { content: { name: string }[] } }> {
     const response = await axios.get(V4_PLATFORMS_API_URL!, {
       headers: {
         Authorization: `Bearer ${m2mToken}`,

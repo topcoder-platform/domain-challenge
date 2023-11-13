@@ -52,7 +52,7 @@ class LegacyMapper {
       reviewType: input.legacy?.reviewType ?? "INTERNAL",
       confidentialityType: input.legacy?.confidentialityType ?? "public",
       projectInfo,
-      id
+      id,
     };
   };
 
@@ -249,7 +249,7 @@ class LegacyMapper {
     if (input.billing?.markup != null) {
       projectInfo[5] = input.billing?.markup.toString();
     }
-    
+
     if (input.status === ChallengeStatuses.Completed) {
       projectInfo[21] = DateUtil.formatDateForIfx(new Date().toISOString(), "MM.DD.YYYY HH:mm z")!; // project_info 21 is Completion Timestamp; and it has a different date format
     }
@@ -449,7 +449,7 @@ class LegacyMapper {
     const token = await m2mToken.getM2MToken();
     for (const groupId of groups) {
       const group = await getRequest(`${process.env.TOPCODER_API_URL}/groups/${groupId}`, token);
-      if (group != null && group.oldId) {
+      if (group?.oldId) {
         oldGroupIds.push(group.oldId);
       }
     }

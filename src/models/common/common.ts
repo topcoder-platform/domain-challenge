@@ -293,7 +293,7 @@ export function phaseFactToJSON(object: PhaseFact): string {
 export interface ScanCriteria {
   key: string;
   operator?: Operator | undefined;
-  value?: any;
+  value?: any | undefined;
 }
 
 export interface ScanRequest {
@@ -307,7 +307,7 @@ export interface ScanResult {
 }
 
 export interface CreateResult {
-  kind?: { $case: "integerId"; integerId: number } | { $case: "stringId"; stringId: string };
+  kind?: { $case: "integerId"; integerId: number } | { $case: "stringId"; stringId: string } | undefined;
 }
 
 export interface UpdateResult {
@@ -321,13 +321,13 @@ export interface CheckExistsResult {
 
 export interface LookupCriteria {
   key: string;
-  value?: any;
+  value?: any | undefined;
 }
 
 /** TODO: There has to be a better way to do this. */
 export interface GoogleProtobufTypesPlaceholder {
-  timestamp?: string;
-  empty?: Empty;
+  timestamp?: string | undefined;
+  empty?: Empty | undefined;
 }
 
 export interface PhaseFactRequest {
@@ -341,7 +341,7 @@ export interface PhaseFactResponse {
 
 export interface PhaseFactResponse_FactResponse {
   fact: PhaseFact;
-  response?: any;
+  response?: any | undefined;
 }
 
 function createBaseScanCriteria(): ScanCriteria {
@@ -401,7 +401,7 @@ export const ScanCriteria = {
 
   fromJSON(object: any): ScanCriteria {
     return {
-      key: isSet(object.key) ? String(object.key) : "",
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
       operator: isSet(object.operator) ? operatorFromJSON(object.operator) : undefined,
       value: isSet(object?.value) ? object.value : undefined,
     };
@@ -409,17 +409,21 @@ export const ScanCriteria = {
 
   toJSON(message: ScanCriteria): unknown {
     const obj: any = {};
-    message.key !== undefined && (obj.key = message.key);
-    message.operator !== undefined &&
-      (obj.operator = message.operator !== undefined ? operatorToJSON(message.operator) : undefined);
-    message.value !== undefined && (obj.value = message.value);
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.operator !== undefined) {
+      obj.operator = operatorToJSON(message.operator);
+    }
+    if (message.value !== undefined) {
+      obj.value = message.value;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<ScanCriteria>, I>>(base?: I): ScanCriteria {
-    return ScanCriteria.fromPartial(base ?? {});
+    return ScanCriteria.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<ScanCriteria>, I>>(object: I): ScanCriteria {
     const message = createBaseScanCriteria();
     message.key = object.key ?? "";
@@ -476,26 +480,27 @@ export const ScanRequest = {
 
   fromJSON(object: any): ScanRequest {
     return {
-      criteria: Array.isArray(object?.criteria) ? object.criteria.map((e: any) => ScanCriteria.fromJSON(e)) : [],
-      nextToken: isSet(object.nextToken) ? String(object.nextToken) : undefined,
+      criteria: globalThis.Array.isArray(object?.criteria)
+        ? object.criteria.map((e: any) => ScanCriteria.fromJSON(e))
+        : [],
+      nextToken: isSet(object.nextToken) ? globalThis.String(object.nextToken) : undefined,
     };
   },
 
   toJSON(message: ScanRequest): unknown {
     const obj: any = {};
-    if (message.criteria) {
-      obj.criteria = message.criteria.map((e) => e ? ScanCriteria.toJSON(e) : undefined);
-    } else {
-      obj.criteria = [];
+    if (message.criteria?.length) {
+      obj.criteria = message.criteria.map((e) => ScanCriteria.toJSON(e));
     }
-    message.nextToken !== undefined && (obj.nextToken = message.nextToken);
+    if (message.nextToken !== undefined) {
+      obj.nextToken = message.nextToken;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<ScanRequest>, I>>(base?: I): ScanRequest {
-    return ScanRequest.fromPartial(base ?? {});
+    return ScanRequest.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<ScanRequest>, I>>(object: I): ScanRequest {
     const message = createBaseScanRequest();
     message.criteria = object.criteria?.map((e) => ScanCriteria.fromPartial(e)) || [];
@@ -551,26 +556,25 @@ export const ScanResult = {
 
   fromJSON(object: any): ScanResult {
     return {
-      nextToken: isSet(object.nextToken) ? String(object.nextToken) : undefined,
-      items: Array.isArray(object?.items) ? [...object.items] : [],
+      nextToken: isSet(object.nextToken) ? globalThis.String(object.nextToken) : undefined,
+      items: globalThis.Array.isArray(object?.items) ? [...object.items] : [],
     };
   },
 
   toJSON(message: ScanResult): unknown {
     const obj: any = {};
-    message.nextToken !== undefined && (obj.nextToken = message.nextToken);
-    if (message.items) {
-      obj.items = message.items.map((e) => e);
-    } else {
-      obj.items = [];
+    if (message.nextToken !== undefined) {
+      obj.nextToken = message.nextToken;
+    }
+    if (message.items?.length) {
+      obj.items = message.items;
     }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<ScanResult>, I>>(base?: I): ScanResult {
-    return ScanResult.fromPartial(base ?? {});
+    return ScanResult.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<ScanResult>, I>>(object: I): ScanResult {
     const message = createBaseScanResult();
     message.nextToken = object.nextToken ?? undefined;
@@ -629,24 +633,27 @@ export const CreateResult = {
   fromJSON(object: any): CreateResult {
     return {
       kind: isSet(object.integerId)
-        ? { $case: "integerId", integerId: Number(object.integerId) }
+        ? { $case: "integerId", integerId: globalThis.Number(object.integerId) }
         : isSet(object.stringId)
-        ? { $case: "stringId", stringId: String(object.stringId) }
+        ? { $case: "stringId", stringId: globalThis.String(object.stringId) }
         : undefined,
     };
   },
 
   toJSON(message: CreateResult): unknown {
     const obj: any = {};
-    message.kind?.$case === "integerId" && (obj.integerId = Math.round(message.kind?.integerId));
-    message.kind?.$case === "stringId" && (obj.stringId = message.kind?.stringId);
+    if (message.kind?.$case === "integerId") {
+      obj.integerId = Math.round(message.kind.integerId);
+    }
+    if (message.kind?.$case === "stringId") {
+      obj.stringId = message.kind.stringId;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<CreateResult>, I>>(base?: I): CreateResult {
-    return CreateResult.fromPartial(base ?? {});
+    return CreateResult.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<CreateResult>, I>>(object: I): CreateResult {
     const message = createBaseCreateResult();
     if (object.kind?.$case === "integerId" && object.kind?.integerId !== undefined && object.kind?.integerId !== null) {
@@ -706,22 +713,25 @@ export const UpdateResult = {
 
   fromJSON(object: any): UpdateResult {
     return {
-      updatedCount: isSet(object.updatedCount) ? Number(object.updatedCount) : 0,
-      message: isSet(object.message) ? String(object.message) : undefined,
+      updatedCount: isSet(object.updatedCount) ? globalThis.Number(object.updatedCount) : 0,
+      message: isSet(object.message) ? globalThis.String(object.message) : undefined,
     };
   },
 
   toJSON(message: UpdateResult): unknown {
     const obj: any = {};
-    message.updatedCount !== undefined && (obj.updatedCount = Math.round(message.updatedCount));
-    message.message !== undefined && (obj.message = message.message);
+    if (message.updatedCount !== 0) {
+      obj.updatedCount = Math.round(message.updatedCount);
+    }
+    if (message.message !== undefined) {
+      obj.message = message.message;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<UpdateResult>, I>>(base?: I): UpdateResult {
-    return UpdateResult.fromPartial(base ?? {});
+    return UpdateResult.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<UpdateResult>, I>>(object: I): UpdateResult {
     const message = createBaseUpdateResult();
     message.updatedCount = object.updatedCount ?? 0;
@@ -766,19 +776,20 @@ export const CheckExistsResult = {
   },
 
   fromJSON(object: any): CheckExistsResult {
-    return { exists: isSet(object.exists) ? Boolean(object.exists) : false };
+    return { exists: isSet(object.exists) ? globalThis.Boolean(object.exists) : false };
   },
 
   toJSON(message: CheckExistsResult): unknown {
     const obj: any = {};
-    message.exists !== undefined && (obj.exists = message.exists);
+    if (message.exists === true) {
+      obj.exists = message.exists;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<CheckExistsResult>, I>>(base?: I): CheckExistsResult {
-    return CheckExistsResult.fromPartial(base ?? {});
+    return CheckExistsResult.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<CheckExistsResult>, I>>(object: I): CheckExistsResult {
     const message = createBaseCheckExistsResult();
     message.exists = object.exists ?? false;
@@ -832,20 +843,26 @@ export const LookupCriteria = {
   },
 
   fromJSON(object: any): LookupCriteria {
-    return { key: isSet(object.key) ? String(object.key) : "", value: isSet(object?.value) ? object.value : undefined };
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object?.value) ? object.value : undefined,
+    };
   },
 
   toJSON(message: LookupCriteria): unknown {
     const obj: any = {};
-    message.key !== undefined && (obj.key = message.key);
-    message.value !== undefined && (obj.value = message.value);
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== undefined) {
+      obj.value = message.value;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<LookupCriteria>, I>>(base?: I): LookupCriteria {
-    return LookupCriteria.fromPartial(base ?? {});
+    return LookupCriteria.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<LookupCriteria>, I>>(object: I): LookupCriteria {
     const message = createBaseLookupCriteria();
     message.key = object.key ?? "";
@@ -901,22 +918,25 @@ export const GoogleProtobufTypesPlaceholder = {
 
   fromJSON(object: any): GoogleProtobufTypesPlaceholder {
     return {
-      timestamp: isSet(object.timestamp) ? String(object.timestamp) : undefined,
+      timestamp: isSet(object.timestamp) ? globalThis.String(object.timestamp) : undefined,
       empty: isSet(object.empty) ? Empty.fromJSON(object.empty) : undefined,
     };
   },
 
   toJSON(message: GoogleProtobufTypesPlaceholder): unknown {
     const obj: any = {};
-    message.timestamp !== undefined && (obj.timestamp = message.timestamp);
-    message.empty !== undefined && (obj.empty = message.empty ? Empty.toJSON(message.empty) : undefined);
+    if (message.timestamp !== undefined) {
+      obj.timestamp = message.timestamp;
+    }
+    if (message.empty !== undefined) {
+      obj.empty = Empty.toJSON(message.empty);
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<GoogleProtobufTypesPlaceholder>, I>>(base?: I): GoogleProtobufTypesPlaceholder {
-    return GoogleProtobufTypesPlaceholder.fromPartial(base ?? {});
+    return GoogleProtobufTypesPlaceholder.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<GoogleProtobufTypesPlaceholder>, I>>(
     object: I,
   ): GoogleProtobufTypesPlaceholder {
@@ -986,26 +1006,25 @@ export const PhaseFactRequest = {
 
   fromJSON(object: any): PhaseFactRequest {
     return {
-      legacyId: isSet(object.legacyId) ? Number(object.legacyId) : 0,
-      facts: Array.isArray(object?.facts) ? object.facts.map((e: any) => phaseFactFromJSON(e)) : [],
+      legacyId: isSet(object.legacyId) ? globalThis.Number(object.legacyId) : 0,
+      facts: globalThis.Array.isArray(object?.facts) ? object.facts.map((e: any) => phaseFactFromJSON(e)) : [],
     };
   },
 
   toJSON(message: PhaseFactRequest): unknown {
     const obj: any = {};
-    message.legacyId !== undefined && (obj.legacyId = Math.round(message.legacyId));
-    if (message.facts) {
+    if (message.legacyId !== 0) {
+      obj.legacyId = Math.round(message.legacyId);
+    }
+    if (message.facts?.length) {
       obj.facts = message.facts.map((e) => phaseFactToJSON(e));
-    } else {
-      obj.facts = [];
     }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<PhaseFactRequest>, I>>(base?: I): PhaseFactRequest {
-    return PhaseFactRequest.fromPartial(base ?? {});
+    return PhaseFactRequest.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<PhaseFactRequest>, I>>(object: I): PhaseFactRequest {
     const message = createBasePhaseFactRequest();
     message.legacyId = object.legacyId ?? 0;
@@ -1051,7 +1070,7 @@ export const PhaseFactResponse = {
 
   fromJSON(object: any): PhaseFactResponse {
     return {
-      factResponses: Array.isArray(object?.factResponses)
+      factResponses: globalThis.Array.isArray(object?.factResponses)
         ? object.factResponses.map((e: any) => PhaseFactResponse_FactResponse.fromJSON(e))
         : [],
     };
@@ -1059,18 +1078,15 @@ export const PhaseFactResponse = {
 
   toJSON(message: PhaseFactResponse): unknown {
     const obj: any = {};
-    if (message.factResponses) {
-      obj.factResponses = message.factResponses.map((e) => e ? PhaseFactResponse_FactResponse.toJSON(e) : undefined);
-    } else {
-      obj.factResponses = [];
+    if (message.factResponses?.length) {
+      obj.factResponses = message.factResponses.map((e) => PhaseFactResponse_FactResponse.toJSON(e));
     }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<PhaseFactResponse>, I>>(base?: I): PhaseFactResponse {
-    return PhaseFactResponse.fromPartial(base ?? {});
+    return PhaseFactResponse.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<PhaseFactResponse>, I>>(object: I): PhaseFactResponse {
     const message = createBasePhaseFactResponse();
     message.factResponses = object.factResponses?.map((e) => PhaseFactResponse_FactResponse.fromPartial(e)) || [];
@@ -1132,15 +1148,18 @@ export const PhaseFactResponse_FactResponse = {
 
   toJSON(message: PhaseFactResponse_FactResponse): unknown {
     const obj: any = {};
-    message.fact !== undefined && (obj.fact = phaseFactToJSON(message.fact));
-    message.response !== undefined && (obj.response = message.response);
+    if (message.fact !== 0) {
+      obj.fact = phaseFactToJSON(message.fact);
+    }
+    if (message.response !== undefined) {
+      obj.response = message.response;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<PhaseFactResponse_FactResponse>, I>>(base?: I): PhaseFactResponse_FactResponse {
-    return PhaseFactResponse_FactResponse.fromPartial(base ?? {});
+    return PhaseFactResponse_FactResponse.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<PhaseFactResponse_FactResponse>, I>>(
     object: I,
   ): PhaseFactResponse_FactResponse {
@@ -1151,29 +1170,11 @@ export const PhaseFactResponse_FactResponse = {
   },
 };
 
-declare var self: any | undefined;
-declare var window: any | undefined;
-declare var global: any | undefined;
-var tsProtoGlobalThis: any = (() => {
-  if (typeof globalThis !== "undefined") {
-    return globalThis;
-  }
-  if (typeof self !== "undefined") {
-    return self;
-  }
-  if (typeof window !== "undefined") {
-    return window;
-  }
-  if (typeof global !== "undefined") {
-    return global;
-  }
-  throw "Unable to locate global object";
-})();
-
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends { $case: string } ? { [K in keyof Omit<T, "$case">]?: DeepPartial<T[K]> } & { $case: T["$case"] }
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
@@ -1183,7 +1184,7 @@ type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function toTimestamp(dateStr: string): Timestamp {
-  const date = new Date(dateStr);
+  const date = new globalThis.Date(dateStr);
   const seconds = date.getTime() / 1_000;
   const nanos = (date.getTime() % 1_000) * 1_000_000;
   return { seconds, nanos };
@@ -1192,12 +1193,12 @@ function toTimestamp(dateStr: string): Timestamp {
 function fromTimestamp(t: Timestamp): string {
   let millis = (t.seconds || 0) * 1_000;
   millis += (t.nanos || 0) / 1_000_000;
-  return new Date(millis).toISOString();
+  return new globalThis.Date(millis).toISOString();
 }
 
 function longToNumber(long: Long): number {
-  if (long.gt(Number.MAX_SAFE_INTEGER)) {
-    throw new tsProtoGlobalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+  if (long.gt(globalThis.Number.MAX_SAFE_INTEGER)) {
+    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
   }
   return long.toNumber();
 }

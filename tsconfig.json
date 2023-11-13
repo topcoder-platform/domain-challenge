@@ -1,13 +1,14 @@
 {
   "compilerOptions": {
-    "lib": ["ES2021"],
-    "module": "commonjs",
-    "target": "ES2021",
+    "lib": ["ES2022"],
+    "module": "NodeNext",
+    "target": "ES2022",
     "strict": true,
-    "moduleResolution": "Node16",
+    "moduleResolution": "NodeNext",
     "esModuleInterop": true,
     "outDir": "dist",
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true // TODO: Remove this when all dependencies are typed
   },
   "include": ["typings/global.d.ts", "src/**/*"],
   "exclude": ["node_modules", "src/models", "src/dal/models/nosql"],

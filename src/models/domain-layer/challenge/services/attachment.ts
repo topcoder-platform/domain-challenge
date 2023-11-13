@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { handleUnaryCall, UntypedServiceImplementation } from "@grpc/grpc-js";
+import type { handleUnaryCall, UntypedServiceImplementation } from "@grpc/grpc-js";
 import { LookupCriteria, ScanRequest, ScanResult } from "../../../common/common";
 import { Attachment, AttachmentList, CreateAttachmentInput, UpdateAttachmentInput } from "../attachment";
 

@@ -3,16 +3,13 @@ const rimraf = require("rimraf");
 
 const { execSync } = require("child_process");
 
-const PROTO_DIR = path.join(__dirname, "../node_modules/topcoder-interface");
+const PROTO_DIR = path.join(__dirname, "../node_modules/topcoder-proto-registry");
 const PROTO_REFLECTIONS = path.join(__dirname, "../reflections/reflection.bin");
 
 const MODEL_DIR = path.join(__dirname, "../src/models/");
 
 const PROTOC_PATH = "protoc";
-const PLUGIN_PATH = path.join(
-  __dirname,
-  "../node_modules/.bin/protoc-gen-ts_proto"
-);
+const PLUGIN_PATH = path.join(__dirname, "../node_modules/.bin/protoc-gen-ts_proto");
 
 rimraf.sync(`${MODEL_DIR}/*`, {
   glob: { ignore: `${MODEL_DIR}/tsconfig.json` },
