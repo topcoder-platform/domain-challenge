@@ -648,7 +648,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             )?.prizes;
 
             return {
-              amount: placementPrizes![winner.placement! - 1].amountInCents! / 100,
+              amount: placementPrizes?.[winner.placement - 1]?.value ?? 0,
               type: "CONTEST_PAYMENT",
               userId: winner.userId,
               handle: winner.handle,
@@ -691,34 +691,37 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const track = V5_TRACK_IDS_TO_NAMES[challenge?.trackId ?? ""];
     const type = V5_TYPE_IDS_TO_NAMES[challenge?.typeId ?? ""];
 
-    const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
-      track,
-      type,
-    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS); // These are estimates, fetch reviewer number using constraint in review phase
+    let baValidation: BAValidation | null = null;
 
-    const totalPrizesInCents = _.isArray(data.prizeSets)
-      ? new ChallengeEstimator(data.prizeSets ?? [], {
-          track,
-          type,
-        }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS) // These are estimates, fetch reviewer number using constraint in review phase
-      : prevTotalPrizesInCents;
+    if (prizeType === "USD") {
+      const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
+        track,
+        type,
+      }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS); // These are estimates, fetch reviewer number using constraint in review phase
+      const totalPrizesInCents = _.isArray(data.prizeSets)
+        ? new ChallengeEstimator(data.prizeSets ?? [], {
+            track,
+            type,
+          }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS) // These are estimates, fetch reviewer number using constraint in review phase
+        : prevTotalPrizesInCents;
 
-    const baValidation: BAValidation = {
-      challengeId: challenge?.id,
-      billingAccountId: challenge?.billing?.billingAccountId,
-      markup: challenge?.billing?.markup,
-      status: challengeStatus,
-      prevStatus: challenge?.status,
-      totalPrizesInCents,
-      prevTotalPrizesInCents,
-    };
+      baValidation = {
+        challengeId: challenge?.id,
+        billingAccountId: challenge?.billing?.billingAccountId,
+        markup: challenge?.billing?.markup,
+        status: challengeStatus,
+        prevStatus: challenge?.status,
+        totalPrizesInCents,
+        prevTotalPrizesInCents,
+      };
+    }
 
     if (challengeStatus != ChallengeStatuses.Completed) {
-      await lockConsumeAmount(baValidation);
+      if (baValidation != null) await lockConsumeAmount(baValidation);
       try {
         await super.update(scanCriteria, dynamoUpdate);
       } catch (err) {
-        await lockConsumeAmount(baValidation, true);
+        if (baValidation != null) await lockConsumeAmount(baValidation, true);
         throw err;
       }
     } else {
@@ -735,8 +738,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           completedChallenge.payments
         );
 
-        baValidation.totalPrizesInCents = totalAmount * 100;
-        await lockConsumeAmount(baValidation);
+        if (baValidation != null) {
+          baValidation.totalPrizesInCents = totalAmount * 100;
+          await lockConsumeAmount(baValidation);
+        }
       } else {
         console.log("Need to generate POINTS");
       }
