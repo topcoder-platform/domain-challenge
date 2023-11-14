@@ -585,6 +585,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     const data: IUpdateDataFromACL = {};
     const challenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
+    const prizeType = challenge?.prizeSets?.[0]?.prizes?.[0]?.type;
 
     let raiseEvent = false;
 
@@ -637,7 +638,37 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       data.winners = input.winners.winners;
 
       if (!_.isUndefined(input.payments)) {
-        data.payments = input.payments.payments;
+        if (prizeType === "USD") {
+          data.payments = input.payments.payments;
+        } else {
+          data.payments = data.winners.map((winner) => {
+            const placementPrizes = challenge.prizeSets.find(
+              (p) => p.type === PrizeSetTypes.ChallengePrizes
+            )?.prizes;
+
+            return {
+              amount: placementPrizes![winner.placement! - 1].amountInCents! / 100 ?? 0,
+              type: "CONTEST_PAYMENT",
+              userId: winner.userId,
+              handle: winner.handle,
+            };
+          });
+
+          const reviewerPayments = input.payments.payments
+            .filter((f) => f.type === "iterative reviewer")
+            .map((p) => ({
+              amount: p.amount,
+              type: "REVIEW_BOARD_PAYMENT",
+              userId: p.userId,
+              handle: p.handle,
+            }));
+
+          if (reviewerPayments.length > 0) {
+            data.payments = data.payments.concat(reviewerPayments);
+          }
+
+          console.log("Final list of payments", data.payments);
+        }
       }
 
       raiseEvent = true;
@@ -695,15 +726,19 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
       const completedChallenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
 
-      console.log("Payments to Generate", completedChallenge.payments);
-      const totalAmount = await this.generatePayments(
-        completedChallenge.id,
-        completedChallenge.name,
-        completedChallenge.payments
-      );
+      if (prizeType == "USD") {
+        console.log("Payments to Generate", completedChallenge.payments);
+        const totalAmount = await this.generatePayments(
+          completedChallenge.id,
+          completedChallenge.name,
+          completedChallenge.payments
+        );
 
-      baValidation.totalPrizesInCents = totalAmount * 100;
-      await lockConsumeAmount(baValidation);
+        baValidation.totalPrizesInCents = totalAmount * 100;
+        await lockConsumeAmount(baValidation);
+      } else {
+        console.log("Need to generate POINTS");
+      }
     }
 
     if (input.phases?.phases && input.phases.phases.length && this.shouldUseScheduler(challenge!)) {
