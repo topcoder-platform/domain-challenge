@@ -794,6 +794,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     title: string,
     payments: UpdateChallengeInputForACL_PaymentACL[]
   ): Promise<number> {
+    console.log(
+      `Generating payments for challenge ${challengeId}, ${title} with payments ${JSON.stringify(
+        payments
+      )}`
+    );
     let totalAmount = 0;
     // TODO: Make this list exhaustive
     const mapType = (type: string) => {
