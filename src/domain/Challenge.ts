@@ -641,13 +641,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         if (prizeType === "USD") {
           data.payments = input.payments.payments;
         } else {
+          console.log("Point Winners", data.winners);
           data.payments = data.winners.map((winner) => {
             const placementPrizes = challenge.prizeSets.find(
               (p) => p.type === PrizeSetTypes.ChallengePrizes
             )?.prizes;
 
             return {
-              amount: placementPrizes![winner.placement! - 1].amountInCents! / 100 ?? 0,
+              amount: placementPrizes![winner.placement! - 1].amountInCents! / 100,
               type: "CONTEST_PAYMENT",
               userId: winner.userId,
               handle: winner.handle,
