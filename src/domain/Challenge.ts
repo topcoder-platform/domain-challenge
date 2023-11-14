@@ -292,7 +292,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const prizeType: string | null =
       input.prizeSetUpdate?.prizeSets?.[0]?.prizes?.[0]?.type ?? null;
 
-    if (existingPrizeType !== prizeType) {
+    if (existingPrizeType != null && prizeType != null && existingPrizeType !== prizeType) {
       throw new StatusBuilder()
         .withCode(Status.INVALID_ARGUMENT)
         .withDetails("Prize type can not be changed")
