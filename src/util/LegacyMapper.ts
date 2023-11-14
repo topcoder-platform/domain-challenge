@@ -31,7 +31,8 @@ class LegacyMapper {
     input: CreateChallengeInput,
     id: string
   ): Promise<LegacyChallengeCreateInput> => {
-    const prizeSets = this.mapPrizeSets(input.prizeSets);
+    const prizeType = input.prizeSets[0]?.prizes[0]?.type;
+    const prizeSets = prizeType === "USD" ? this.mapPrizeSets(input.prizeSets) : null;
     const projectInfo = this.mapProjectInfo(input, prizeSets, input.legacy?.subTrack!);
 
     return {
@@ -43,7 +44,7 @@ class LegacyMapper {
       ),
       groups: await this.mapGroupIds(input.groups),
       tcDirectProjectId: input.legacy?.directProjectId!,
-      winnerPrizes: this.mapWinnerPrizes(prizeSets),
+      winnerPrizes: prizeSets == null ? [] : this.mapWinnerPrizes(prizeSets),
       phases: this.mapPhases(
         input.legacy!.subTrack!,
         input.billing?.billingAccountId,
@@ -62,8 +63,10 @@ class LegacyMapper {
     billingAccount: number | undefined,
     input: UpdateChallengeInput_UpdateInput
   ): Promise<LegacyChallengeUpdateInput> => {
+    const prizeType = input.prizeSetUpdate?.prizeSets[0]?.prizes[0]?.type;
+
     // prettier-ignore
-    const prizeSets = input.prizeSetUpdate != null ? this.mapPrizeSets(input.prizeSetUpdate.prizeSets) : null;
+    const prizeSets = input.prizeSetUpdate != null && prizeType === 'USD' ? this.mapPrizeSets(input.prizeSetUpdate.prizeSets) : null;
     const projectInfo = this.mapProjectInfoForUpdate(input, prizeSets);
 
     return {
@@ -147,8 +150,11 @@ class LegacyMapper {
     prizeSets: any,
     subTrack: string
   ): { [key: number]: string } {
+    const prizeType = input.prizeSets[0]?.prizes[0]?.type;
+    const isMemberPaymentEligible = prizeType === "USD";
+
     const firstPlacePrize =
-      prizeSets[PrizeSetTypes.ChallengePrizes]?.length >= 1
+      isMemberPaymentEligible && prizeSets[PrizeSetTypes.ChallengePrizes]?.length >= 1
         ? prizeSets[PrizeSetTypes.ChallengePrizes][0]?.toString()
         : undefined;
 
@@ -163,7 +169,10 @@ class LegacyMapper {
       12: "Yes", // Public -> Yes (make it dynamic)
       13: "Yes", // Rated -> Yes (make it dynamic)
       14: "Open", // Eligibility -> Open (value doesn't matter)
-      16: firstPlacePrize != null ? (firstPlacePrize / 100).toString() : undefined,
+      16:
+        isMemberPaymentEligible && firstPlacePrize != null
+          ? (firstPlacePrize / 100).toString()
+          : undefined,
       26: "Off", // No Digital Run
       28:
         [
@@ -179,7 +188,7 @@ class LegacyMapper {
       32: input.billing?.billingAccountId!.toString(),
       // Review Cost
       33:
-        prizeSets[PrizeSetTypes.ReviewerPayment]?.length == 1
+        isMemberPaymentEligible && prizeSets[PrizeSetTypes.ReviewerPayment]?.length == 1
           ? (prizeSets[PrizeSetTypes.ReviewerPayment][0] / 100).toString()
           : undefined,
       // Confidentiality Type
@@ -189,10 +198,13 @@ class LegacyMapper {
       // Spec Review Cost
       35: undefined,
       // First Place Prize
-      36: firstPlacePrize != null ? (firstPlacePrize / 100).toString() : undefined,
+      36:
+        isMemberPaymentEligible && firstPlacePrize != null
+          ? (firstPlacePrize / 100).toString()
+          : undefined,
       // Second Place Prize
       37:
-        prizeSets[PrizeSetTypes.ChallengePrizes]?.length >= 2
+        isMemberPaymentEligible && prizeSets[PrizeSetTypes.ChallengePrizes]?.length >= 2
           ? (prizeSets[PrizeSetTypes.ChallengePrizes][1] / 100).toString()
           : undefined,
       // Reliability Bonus Cost
@@ -206,7 +218,7 @@ class LegacyMapper {
           ? "false"
           : "true", // Post-mortem required (set to false - new Autopilot will handle this)
       45: "false", // Reliability bonus eligible
-      46: "true", // Member Payments Eligible
+      46: isMemberPaymentEligible ? "true" : "false", // Member Payments Eligible
       48: "false", // Track Late Deliverables
       52: "false", // Allow Stock Art
       57: input.billing?.markup!.toString(), // Contest Fee Percentage

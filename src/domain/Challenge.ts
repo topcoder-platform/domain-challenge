@@ -150,6 +150,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     // prettier-ignore
     const handle = metadata?.get("handle").length > 0 ? metadata?.get("handle")?.[0].toString() : "tcwebservice";
+    const prizeType: "USD" | "POINT" =
+      (input.prizeSets?.[0]?.prizes?.[0]?.type as "USD" | "POINT") ?? null;
 
     if (Array.isArray(input.discussions)) {
       for (const discussion of input.discussions) {
@@ -160,10 +162,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const track = V5_TRACK_IDS_TO_NAMES[input.trackId];
     const type = V5_TYPE_IDS_TO_NAMES[input.typeId];
 
-    const estimatedTotalInCents = new ChallengeEstimator(input.prizeSets ?? [], {
-      track,
-      type,
-    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS);
+    const estimatedTotalInCents =
+      prizeType === "USD"
+        ? new ChallengeEstimator(input.prizeSets ?? [], {
+            track,
+            type,
+          }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS)
+        : null;
 
     const now = new Date().getTime();
     const challengeId = IdGenerator.generateUUID();
@@ -178,15 +183,19 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     }
 
     // Lock amount
-    const baValidation: BAValidation = {
-      billingAccountId: input.billing?.billingAccountId,
-      challengeId,
-      markup: baValidationMarkup,
-      status: input.status,
-      totalPrizesInCents: estimatedTotalInCents,
-      prevTotalPrizesInCents: 0,
-    };
-    await lockConsumeAmount(baValidation);
+    const baValidation: BAValidation | null =
+      estimatedTotalInCents != null
+        ? {
+            billingAccountId: input.billing?.billingAccountId,
+            challengeId,
+            markup: baValidationMarkup,
+            status: input.status,
+            totalPrizesInCents: estimatedTotalInCents,
+            prevTotalPrizesInCents: 0,
+          }
+        : null;
+
+    if (baValidation != null) await lockConsumeAmount(baValidation);
 
     let newChallenge: Challenge;
     try {
@@ -197,11 +206,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
       // End Anti-Corruption Layer
 
-      const totalPlacementPrizeInCents = _.sumBy(
+      const totalPlacementPrizes = _.sumBy(
         _.find(input.prizeSets ?? [], {
           type: PrizeSetTypes.ChallengePrizes,
         })?.prizes ?? [],
-        "amountInCents"
+        prizeType === "USD" ? "amountInCents" : "value"
       );
 
       const challenge: Challenge = {
@@ -214,8 +223,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         winners: [],
         payments: [],
         overview: {
-          totalPrizes: totalPlacementPrizeInCents / 100,
-          totalPrizesInCents: totalPlacementPrizeInCents,
+          type: prizeType,
+          totalPrizes: type === "USD" ? totalPlacementPrizes / 100 : totalPlacementPrizes,
+          totalPrizesInCents: type === "USD" ? totalPlacementPrizes : undefined,
         },
         ...input,
         prizeSets: (input.prizeSets ?? []).map((prizeSet) => {
@@ -224,14 +234,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             prizes: (prizeSet.prizes ?? []).map((prize) => {
               return {
                 ...prize,
-                value: prize.amountInCents! / 100,
+                value: prizeType === "USD" ? prize.amountInCents! / 100 : prize.value,
               };
             }),
           };
         }),
         legacy,
         phases,
-        legacyId: legacyChallengeId != null ? legacyChallengeId : undefined,
+        legacyId: legacyChallengeId ?? undefined,
         description: sanitize(input.description ?? "", input.descriptionFormat),
         privateDescription: sanitize(input.privateDescription ?? "", input.descriptionFormat),
         metadata:
@@ -252,7 +262,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       newChallenge = await super.create(challenge, metadata);
     } catch (err) {
       // Rollback lock amount
-      await lockConsumeAmount(baValidation, true);
+      if (baValidation != null) {
+        await lockConsumeAmount(baValidation, true);
+      }
       throw err;
     }
 
@@ -276,18 +288,32 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const track = V5_TRACK_IDS_TO_NAMES[challenge.trackId];
     const type = V5_TYPE_IDS_TO_NAMES[challenge.typeId];
 
+    const existingPrizeType: string | null = challenge?.prizeSets?.[0]?.prizes?.[0]?.type ?? null;
+    const prizeType: string | null =
+      input.prizeSetUpdate?.prizeSets?.[0]?.prizes?.[0]?.type ?? null;
+
+    if (existingPrizeType !== prizeType) {
+      throw new StatusBuilder()
+        .withCode(Status.INVALID_ARGUMENT)
+        .withDetails("Prize type can not be changed")
+        .build();
+    }
+
     let shouldLockBudget = input.prizeSetUpdate != null;
     const isCancelled = input.status?.toLowerCase().indexOf("cancelled") !== -1;
     let generatePayments = false;
     let baValidation: BAValidation | null = null;
 
     // Lock budget only if prize set is updated
-    const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
-      track,
-      type,
-    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS); // These are estimates, fetch reviewer number using constraint in review phase
+    const prevTotalPrizesInCents =
+      prizeType == "USD"
+        ? new ChallengeEstimator(challenge?.prizeSets ?? [], {
+            track,
+            type,
+          }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS) // These are estimates, fetch reviewer number using constraint in review phase
+        : 0;
 
-    if (shouldLockBudget || isCancelled) {
+    if (prizeType === "USD" && (shouldLockBudget || isCancelled)) {
       const totalPrizesInCents = _.isArray(input.prizeSetUpdate?.prizeSets)
         ? new ChallengeEstimator(input.prizeSetUpdate?.prizeSets! ?? [], {
             track,
@@ -311,11 +337,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       await lockConsumeAmount(baValidation);
     }
 
-    const totalPlacementPrizeInCents = _.sumBy(
+    const totalPlacementPrize = _.sumBy(
       _.find(input.prizeSetUpdate?.prizeSets ?? [], {
         type: PrizeSetTypes.ChallengePrizes,
       })?.prizes ?? [],
-      "amountInCents"
+      prizeType == "USD" ? "amountInCents" : "value"
     );
 
     try {
@@ -482,7 +508,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
               prizes: (prizeSet.prizes ?? []).map((prize) => {
                 return {
                   ...prize,
-                  value: prize.amountInCents! / 100,
+                  value: prizeType == 'USD' ? prize.amountInCents! / 100 : prize.value,
                 };
               }),
             };
@@ -496,8 +522,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           startDate: input.startDate ?? undefined,
           endDate: input?.status === ChallengeStatuses.Completed ? new Date().toISOString() : (input.endDate ?? undefined),
           overview: input.overview != null ? {
-            totalPrizes: totalPlacementPrizeInCents / 100,
-            totalPrizesInCents: totalPlacementPrizeInCents,
+            type: prizeType,
+            totalPrizes: prizeType == 'USD' ? totalPlacementPrize / 100 : totalPlacementPrize,
+            totalPrizesInCents: prizeType == 'USD' ? totalPlacementPrize: undefined,
           } : undefined,
           legacyId: legacyId ?? undefined,
           constraints: input.constraints ?? undefined,
