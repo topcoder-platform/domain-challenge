@@ -56,6 +56,9 @@ const legacyChallengeDomain = new LegacyChallengeDomain(
 const NUM_REVIEWERS = 2;
 const EXPECTED_REVIEWS_PER_REVIEWER = 3;
 const ROLE_COPILOT = process.env.ROLE_COPILOT ?? "cfe12b3f-2a24-4639-9d8b-ec86726f76bd";
+const PURE_V5_CHALLENGE_TEMPLATE_IDS = process.env.PURE_V5_CHALLENGE_TEMPLATE_IDS
+  ? JSON.parse(process.env.PURE_V5_CHALLENGE_TEMPLATE_IDS)
+  : ["517e76b0-8824-4e72-9b48-a1ebde1793a8"];
 
 class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   private esClient = ElasticSearch.getESClient();
@@ -98,9 +101,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     id: string = ""
   ) {
     let legacyChallengeId: number | null = null;
-
-    if (input.legacy == null || input.legacy.pureV5Task !== true) {
-      const { track, subTrack, isTask } = legacyMapper.mapTrackAndType(trackId, typeId, tags);
+    const trackAndTypeMapped = legacyMapper.mapTrackAndType(trackId, typeId, tags);
+    // Skip creating legacy challenge if
+    // 1. challenge is a Pure V5 Task, or
+    // 2. challenge is not a draft, or
+    // 3. challenge is a draft but track and type can not be mapped - indicating that challenge is not a legacy challenge
+    if (trackAndTypeMapped != null && (input.legacy == null || input.legacy.pureV5Task !== true)) {
+      const { track, subTrack, isTask } = trackAndTypeMapped;
       const directProjectId = input.legacy == null ? 0 : input.legacy.directProjectId; // v5 API can set directProjectId
       const reviewType = input.legacy == null ? "INTERNAL" : input.legacy.reviewType; // v5 API can set reviewType
       const confidentialityType =
@@ -224,8 +231,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         payments: [],
         overview: {
           type: prizeType,
-          totalPrizes: type === "USD" ? totalPlacementPrizes / 100 : totalPlacementPrizes,
-          totalPrizesInCents: type === "USD" ? totalPlacementPrizes : undefined,
+          totalPrizes: prizeType === "USD" ? totalPlacementPrizes / 100 : totalPlacementPrizes,
+          totalPrizesInCents: prizeType === "USD" ? totalPlacementPrizes : undefined,
         },
         ...input,
         prizeSets: (input.prizeSets ?? []).map((prizeSet) => {
@@ -346,7 +353,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     try {
       let legacyId: number | null = null;
-      if (challenge.legacy!.pureV5Task !== true) {
+      if (!this.isPureV5Challenge(challenge)) {
         // Begin Anti-Corruption Layer
         if (input.status === ChallengeStatuses.Draft) {
           if (items.length === 0 || items[0] == null) {
@@ -508,7 +515,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
               prizes: (prizeSet.prizes ?? []).map((prize) => {
                 return {
                   ...prize,
-                  value: prizeType == 'USD' ? prize.amountInCents! / 100 : prize.value,
+                  value: prizeType === 'USD' ? prize.amountInCents! / 100 : prize.value,
                 };
               }),
             };
@@ -523,8 +530,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           endDate: input?.status === ChallengeStatuses.Completed ? new Date().toISOString() : (input.endDate ?? undefined),
           overview: input.overview != null ? {
             type: prizeType,
-            totalPrizes: prizeType == 'USD' ? totalPlacementPrize / 100 : totalPlacementPrize,
-            totalPrizesInCents: prizeType == 'USD' ? totalPlacementPrize: undefined,
+            totalPrizes: prizeType === 'USD' ? totalPlacementPrize / 100 : totalPlacementPrize,
+            totalPrizesInCents: prizeType === 'USD' ? totalPlacementPrize: undefined,
           } : undefined,
           legacyId: legacyId ?? undefined,
           constraints: input.constraints ?? undefined,
@@ -906,6 +913,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     }
 
     return totalAmount;
+  }
+
+  private isPureV5Challenge(challenge: Challenge) {
+    return (
+      challenge.legacy?.pureV5Task === true ||
+      PURE_V5_CHALLENGE_TEMPLATE_IDS.includes(challenge.timelineTemplateId ?? "")
+    );
   }
 }
 

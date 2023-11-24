@@ -89,7 +89,14 @@ class LegacyMapper {
   };
 
   public mapTrackAndType(trackId: string, typeId: string, tags: string[]) {
-    return V5_TO_V4[trackId][typeId](tags);
+    try {
+      return V5_TO_V4[trackId][typeId](tags);
+    } catch (e) {
+      console.log(
+        `Could not map trackId: ${trackId} and typeId: ${typeId}. Not a legacy challenge`
+      );
+      return null;
+    }
   }
 
   private mapTrackAndTypeToCategoryStudioSpecAndMmSpec(
