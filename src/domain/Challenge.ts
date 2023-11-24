@@ -106,7 +106,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     // 1. challenge is a Pure V5 Task, or
     // 2. challenge is not a draft, or
     // 3. challenge is a draft but track and type can not be mapped - indicating that challenge is not a legacy challenge
-    if (trackAndTypeMapped != null && (input.legacy == null || input.legacy.pureV5Task !== true)) {
+    if (trackAndTypeMapped != null && (input.legacy == null || !this.isPureV5Challenge(input))) {
       const { track, subTrack, isTask } = trackAndTypeMapped;
       const directProjectId = input.legacy == null ? 0 : input.legacy.directProjectId; // v5 API can set directProjectId
       const reviewType = input.legacy == null ? "INTERNAL" : input.legacy.reviewType; // v5 API can set reviewType
@@ -915,7 +915,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     return totalAmount;
   }
 
-  private isPureV5Challenge(challenge: Challenge) {
+  private isPureV5Challenge(challenge: { timelineTemplateId?: string; legacy?: Challenge_Legacy }) {
     return (
       challenge.legacy?.pureV5Task === true ||
       PURE_V5_CHALLENGE_TEMPLATE_IDS.includes(challenge.timelineTemplateId ?? "")
