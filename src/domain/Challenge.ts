@@ -43,6 +43,7 @@ import { V5_TRACK_IDS_TO_NAMES, V5_TYPE_IDS_TO_NAMES } from "../common/Conversio
 import PaymentCreator, { PaymentDetail } from "../util/PaymentCreator";
 import { getChallengeResources } from "../api/v5Api";
 import m2mToken from "../helpers/MachineToMachineToken";
+import { sendHarmonyEvent } from "../helpers/Harmony";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
   throw new Error("Missing required configurations GRPC_ACL_SERVER_HOST and GRPC_ACL_SERVER_PORT");
@@ -267,6 +268,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       };
 
       newChallenge = await super.create(challenge, metadata);
+      await sendHarmonyEvent("CREATE", "Challenge", newChallenge);
     } catch (err) {
       // Rollback lock amount
       if (baValidation != null) {
@@ -536,6 +538,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       };
 
       updatedChallenge = await super.update(scanCriteria, dataToUpdate, metadata);
+
+      await sendHarmonyEvent("UPDATE", "Challenge", { ...dataToUpdate, id: challenge.id });
     } catch (err) {
       if (baValidation != null) {
         await lockConsumeAmount(baValidation, true);
@@ -725,12 +729,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       if (baValidation != null) await lockConsumeAmount(baValidation);
       try {
         await super.update(scanCriteria, dynamoUpdate);
+        await sendHarmonyEvent("UPDATE", "Challenge", { ...data, id });
       } catch (err) {
         if (baValidation != null) await lockConsumeAmount(baValidation, true);
         throw err;
       }
     } else {
       await super.update(scanCriteria, dynamoUpdate);
+      await sendHarmonyEvent("UPDATE", "Challenge", { ...data, id });
       console.log("Challenge Completed");
 
       const completedChallenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
@@ -805,6 +811,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     try {
       const result = await super.delete(lookupCriteria);
+      await sendHarmonyEvent("DELETE", "Challenge", { id: challenge.id });
       return result;
     } catch (err) {
       await lockConsumeAmount(baValidation, true);
