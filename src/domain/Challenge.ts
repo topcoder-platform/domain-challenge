@@ -488,56 +488,54 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         }
       }
 
-      updatedChallenge = await super.update(
-        scanCriteria,
-        // prettier-ignore
-        {
-          name: input.name != null ? sanitize(input.name) : undefined,
-          typeId: input.typeId != null ? input.typeId : undefined,
-          trackId: input.trackId != null ? input.trackId : undefined,
-          timelineTemplateId: input.timelineTemplateId != null ? input.timelineTemplateId : undefined,
-          legacy: input.legacy != null ? input.legacy : undefined,
-          billing: input.billing != null ? input.billing : undefined,
-          description: input.description != null ? sanitize(input.description, input.descriptionFormat ?? challenge.descriptionFormat) : undefined,
-          privateDescription: input.privateDescription != null ? sanitize(input.privateDescription, input.descriptionFormat ?? challenge.descriptionFormat) : undefined,
-          descriptionFormat: input.descriptionFormat != null ? input.descriptionFormat : undefined,
-          task: input.task != null ? input.task : undefined,
-          winners: input.winnerUpdate != null ? input.winnerUpdate.winners : undefined,
-          payments: input.paymentUpdate != null ? input.paymentUpdate.payments : undefined,
-          discussions: input.discussionUpdate != null ? input.discussionUpdate.discussions : undefined,
-          metadata: input.metadataUpdate != null ? input.metadataUpdate.metadata : undefined,
-          phases: input.phaseUpdate != null ? input.phaseUpdate.phases : undefined,
-          events: input.eventUpdate != null ? input.eventUpdate.events : undefined,
-          terms: input.termUpdate != null ? input.termUpdate.terms : undefined,
-          prizeSets: input.prizeSetUpdate != null ? input.prizeSetUpdate.prizeSets.map((prizeSet) => {
-            return {
-              ...prizeSet,
-              prizes: (prizeSet.prizes ?? []).map((prize) => {
-                return {
-                  ...prize,
-                  value: prizeType === 'USD' ? prize.amountInCents! / 100 : prize.value,
-                };
-              }),
-            };
-          }) : undefined,
-          tags: input.tagUpdate != null ? input.tagUpdate.tags : undefined,
-          skills: input.skillUpdate != null ? input.skillUpdate.skills : undefined,
-          status: input.status ?? undefined,
-          attachments: input.attachmentUpdate != null ? input.attachmentUpdate.attachments : undefined,
-          groups: input.groupUpdate != null ? input.groupUpdate.groups : undefined,
-          projectId: input.projectId ?? undefined,
-          startDate: input.startDate ?? undefined,
-          endDate: input?.status === ChallengeStatuses.Completed ? new Date().toISOString() : (input.endDate ?? undefined),
-          overview: input.overview != null ? {
-            type: prizeType,
-            totalPrizes: prizeType === 'USD' ? totalPlacementPrize / 100 : totalPlacementPrize,
-            totalPrizesInCents: prizeType === 'USD' ? totalPlacementPrize: undefined,
-          } : undefined,
-          legacyId: legacyId ?? undefined,
-          constraints: input.constraints ?? undefined,
-        },
-        metadata
-      );
+      // prettier-ignore
+      const dataToUpdate = {
+        name: input.name != null ? sanitize(input.name) : undefined,
+        typeId: input.typeId != null ? input.typeId : undefined,
+        trackId: input.trackId != null ? input.trackId : undefined,
+        timelineTemplateId: input.timelineTemplateId != null ? input.timelineTemplateId : undefined,
+        legacy: input.legacy != null ? input.legacy : undefined,
+        billing: input.billing != null ? input.billing : undefined,
+        description: input.description != null ? sanitize(input.description, input.descriptionFormat ?? challenge.descriptionFormat) : undefined,
+        privateDescription: input.privateDescription != null ? sanitize(input.privateDescription, input.descriptionFormat ?? challenge.descriptionFormat) : undefined,
+        descriptionFormat: input.descriptionFormat != null ? input.descriptionFormat : undefined,
+        task: input.task != null ? input.task : undefined,
+        winners: input.winnerUpdate != null ? input.winnerUpdate.winners : undefined,
+        payments: input.paymentUpdate != null ? input.paymentUpdate.payments : undefined,
+        discussions: input.discussionUpdate != null ? input.discussionUpdate.discussions : undefined,
+        metadata: input.metadataUpdate != null ? input.metadataUpdate.metadata : undefined,
+        phases: input.phaseUpdate != null ? input.phaseUpdate.phases : undefined,
+        events: input.eventUpdate != null ? input.eventUpdate.events : undefined,
+        terms: input.termUpdate != null ? input.termUpdate.terms : undefined,
+        prizeSets: input.prizeSetUpdate != null ? input.prizeSetUpdate.prizeSets.map((prizeSet) => {
+          return {
+            ...prizeSet,
+            prizes: (prizeSet.prizes ?? []).map((prize) => {
+              return {
+                ...prize,
+                value: prizeType === 'USD' ? prize.amountInCents! / 100 : prize.value,
+              };
+            }),
+          };
+        }) : undefined,
+        tags: input.tagUpdate != null ? input.tagUpdate.tags : undefined,
+        skills: input.skillUpdate != null ? input.skillUpdate.skills : undefined,
+        status: input.status ?? undefined,
+        attachments: input.attachmentUpdate != null ? input.attachmentUpdate.attachments : undefined,
+        groups: input.groupUpdate != null ? input.groupUpdate.groups : undefined,
+        projectId: input.projectId ?? undefined,
+        startDate: input.startDate ?? undefined,
+        endDate: input?.status === ChallengeStatuses.Completed ? new Date().toISOString() : (input.endDate ?? undefined),
+        overview: input.overview != null ? {
+          type: prizeType,
+          totalPrizes: prizeType === 'USD' ? totalPlacementPrize / 100 : totalPlacementPrize,
+          totalPrizesInCents: prizeType === 'USD' ? totalPlacementPrize: undefined,
+        } : undefined,
+        legacyId: legacyId ?? undefined,
+        constraints: input.constraints ?? undefined,
+      };
+
+      updatedChallenge = await super.update(scanCriteria, dataToUpdate, metadata);
     } catch (err) {
       if (baValidation != null) {
         await lockConsumeAmount(baValidation, true);
