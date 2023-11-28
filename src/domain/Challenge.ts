@@ -385,7 +385,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           };
 
           // prettier-ignore
-          const { legacy, legacyChallengeId, phases } = await this.createLegacyChallenge(createChallengeInput, input.status, challenge!.trackId, challenge!.typeId, challenge!.tags, metadata);
+          const { legacy, legacyChallengeId, phases } = await this.createLegacyChallenge(createChallengeInput, input.status, challenge!.trackId, challenge!.typeId, challenge!.tags, metadata, challenge.id);
 
           input.legacy = legacy;
           input.phaseUpdate = { phases };
