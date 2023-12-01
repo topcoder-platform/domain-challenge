@@ -56,6 +56,9 @@ const legacyChallengeDomain = new LegacyChallengeDomain(
 const NUM_REVIEWERS = 2;
 const EXPECTED_REVIEWS_PER_REVIEWER = 3;
 const ROLE_COPILOT = process.env.ROLE_COPILOT ?? "cfe12b3f-2a24-4639-9d8b-ec86726f76bd";
+const PURE_V5_CHALLENGE_TEMPLATE_IDS = process.env.PURE_V5_CHALLENGE_TEMPLATE_IDS
+  ? JSON.parse(process.env.PURE_V5_CHALLENGE_TEMPLATE_IDS)
+  : ["517e76b0-8824-4e72-9b48-a1ebde1793a8"];
 
 class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
   private esClient = ElasticSearch.getESClient();
@@ -98,9 +101,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     id: string = ""
   ) {
     let legacyChallengeId: number | null = null;
-
-    if (input.legacy == null || input.legacy.pureV5Task !== true) {
-      const { track, subTrack, isTask } = legacyMapper.mapTrackAndType(trackId, typeId, tags);
+    const trackAndTypeMapped = legacyMapper.mapTrackAndType(trackId, typeId, tags);
+    // Skip creating legacy challenge if
+    // 1. challenge is a Pure V5 Task, or
+    // 2. challenge is not a draft, or
+    // 3. challenge is a draft but track and type can not be mapped - indicating that challenge is not a legacy challenge
+    if (trackAndTypeMapped != null && (input.legacy == null || !this.isPureV5Challenge(input))) {
+      const { track, subTrack, isTask } = trackAndTypeMapped;
       const directProjectId = input.legacy == null ? 0 : input.legacy.directProjectId; // v5 API can set directProjectId
       const reviewType = input.legacy == null ? "INTERNAL" : input.legacy.reviewType; // v5 API can set reviewType
       const confidentialityType =
@@ -150,6 +157,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     // prettier-ignore
     const handle = metadata?.get("handle").length > 0 ? metadata?.get("handle")?.[0].toString() : "tcwebservice";
+    const prizeType: "USD" | "POINT" =
+      (input.prizeSets?.[0]?.prizes?.[0]?.type as "USD" | "POINT") ?? null;
 
     if (Array.isArray(input.discussions)) {
       for (const discussion of input.discussions) {
@@ -160,10 +169,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const track = V5_TRACK_IDS_TO_NAMES[input.trackId];
     const type = V5_TYPE_IDS_TO_NAMES[input.typeId];
 
-    const estimatedTotalInCents = new ChallengeEstimator(input.prizeSets ?? [], {
-      track,
-      type,
-    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS);
+    const estimatedTotalInCents =
+      prizeType === "USD"
+        ? new ChallengeEstimator(input.prizeSets ?? [], {
+            track,
+            type,
+          }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS)
+        : null;
 
     const now = new Date().getTime();
     const challengeId = IdGenerator.generateUUID();
@@ -178,15 +190,19 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     }
 
     // Lock amount
-    const baValidation: BAValidation = {
-      billingAccountId: input.billing?.billingAccountId,
-      challengeId,
-      markup: baValidationMarkup,
-      status: input.status,
-      totalPrizesInCents: estimatedTotalInCents,
-      prevTotalPrizesInCents: 0,
-    };
-    await lockConsumeAmount(baValidation);
+    const baValidation: BAValidation | null =
+      estimatedTotalInCents != null
+        ? {
+            billingAccountId: input.billing?.billingAccountId,
+            challengeId,
+            markup: baValidationMarkup,
+            status: input.status,
+            totalPrizesInCents: estimatedTotalInCents,
+            prevTotalPrizesInCents: 0,
+          }
+        : null;
+
+    if (baValidation != null) await lockConsumeAmount(baValidation);
 
     let newChallenge: Challenge;
     try {
@@ -197,11 +213,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
       // End Anti-Corruption Layer
 
-      const totalPlacementPrizeInCents = _.sumBy(
+      const totalPlacementPrizes = _.sumBy(
         _.find(input.prizeSets ?? [], {
           type: PrizeSetTypes.ChallengePrizes,
         })?.prizes ?? [],
-        "amountInCents"
+        prizeType === "USD" ? "amountInCents" : "value"
       );
 
       const challenge: Challenge = {
@@ -214,8 +230,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         winners: [],
         payments: [],
         overview: {
-          totalPrizes: totalPlacementPrizeInCents / 100,
-          totalPrizesInCents: totalPlacementPrizeInCents,
+          type: prizeType,
+          totalPrizes: prizeType === "USD" ? totalPlacementPrizes / 100 : totalPlacementPrizes,
+          totalPrizesInCents: prizeType === "USD" ? totalPlacementPrizes : undefined,
         },
         ...input,
         prizeSets: (input.prizeSets ?? []).map((prizeSet) => {
@@ -224,14 +241,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             prizes: (prizeSet.prizes ?? []).map((prize) => {
               return {
                 ...prize,
-                value: prize.amountInCents! / 100,
+                value: prizeType === "USD" ? prize.amountInCents! / 100 : prize.value,
               };
             }),
           };
         }),
         legacy,
         phases,
-        legacyId: legacyChallengeId != null ? legacyChallengeId : undefined,
+        legacyId: legacyChallengeId ?? undefined,
         description: sanitize(input.description ?? "", input.descriptionFormat),
         privateDescription: sanitize(input.privateDescription ?? "", input.descriptionFormat),
         metadata:
@@ -252,7 +269,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       newChallenge = await super.create(challenge, metadata);
     } catch (err) {
       // Rollback lock amount
-      await lockConsumeAmount(baValidation, true);
+      if (baValidation != null) {
+        await lockConsumeAmount(baValidation, true);
+      }
       throw err;
     }
 
@@ -276,18 +295,32 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const track = V5_TRACK_IDS_TO_NAMES[challenge.trackId];
     const type = V5_TYPE_IDS_TO_NAMES[challenge.typeId];
 
+    const existingPrizeType: string | null = challenge?.prizeSets?.[0]?.prizes?.[0]?.type ?? null;
+    const prizeType: string | null =
+      input.prizeSetUpdate?.prizeSets?.[0]?.prizes?.[0]?.type ?? null;
+
+    if (existingPrizeType != null && prizeType != null && existingPrizeType !== prizeType) {
+      throw new StatusBuilder()
+        .withCode(Status.INVALID_ARGUMENT)
+        .withDetails("Prize type can not be changed")
+        .build();
+    }
+
     let shouldLockBudget = input.prizeSetUpdate != null;
     const isCancelled = input.status?.toLowerCase().indexOf("cancelled") !== -1;
     let generatePayments = false;
     let baValidation: BAValidation | null = null;
 
     // Lock budget only if prize set is updated
-    const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
-      track,
-      type,
-    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS); // These are estimates, fetch reviewer number using constraint in review phase
+    const prevTotalPrizesInCents =
+      prizeType == "USD"
+        ? new ChallengeEstimator(challenge?.prizeSets ?? [], {
+            track,
+            type,
+          }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS) // These are estimates, fetch reviewer number using constraint in review phase
+        : 0;
 
-    if (shouldLockBudget || isCancelled) {
+    if (prizeType === "USD" && (shouldLockBudget || isCancelled)) {
       const totalPrizesInCents = _.isArray(input.prizeSetUpdate?.prizeSets)
         ? new ChallengeEstimator(input.prizeSetUpdate?.prizeSets! ?? [], {
             track,
@@ -311,16 +344,16 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       await lockConsumeAmount(baValidation);
     }
 
-    const totalPlacementPrizeInCents = _.sumBy(
+    const totalPlacementPrize = _.sumBy(
       _.find(input.prizeSetUpdate?.prizeSets ?? [], {
         type: PrizeSetTypes.ChallengePrizes,
       })?.prizes ?? [],
-      "amountInCents"
+      prizeType == "USD" ? "amountInCents" : "value"
     );
 
     try {
       let legacyId: number | null = null;
-      if (challenge.legacy!.pureV5Task !== true) {
+      if (!this.isPureV5Challenge(challenge)) {
         // Begin Anti-Corruption Layer
         if (input.status === ChallengeStatuses.Draft) {
           if (items.length === 0 || items[0] == null) {
@@ -455,55 +488,54 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         }
       }
 
-      updatedChallenge = await super.update(
-        scanCriteria,
-        // prettier-ignore
-        {
-          name: input.name != null ? sanitize(input.name) : undefined,
-          typeId: input.typeId != null ? input.typeId : undefined,
-          trackId: input.trackId != null ? input.trackId : undefined,
-          timelineTemplateId: input.timelineTemplateId != null ? input.timelineTemplateId : undefined,
-          legacy: input.legacy != null ? input.legacy : undefined,
-          billing: input.billing != null ? input.billing : undefined,
-          description: input.description != null ? sanitize(input.description, input.descriptionFormat ?? challenge.descriptionFormat) : undefined,
-          privateDescription: input.privateDescription != null ? sanitize(input.privateDescription, input.descriptionFormat ?? challenge.descriptionFormat) : undefined,
-          descriptionFormat: input.descriptionFormat != null ? input.descriptionFormat : undefined,
-          task: input.task != null ? input.task : undefined,
-          winners: input.winnerUpdate != null ? input.winnerUpdate.winners : undefined,
-          payments: input.paymentUpdate != null ? input.paymentUpdate.payments : undefined,
-          discussions: input.discussionUpdate != null ? input.discussionUpdate.discussions : undefined,
-          metadata: input.metadataUpdate != null ? input.metadataUpdate.metadata : undefined,
-          phases: input.phaseUpdate != null ? input.phaseUpdate.phases : undefined,
-          events: input.eventUpdate != null ? input.eventUpdate.events : undefined,
-          terms: input.termUpdate != null ? input.termUpdate.terms : undefined,
-          prizeSets: input.prizeSetUpdate != null ? input.prizeSetUpdate.prizeSets.map((prizeSet) => {
-            return {
-              ...prizeSet,
-              prizes: (prizeSet.prizes ?? []).map((prize) => {
-                return {
-                  ...prize,
-                  value: prize.amountInCents! / 100,
-                };
-              }),
-            };
-          }) : undefined,
-          tags: input.tagUpdate != null ? input.tagUpdate.tags : undefined,
-          skills: input.skillUpdate != null ? input.skillUpdate.skills : undefined,
-          status: input.status ?? undefined,
-          attachments: input.attachmentUpdate != null ? input.attachmentUpdate.attachments : undefined,
-          groups: input.groupUpdate != null ? input.groupUpdate.groups : undefined,
-          projectId: input.projectId ?? undefined,
-          startDate: input.startDate ?? undefined,
-          endDate: input?.status === ChallengeStatuses.Completed ? new Date().toISOString() : (input.endDate ?? undefined),
-          overview: input.overview != null ? {
-            totalPrizes: totalPlacementPrizeInCents / 100,
-            totalPrizesInCents: totalPlacementPrizeInCents,
-          } : undefined,
-          legacyId: legacyId ?? undefined,
-          constraints: input.constraints ?? undefined,
-        },
-        metadata
-      );
+      // prettier-ignore
+      const dataToUpdate = {
+        name: input.name != null ? sanitize(input.name) : undefined,
+        typeId: input.typeId != null ? input.typeId : undefined,
+        trackId: input.trackId != null ? input.trackId : undefined,
+        timelineTemplateId: input.timelineTemplateId != null ? input.timelineTemplateId : undefined,
+        legacy: input.legacy != null ? input.legacy : undefined,
+        billing: input.billing != null ? input.billing : undefined,
+        description: input.description != null ? sanitize(input.description, input.descriptionFormat ?? challenge.descriptionFormat) : undefined,
+        privateDescription: input.privateDescription != null ? sanitize(input.privateDescription, input.descriptionFormat ?? challenge.descriptionFormat) : undefined,
+        descriptionFormat: input.descriptionFormat != null ? input.descriptionFormat : undefined,
+        task: input.task != null ? input.task : undefined,
+        winners: input.winnerUpdate != null ? input.winnerUpdate.winners : undefined,
+        payments: input.paymentUpdate != null ? input.paymentUpdate.payments : undefined,
+        discussions: input.discussionUpdate != null ? input.discussionUpdate.discussions : undefined,
+        metadata: input.metadataUpdate != null ? input.metadataUpdate.metadata : undefined,
+        phases: input.phaseUpdate != null ? input.phaseUpdate.phases : undefined,
+        events: input.eventUpdate != null ? input.eventUpdate.events : undefined,
+        terms: input.termUpdate != null ? input.termUpdate.terms : undefined,
+        prizeSets: input.prizeSetUpdate != null ? input.prizeSetUpdate.prizeSets.map((prizeSet) => {
+          return {
+            ...prizeSet,
+            prizes: (prizeSet.prizes ?? []).map((prize) => {
+              return {
+                ...prize,
+                value: prizeType === 'USD' ? prize.amountInCents! / 100 : prize.value,
+              };
+            }),
+          };
+        }) : undefined,
+        tags: input.tagUpdate != null ? input.tagUpdate.tags : undefined,
+        skills: input.skillUpdate != null ? input.skillUpdate.skills : undefined,
+        status: input.status ?? undefined,
+        attachments: input.attachmentUpdate != null ? input.attachmentUpdate.attachments : undefined,
+        groups: input.groupUpdate != null ? input.groupUpdate.groups : undefined,
+        projectId: input.projectId ?? undefined,
+        startDate: input.startDate ?? undefined,
+        endDate: input?.status === ChallengeStatuses.Completed ? new Date().toISOString() : (input.endDate ?? undefined),
+        overview: input.overview != null ? {
+          type: prizeType,
+          totalPrizes: prizeType === 'USD' ? totalPlacementPrize / 100 : totalPlacementPrize,
+          totalPrizesInCents: prizeType === 'USD' ? totalPlacementPrize: undefined,
+        } : undefined,
+        legacyId: legacyId ?? undefined,
+        constraints: input.constraints ?? undefined,
+      };
+
+      updatedChallenge = await super.update(scanCriteria, dataToUpdate, metadata);
     } catch (err) {
       if (baValidation != null) {
         await lockConsumeAmount(baValidation, true);
@@ -558,6 +590,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     const data: IUpdateDataFromACL = {};
     const challenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
+    const prizeType = challenge?.prizeSets?.[0]?.prizes?.[0]?.type;
 
     let raiseEvent = false;
 
@@ -610,7 +643,38 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       data.winners = input.winners.winners;
 
       if (!_.isUndefined(input.payments)) {
-        data.payments = input.payments.payments;
+        if (prizeType === "USD") {
+          data.payments = input.payments.payments;
+        } else {
+          console.log("Point Winners", data.winners);
+          data.payments = data.winners.map((winner) => {
+            const placementPrizes = challenge.prizeSets.find(
+              (p) => p.type === PrizeSetTypes.ChallengePrizes
+            )?.prizes;
+
+            return {
+              amount: placementPrizes?.[winner.placement - 1]?.value ?? 0,
+              type: "CONTEST_PAYMENT",
+              userId: winner.userId,
+              handle: winner.handle,
+            };
+          });
+
+          const reviewerPayments = input.payments.payments
+            .filter((f) => f.type === "iterative reviewer")
+            .map((p) => ({
+              amount: p.amount,
+              type: "REVIEW_BOARD_PAYMENT",
+              userId: p.userId,
+              handle: p.handle,
+            }));
+
+          if (reviewerPayments.length > 0) {
+            data.payments = data.payments.concat(reviewerPayments);
+          }
+
+          console.log("Final list of payments", data.payments);
+        }
       }
 
       raiseEvent = true;
@@ -632,34 +696,37 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const track = V5_TRACK_IDS_TO_NAMES[challenge?.trackId ?? ""];
     const type = V5_TYPE_IDS_TO_NAMES[challenge?.typeId ?? ""];
 
-    const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
-      track,
-      type,
-    }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS); // These are estimates, fetch reviewer number using constraint in review phase
+    let baValidation: BAValidation | null = null;
 
-    const totalPrizesInCents = _.isArray(data.prizeSets)
-      ? new ChallengeEstimator(data.prizeSets ?? [], {
-          track,
-          type,
-        }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS) // These are estimates, fetch reviewer number using constraint in review phase
-      : prevTotalPrizesInCents;
+    if (prizeType === "USD") {
+      const prevTotalPrizesInCents = new ChallengeEstimator(challenge?.prizeSets ?? [], {
+        track,
+        type,
+      }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS); // These are estimates, fetch reviewer number using constraint in review phase
+      const totalPrizesInCents = _.isArray(data.prizeSets)
+        ? new ChallengeEstimator(data.prizeSets ?? [], {
+            track,
+            type,
+          }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS) // These are estimates, fetch reviewer number using constraint in review phase
+        : prevTotalPrizesInCents;
 
-    const baValidation: BAValidation = {
-      challengeId: challenge?.id,
-      billingAccountId: challenge?.billing?.billingAccountId,
-      markup: challenge?.billing?.markup,
-      status: challengeStatus,
-      prevStatus: challenge?.status,
-      totalPrizesInCents,
-      prevTotalPrizesInCents,
-    };
+      baValidation = {
+        challengeId: challenge?.id,
+        billingAccountId: challenge?.billing?.billingAccountId,
+        markup: challenge?.billing?.markup,
+        status: challengeStatus,
+        prevStatus: challenge?.status,
+        totalPrizesInCents,
+        prevTotalPrizesInCents,
+      };
+    }
 
     if (challengeStatus != ChallengeStatuses.Completed) {
-      await lockConsumeAmount(baValidation);
+      if (baValidation != null) await lockConsumeAmount(baValidation);
       try {
         await super.update(scanCriteria, dynamoUpdate);
       } catch (err) {
-        await lockConsumeAmount(baValidation, true);
+        if (baValidation != null) await lockConsumeAmount(baValidation, true);
         throw err;
       }
     } else {
@@ -668,15 +735,21 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
       const completedChallenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
 
-      console.log("Payments to Generate", completedChallenge.payments);
-      const totalAmount = await this.generatePayments(
-        completedChallenge.id,
-        completedChallenge.name,
-        completedChallenge.payments
-      );
+      if (prizeType == "USD") {
+        console.log("Payments to Generate", completedChallenge.payments);
+        const totalAmount = await this.generatePayments(
+          completedChallenge.id,
+          completedChallenge.name,
+          completedChallenge.payments
+        );
 
-      baValidation.totalPrizesInCents = totalAmount * 100;
-      await lockConsumeAmount(baValidation);
+        if (baValidation != null) {
+          baValidation.totalPrizesInCents = totalAmount * 100;
+          await lockConsumeAmount(baValidation);
+        }
+      } else {
+        console.log("Need to generate POINTS");
+      }
     }
 
     if (input.phases?.phases && input.phases.phases.length && this.shouldUseScheduler(challenge!)) {
@@ -767,6 +840,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     title: string,
     payments: UpdateChallengeInputForACL_PaymentACL[]
   ): Promise<number> {
+    console.log(
+      `Generating payments for challenge ${challengeId}, ${title} with payments ${JSON.stringify(
+        payments
+      )}`
+    );
     let totalAmount = 0;
     // TODO: Make this list exhaustive
     const mapType = (type: string) => {
@@ -833,6 +911,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     }
 
     return totalAmount;
+  }
+
+  private isPureV5Challenge(challenge: { timelineTemplateId?: string; legacy?: Challenge_Legacy }) {
+    return (
+      challenge.legacy?.pureV5Task === true ||
+      PURE_V5_CHALLENGE_TEMPLATE_IDS.includes(challenge.timelineTemplateId ?? "")
+    );
   }
 }
 

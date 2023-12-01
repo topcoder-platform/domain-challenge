@@ -160,6 +160,7 @@ export const ChallengeSchema: Schema = {
       type: DataType.DATA_TYPE_MAP,
       itemType: DataType.DATA_TYPE_MAP,
       items: {
+        type: { type: DataType.DATA_TYPE_STRING },
         totalPrizes: { type: DataType.DATA_TYPE_NUMBER, format: "float", precision: 2 },
         totalPrizesInCents: { type: DataType.DATA_TYPE_NUMBER, format: "integer" },
       },
