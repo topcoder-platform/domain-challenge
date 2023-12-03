@@ -268,7 +268,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       };
 
       newChallenge = await super.create(challenge, metadata);
-      await sendHarmonyEvent("CREATE", "Challenge", newChallenge);
+      await sendHarmonyEvent("CREATE", "Challenge", newChallenge, input.billing?.billingAccountId!);
     } catch (err) {
       // Rollback lock amount
       if (baValidation != null) {
@@ -539,7 +539,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
       updatedChallenge = await super.update(scanCriteria, dataToUpdate, metadata);
 
-      await sendHarmonyEvent("UPDATE", "Challenge", { ...dataToUpdate, id: challenge.id });
+      await sendHarmonyEvent("UPDATE", "Challenge", { ...dataToUpdate, id: challenge.id }, input.billing?.billingAccountId ?? challenge?.billing?.billingAccountId);
     } catch (err) {
       if (baValidation != null) {
         await lockConsumeAmount(baValidation, true);
@@ -729,14 +729,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       if (baValidation != null) await lockConsumeAmount(baValidation);
       try {
         await super.update(scanCriteria, dynamoUpdate);
-        await sendHarmonyEvent("UPDATE", "Challenge", { ...data, id });
+        await sendHarmonyEvent("UPDATE", "Challenge", { ...data, id }, challenge.billing?.billingAccountId);
       } catch (err) {
         if (baValidation != null) await lockConsumeAmount(baValidation, true);
         throw err;
       }
     } else {
       await super.update(scanCriteria, dynamoUpdate);
-      await sendHarmonyEvent("UPDATE", "Challenge", { ...data, id });
+      await sendHarmonyEvent("UPDATE", "Challenge", { ...data, id }, challenge.billing?.billingAccountId);
       console.log("Challenge Completed");
 
       const completedChallenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
@@ -811,7 +811,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     try {
       const result = await super.delete(lookupCriteria);
-      await sendHarmonyEvent("DELETE", "Challenge", { id: challenge.id });
+      await sendHarmonyEvent("DELETE", "Challenge", { id: challenge.id }, challenge.billing?.billingAccountId);
       return result;
     } catch (err) {
       await lockConsumeAmount(baValidation, true);

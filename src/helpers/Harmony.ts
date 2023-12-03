@@ -14,14 +14,16 @@ const harmonyClient = new LambdaClient({ region: process.env.AWS_REGION, maxAtte
  * @param eventType The event type
  * @param payloadType The payload type
  * @param payload The event payload
+ * @param billingAccountId The billing account id
  */
-export async function sendHarmonyEvent(eventType: string, payloadType: string, payload: object) {
+export async function sendHarmonyEvent(eventType: string, payloadType: string, payload: object, billingAccountId?: number) {
   const event = {
     publisher: EVENT_ORIGINATOR,
     timestamp: new Date().getTime(),
     eventType,
     payloadType,
     payload,
+    billingAccountId,
   };
 
   const invokeCommand = new InvokeCommand({
