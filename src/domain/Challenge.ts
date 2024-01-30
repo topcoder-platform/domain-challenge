@@ -835,6 +835,14 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     return challenge?.legacy?.subTrack === "FIRST_2_FINISH" && !challenge?.legacy.pureV5Task;
   }
 
+  private placeToOrdinal(place: number) {
+    if (place === 1) return "1st";
+    if (place === 2) return "2nd";
+    if (place === 3) return "3rd";
+
+    return `${place}th`;
+  }
+
   private async generatePayments(
     challengeId: string,
     title: string,
@@ -856,6 +864,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       return "CONTEST_PAYMENT";
     };
 
+    let placement = 0;
     const paymentPromises = payments.map(async (payment) => {
       let details: PaymentDetail[] = [];
 
@@ -878,6 +887,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             currency: "USD",
           },
         ];
+
+        placement++;
       } else {
         details = [
           {
@@ -897,7 +908,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         origin: "Topcoder",
         category: mapType(payment.type),
         title,
-        description: title,
+        description: `${title} - ${this.placeToOrdinal(placement)} Place`,
         externalId: challengeId,
         details,
       };
