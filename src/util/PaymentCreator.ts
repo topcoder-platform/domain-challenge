@@ -35,6 +35,7 @@ class PaymentCreator {
     };
 
     try {
+      console.log("Creating payment", payload);
       const response = await axios.post(PaymentCreator.BASE_URL + "/winnings", payload, config);
       return response;
     } catch (error) {

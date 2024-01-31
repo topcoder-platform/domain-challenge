@@ -897,7 +897,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     console.log(
       `Generating payments for challenge ${challengeId}, ${title} with payments ${JSON.stringify(
         payments
-      )}`
+      )} for challenge type ${challengeType}`
     );
     let totalAmount = 0;
     // TODO: Make this list exhaustive
@@ -913,6 +913,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     let placement = 0;
     const paymentPromises = payments.map(async (payment) => {
       let details: PaymentDetail[] = [];
+
+      let description = title;
 
       // TODO: Make this a more dynamic calculation
       // TODO: splitRatio should be from challenge data
@@ -935,6 +937,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         ];
 
         placement++;
+        description =
+          challengeType != "Task" ? `${title} - ${this.placeToOrdinal(placement)} Place` : title;
       } else {
         details = [
           {
@@ -954,11 +958,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         origin: "Topcoder",
         category: mapType(payment.type),
         title,
-        description:
-          challengeType != "Task" ? `${title} - ${this.placeToOrdinal(placement)} Place` : title,
+        description,
         externalId: challengeId,
         details,
       };
+      console.log("Generate payment with payload", payload);
       return PaymentCreator.createPayment(payload, await m2mToken.getM2MToken());
     });
 
