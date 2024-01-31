@@ -880,6 +880,18 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     return challenge?.legacy?.subTrack === "FIRST_2_FINISH" && !challenge?.legacy.pureV5Task;
   }
 
+  private getPlacementMap(
+    payments: UpdateChallengeInputForACL_PaymentACL[]
+  ): Record<string, number> {
+    return payments
+      .filter((payment) => payment.type === "placement")
+      .sort((a, b) => b.amount - a.amount)
+      .reduce((acc, payment, index) => {
+        acc[payment.handle] = index + 1;
+        return acc;
+      }, {} as Record<string, number>);
+  }
+
   private placeToOrdinal(place: number) {
     if (place === 1) return "1st";
     if (place === 2) return "2nd";
@@ -910,7 +922,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       return "CONTEST_PAYMENT";
     };
 
-    let placement = 0;
+    const placementMap = this.getPlacementMap(payments);
+    console.log("Placement Map", placementMap);
     const paymentPromises = payments.map(async (payment) => {
       let details: PaymentDetail[] = [];
 
@@ -936,9 +949,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           },
         ];
 
-        placement++;
         description =
-          challengeType != "Task" ? `${title} - ${this.placeToOrdinal(placement)} Place` : title;
+          challengeType != "Task"
+            ? `${title} - ${this.placeToOrdinal(placementMap[payment.handle])} Place`
+            : title;
       } else {
         details = [
           {
