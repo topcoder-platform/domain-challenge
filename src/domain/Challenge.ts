@@ -545,11 +545,21 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         // However when challenge activates, the billing account id will be provided (challenge-api validates it)
         // In such case, send a CREATE event with whole challenge data (it's fine for search-indexer since it upserts for CREATE)
         // Otherwise, the outer customer specified by the billing account id (like Topgear) will never receive a challenge CREATE event
-        await sendHarmonyEvent("CREATE", "Challenge", newChallenge, newChallenge.billing?.billingAccountId);
+        await sendHarmonyEvent(
+          "CREATE",
+          "Challenge",
+          newChallenge,
+          newChallenge.billing?.billingAccountId
+        );
       } else {
         // Send only the updated data
         // Some field like chanllege description could be big, don't include them if they're not actually updated
-        await sendHarmonyEvent("UPDATE", "Challenge", { ...dataToUpdate, id: newChallenge.id }, newChallenge.billing?.billingAccountId);
+        await sendHarmonyEvent(
+          "UPDATE",
+          "Challenge",
+          { ...dataToUpdate, id: newChallenge.id },
+          newChallenge.billing?.billingAccountId
+        );
       }
     } catch (err) {
       if (baValidation != null) {
@@ -571,6 +581,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       const completedChallenge = updatedChallenge.items[0];
       const totalAmount = await this.generatePayments(
         completedChallenge.id,
+        completedChallenge.legacy?.subTrack ?? "Task",
         completedChallenge.name,
         completedChallenge.payments
       );
@@ -740,14 +751,24 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       if (baValidation != null) await lockConsumeAmount(baValidation);
       try {
         await super.update(scanCriteria, dynamoUpdate);
-        await sendHarmonyEvent("UPDATE", "Challenge", { ...data, id }, challenge.billing?.billingAccountId);
+        await sendHarmonyEvent(
+          "UPDATE",
+          "Challenge",
+          { ...data, id },
+          challenge.billing?.billingAccountId
+        );
       } catch (err) {
         if (baValidation != null) await lockConsumeAmount(baValidation, true);
         throw err;
       }
     } else {
       await super.update(scanCriteria, dynamoUpdate);
-      await sendHarmonyEvent("UPDATE", "Challenge", { ...data, id }, challenge.billing?.billingAccountId);
+      await sendHarmonyEvent(
+        "UPDATE",
+        "Challenge",
+        { ...data, id },
+        challenge.billing?.billingAccountId
+      );
       console.log("Challenge Completed");
 
       const completedChallenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
@@ -756,6 +777,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         console.log("Payments to Generate", completedChallenge.payments);
         const totalAmount = await this.generatePayments(
           completedChallenge.id,
+          completedChallenge.legacy?.subTrack ?? "Task",
           completedChallenge.name,
           completedChallenge.payments
         );
@@ -822,7 +844,12 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     try {
       const result = await super.delete(lookupCriteria);
-      await sendHarmonyEvent("DELETE", "Challenge", { id: challenge.id }, challenge.billing?.billingAccountId);
+      await sendHarmonyEvent(
+        "DELETE",
+        "Challenge",
+        { id: challenge.id },
+        challenge.billing?.billingAccountId
+      );
       return result;
     } catch (err) {
       await lockConsumeAmount(baValidation, true);
@@ -863,6 +890,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
   private async generatePayments(
     challengeId: string,
+    challengeType: string,
     title: string,
     payments: UpdateChallengeInputForACL_PaymentACL[]
   ): Promise<number> {
@@ -926,7 +954,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         origin: "Topcoder",
         category: mapType(payment.type),
         title,
-        description: `${title} - ${this.placeToOrdinal(placement)} Place`,
+        description:
+          challengeType != "Task" ? `${title} - ${this.placeToOrdinal(placement)} Place` : title,
         externalId: challengeId,
         details,
       };
