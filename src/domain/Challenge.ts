@@ -44,6 +44,7 @@ import PaymentCreator, { PaymentDetail } from "../util/PaymentCreator";
 import { getChallengeResources } from "../api/v5Api";
 import m2mToken from "../helpers/MachineToMachineToken";
 import { sendHarmonyEvent } from "../helpers/Harmony";
+import axios from "axios";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
   throw new Error("Missing required configurations GRPC_ACL_SERVER_HOST and GRPC_ACL_SERVER_PORT");
@@ -900,6 +901,16 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     return `${place}th`;
   }
 
+  private async generatePaymentsExecute(paymentPromises: Promise<axios.AxiosResponse<any, any>>[]) {
+    for (const paymentPromise of paymentPromises) {
+      try {
+        await paymentPromise;
+      } catch (err) {
+        console.log("Payment generation failed", err);
+      }
+    }
+  }
+
   private async generatePayments(
     challengeId: string,
     challengeType: string,
@@ -980,11 +991,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       return PaymentCreator.createPayment(payload, await m2mToken.getM2MToken());
     });
 
-    try {
-      await Promise.all(paymentPromises);
-    } catch (error) {
-      console.error("Failed to create payments", error);
-    }
+    this.generatePaymentsExecute(paymentPromises);
 
     return totalAmount;
   }
