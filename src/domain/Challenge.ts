@@ -995,7 +995,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       return PaymentCreator.createPayment(payload, await m2mToken.getM2MToken());
     });
 
-    this.generatePaymentsExecute(paymentPromises);
+    this.generatePaymentsExecute(challengeId, paymentPromises);
 
     return totalAmount;
   }
