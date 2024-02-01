@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 
 export interface PaymentDetail {
   totalAmount: number;
@@ -26,7 +26,11 @@ class PaymentCreator {
   private static readonly BASE_URL =
     process.env.PAYMENTS_API_URL ?? "https://api.topcoder-dev.com/v5/payments";
 
-  async createPayment(payload: PaymentPayload, token?: string): Promise<AxiosResponse<any>> {
+  async createPayment(
+    payload: PaymentPayload,
+    token?: string,
+    attempts = 0
+  ): Promise<AxiosResponse<any> | void> {
     const config = {
       headers: {
         "Content-Type": "application/json",
@@ -35,12 +39,20 @@ class PaymentCreator {
     };
 
     try {
-      console.log("Creating payment", payload);
+      console.log(payload.externalId, "Creating payment. Attempt", attempts, payload);
       const response = await axios.post(PaymentCreator.BASE_URL + "/winnings", payload, config);
+      console.log("Payment created", response.data);
       return response;
     } catch (error) {
-      console.error("Failed to create payment", error);
-      throw error;
+      const status = (error as AxiosError).response?.status;
+      const errorBody = (error as AxiosError).response?.data;
+      console.error(payload.externalId, "Failed to create payment. Status Code", status, errorBody);
+      if (attempts < 3 && status === 504) {
+        console.log("Retrying payment creation");
+        this.createPayment(payload, token, attempts + 1);
+      } else {
+        console.error("Failed to create payment after 3 attempts");
+      }
     }
   }
 }

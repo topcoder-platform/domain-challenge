@@ -901,20 +901,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     return `${place}th`;
   }
 
-  private async generatePaymentsExecute(
-    challengeId: string,
-    paymentPromises: Promise<axios.AxiosResponse<any, any>>[]
-  ) {
-    for (const paymentPromise of paymentPromises) {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      try {
-        await paymentPromise;
-      } catch (err) {
-        console.log(challengeId, "Payment generation failed", err);
-      }
-    }
-  }
-
   private async generatePayments(
     challengeId: string,
     challengeType: string,
@@ -938,8 +924,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     };
 
     const placementMap = this.getPlacementMap(payments);
-    console.log("Placement Map", placementMap);
-    const paymentPromises = payments.map(async (payment) => {
+    const nPayments = payments.length;
+    for (let i = 0; i < nPayments; i++) {
+      const payment = payments[i];
       let details: PaymentDetail[] = [];
 
       let description = title;
@@ -992,10 +979,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         details,
       };
       console.log("Generate payment with payload", payload);
-      return PaymentCreator.createPayment(payload, await m2mToken.getM2MToken());
-    });
-
-    this.generatePaymentsExecute(challengeId, paymentPromises);
+      await PaymentCreator.createPayment(payload, await m2mToken.getM2MToken());
+    }
 
     return totalAmount;
   }
