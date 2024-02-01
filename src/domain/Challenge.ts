@@ -901,12 +901,16 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     return `${place}th`;
   }
 
-  private async generatePaymentsExecute(paymentPromises: Promise<axios.AxiosResponse<any, any>>[]) {
+  private async generatePaymentsExecute(
+    challengeId: string,
+    paymentPromises: Promise<axios.AxiosResponse<any, any>>[]
+  ) {
     for (const paymentPromise of paymentPromises) {
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       try {
         await paymentPromise;
       } catch (err) {
-        console.log("Payment generation failed", err);
+        console.log(challengeId, "Payment generation failed", err);
       }
     }
   }
