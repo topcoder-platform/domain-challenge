@@ -24,7 +24,7 @@ export interface PaymentPayload {
 // TODO: Move this to a processor that handles challenge completion events from Harmony
 class PaymentCreator {
   private static readonly BASE_URL =
-    process.env.PAYMENTS_API_URL ?? "https://api.topcoder-dev.com/v5/payments";
+    (process.env.TOPCODER_API_ENDPOINT ?? "https://api.topcoder-dev.com/v5") + "/payments";
 
   async createPayment(
     payload: PaymentPayload,
