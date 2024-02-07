@@ -267,6 +267,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       };
 
       newChallenge = await super.create(challenge, metadata);
+      // await sendHarmonyEvent("CREATE", "Challenge", newChallenge, input.billing?.billingAccountId!);
     } catch (err) {
       // Rollback lock amount
       if (baValidation != null) {
@@ -536,6 +537,29 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       };
 
       updatedChallenge = await super.update(scanCriteria, dataToUpdate, metadata);
+
+      // const newChallenge = updatedChallenge.items[0];
+      // if (newChallenge.billing?.billingAccountId !== challenge?.billing?.billingAccountId) {
+      //   // For a New/Draft challenge, it might miss billing account id
+      //   // However when challenge activates, the billing account id will be provided (challenge-api validates it)
+      //   // In such case, send a CREATE event with whole challenge data (it's fine for search-indexer since it upserts for CREATE)
+      //   // Otherwise, the outer customer specified by the billing account id (like Topgear) will never receive a challenge CREATE event
+      //   await sendHarmonyEvent(
+      //     "CREATE",
+      //     "Challenge",
+      //     newChallenge,
+      //     newChallenge.billing?.billingAccountId
+      //   );
+      // } else {
+      //   // Send only the updated data
+      //   // Some field like chanllege description could be big, don't include them if they're not actually updated
+      //   await sendHarmonyEvent(
+      //     "UPDATE",
+      //     "Challenge",
+      //     { ...dataToUpdate, id: newChallenge.id },
+      //     newChallenge.billing?.billingAccountId
+      //   );
+      // }
     } catch (err) {
       if (baValidation != null) {
         await lockConsumeAmount(baValidation, true);
@@ -556,6 +580,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       const completedChallenge = updatedChallenge.items[0];
       const totalAmount = await this.generatePayments(
         completedChallenge.id,
+        completedChallenge.legacy?.subTrack ?? "Task",
         completedChallenge.name,
         completedChallenge.payments
       );
@@ -725,12 +750,24 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       if (baValidation != null) await lockConsumeAmount(baValidation);
       try {
         await super.update(scanCriteria, dynamoUpdate);
+        // await sendHarmonyEvent(
+        //   "UPDATE",
+        //   "Challenge",
+        //   { ...data, id },
+        //   challenge.billing?.billingAccountId
+        // );
       } catch (err) {
         if (baValidation != null) await lockConsumeAmount(baValidation, true);
         throw err;
       }
     } else {
       await super.update(scanCriteria, dynamoUpdate);
+      // await sendHarmonyEvent(
+      //   "UPDATE",
+      //   "Challenge",
+      //   { ...data, id },
+      //   challenge.billing?.billingAccountId
+      // );
       console.log("Challenge Completed");
 
       const completedChallenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
@@ -739,6 +776,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         console.log("Payments to Generate", completedChallenge.payments);
         const totalAmount = await this.generatePayments(
           completedChallenge.id,
+          completedChallenge.legacy?.subTrack ?? "Task",
           completedChallenge.name,
           completedChallenge.payments
         );
@@ -805,6 +843,12 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     try {
       const result = await super.delete(lookupCriteria);
+      // await sendHarmonyEvent(
+      //   "DELETE",
+      //   "Challenge",
+      //   { id: challenge.id },
+      //   challenge.billing?.billingAccountId
+      // );
       return result;
     } catch (err) {
       await lockConsumeAmount(baValidation, true);
@@ -835,15 +879,36 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     return challenge?.legacy?.subTrack === "FIRST_2_FINISH" && !challenge?.legacy.pureV5Task;
   }
 
+  private getPlacementMap(
+    payments: UpdateChallengeInputForACL_PaymentACL[]
+  ): Record<string, number> {
+    return payments
+      .filter((payment) => payment.type === "placement")
+      .sort((a, b) => b.amount - a.amount)
+      .reduce((acc, payment, index) => {
+        acc[payment.handle] = index + 1;
+        return acc;
+      }, {} as Record<string, number>);
+  }
+
+  private placeToOrdinal(place: number) {
+    if (place === 1) return "1st";
+    if (place === 2) return "2nd";
+    if (place === 3) return "3rd";
+
+    return `${place}th`;
+  }
+
   private async generatePayments(
     challengeId: string,
+    challengeType: string,
     title: string,
     payments: UpdateChallengeInputForACL_PaymentACL[]
   ): Promise<number> {
     console.log(
       `Generating payments for challenge ${challengeId}, ${title} with payments ${JSON.stringify(
         payments
-      )}`
+      )} for challenge type ${challengeType}`
     );
     let totalAmount = 0;
     // TODO: Make this list exhaustive
@@ -856,8 +921,13 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       return "CONTEST_PAYMENT";
     };
 
-    const paymentPromises = payments.map(async (payment) => {
+    const placementMap = this.getPlacementMap(payments);
+    const nPayments = payments.length;
+    for (let i = 0; i < nPayments; i++) {
+      const payment = payments[i];
       let details: PaymentDetail[] = [];
+
+      let description = title;
 
       // TODO: Make this a more dynamic calculation
       // TODO: splitRatio should be from challenge data
@@ -878,6 +948,11 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             currency: "USD",
           },
         ];
+
+        description =
+          challengeType != "Task"
+            ? `${title} - ${this.placeToOrdinal(placementMap[payment.handle])} Place`
+            : title;
       } else {
         details = [
           {
@@ -897,17 +972,12 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         origin: "Topcoder",
         category: mapType(payment.type),
         title,
-        description: title,
+        description,
         externalId: challengeId,
         details,
       };
-      return PaymentCreator.createPayment(payload, await m2mToken.getM2MToken());
-    });
-
-    try {
-      await Promise.all(paymentPromises);
-    } catch (error) {
-      console.error("Failed to create payments", error);
+      console.log("Generate payment with payload", payload);
+      await PaymentCreator.createPayment(payload, await m2mToken.getM2MToken());
     }
 
     return totalAmount;
