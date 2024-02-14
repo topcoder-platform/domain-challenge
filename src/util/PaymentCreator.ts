@@ -16,7 +16,7 @@ export interface PaymentPayload {
   description: string;
   externalId: string;
   attributes?: {
-    [key: string]: string;
+    [key: string]: string | boolean | number;
   };
   details: PaymentDetail[];
 }
