@@ -917,7 +917,12 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     let totalAmount = 0;
     // TODO: Make this list exhaustive
     const mapType = (type: string) => {
-      if (type === "placement") return "CONTEST_PAYMENT";
+      if (type === "placement") {
+        if (challengeType === "Task") {
+          return "TASK_PAYMENT";
+        }
+        return "CONTEST_PAYMENT";
+      }
       if (type === "reviewer" || type === "iterative reviewer") return "REVIEW_BOARD_PAYMENT";
       if (type === "copilot") return "COPILOT_PAYMENT";
 
