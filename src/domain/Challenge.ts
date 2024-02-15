@@ -30,6 +30,7 @@ import {
   ES_INDEX,
   ES_REFRESH,
   PrizeSetTypes,
+  TGBillingAccounts,
   Topics,
 } from "../common/Constants";
 import BusApi from "../helpers/BusApi";
@@ -580,6 +581,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       const completedChallenge = updatedChallenge.items[0];
       const totalAmount = await this.generatePayments(
         completedChallenge.id,
+        completedChallenge.billing?.billingAccountId ?? 0,
         completedChallenge.legacy?.subTrack ?? "Task",
         completedChallenge.name,
         completedChallenge.payments
@@ -776,6 +778,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         console.log("Payments to Generate", completedChallenge.payments);
         const totalAmount = await this.generatePayments(
           completedChallenge.id,
+          completedChallenge.billing?.billingAccountId ?? 0,
           completedChallenge.legacy?.subTrack ?? "Task",
           completedChallenge.name,
           completedChallenge.payments
@@ -901,6 +904,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
   private async generatePayments(
     challengeId: string,
+    billingAccountId: number,
     challengeType: string,
     title: string,
     payments: UpdateChallengeInputForACL_PaymentACL[]
@@ -975,7 +979,16 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         description,
         externalId: challengeId,
         details,
+        attributes: {
+          billingAccountId,
+          payroll: false,
+        },
       };
+
+      if (_.includes(TGBillingAccounts, billingAccountId)) {
+        payload.attributes.payroll = true;
+      }
+
       console.log("Generate payment with payload", payload);
       await PaymentCreator.createPayment(payload, await m2mToken.getM2MToken());
     }
