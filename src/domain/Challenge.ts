@@ -41,7 +41,7 @@ import ChallengeScheduler from "../util/ChallengeScheduler";
 import { BAValidation, lockConsumeAmount } from "../api/BillingAccount";
 import { ChallengeEstimator } from "../util/ChallengeEstimator";
 import { V5_TRACK_IDS_TO_NAMES, V5_TYPE_IDS_TO_NAMES } from "../common/ConversionMap";
-import PaymentCreator, { PaymentDetail } from "../util/PaymentCreator";
+import WalletApi, { PaymentDetail } from "../util/WalletApi";
 import { getChallengeResources } from "../api/v5Api";
 import m2mToken from "../helpers/MachineToMachineToken";
 
@@ -909,11 +909,21 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     title: string,
     payments: UpdateChallengeInputForACL_PaymentACL[]
   ): Promise<number> {
+    const token = await m2mToken.getM2MToken();
+
     console.log(
       `Generating payments for challenge ${challengeId}, ${title} with payments ${JSON.stringify(
         payments
       )} for challenge type ${challengeType}`
     );
+
+    // Check if payment already exists
+    const existingPayments = await WalletApi.getPaymentsByChallengeId(challengeId, token);
+    if (existingPayments.length > 0) {
+      console.log(`Payments already exist for challenge ${challengeId}, skipping payment generation`);
+      return 0;
+    }
+
     let totalAmount = 0;
     // TODO: Make this list exhaustive
     const mapType = (type: string) => {
@@ -934,43 +944,22 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const nPayments = payments.length;
     for (let i = 0; i < nPayments; i++) {
       const payment = payments[i];
-      let details: PaymentDetail[] = [];
+      let details: PaymentDetail[] = [
+        {
+          totalAmount: payment.amount,
+          grossAmount: payment.amount,
+          installmentNumber: 1,
+          currency: "USD",
+        },
+      ];
 
       let description = title;
 
-      // TODO: Make this a more dynamic calculation
-      // TODO: splitRatio should be from challenge data
       if (payment.type === "placement") {
-        const grossAmount1 = payment.amount * 0.75;
-        const grossAmount2 = payment.amount * 0.25;
-        details = [
-          {
-            totalAmount: payment.amount,
-            grossAmount: grossAmount1,
-            installmentNumber: 1,
-            currency: "USD",
-          },
-          {
-            totalAmount: payment.amount,
-            grossAmount: grossAmount2,
-            installmentNumber: 2,
-            currency: "USD",
-          },
-        ];
-
         description =
           challengeType != "Task"
             ? `${title} - ${this.placeToOrdinal(placementMap[payment.handle])} Place`
             : title;
-      } else {
-        details = [
-          {
-            totalAmount: payment.amount,
-            grossAmount: payment.amount,
-            installmentNumber: 1,
-            currency: "USD",
-          },
-        ];
       }
 
       totalAmount += payment.amount;
@@ -995,7 +984,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       }
 
       console.log("Generate payment with payload", payload);
-      await PaymentCreator.createPayment(payload, await m2mToken.getM2MToken());
+      await WalletApi.createPayment(payload, token);
     }
 
     return totalAmount;

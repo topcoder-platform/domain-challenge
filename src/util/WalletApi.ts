@@ -22,7 +22,7 @@ export interface PaymentPayload {
 }
 
 // TODO: Move this to a processor that handles challenge completion events from Harmony
-class PaymentCreator {
+class WalletApi {
   private static readonly BASE_URL =
     (process.env.TOPCODER_API_ENDPOINT ?? "https://api.topcoder-dev.com/v5") + "/payments";
 
@@ -40,7 +40,7 @@ class PaymentCreator {
 
     try {
       console.log(payload.externalId, "Creating payment. Attempt", attempts, payload);
-      const response = await axios.post(PaymentCreator.BASE_URL + "/winnings", payload, config);
+      const response = await axios.post(WalletApi.BASE_URL + "/winnings", payload, config);
       console.log("Payment created", response.data);
       return response;
     } catch (error) {
@@ -55,6 +55,27 @@ class PaymentCreator {
       }
     }
   }
+
+  async getPaymentsByChallengeId(challengeId: string, token?: string): Promise<any[]> {
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    };
+  
+    const payload = {
+      externalIds: [challengeId],
+    };
+  
+    try {
+      const response = await axios.post(WalletApi.BASE_URL + "/winnings/list", payload, config);
+      return response.data.data;
+    } catch (err) {
+      return [];
+    }
+  }
+  
 }
 
-export default new PaymentCreator();
+export default new WalletApi();
