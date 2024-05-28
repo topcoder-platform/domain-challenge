@@ -42,7 +42,7 @@ import { BAValidation, lockConsumeAmount } from "../api/BillingAccount";
 import { ChallengeEstimator } from "../util/ChallengeEstimator";
 import { V5_TRACK_IDS_TO_NAMES, V5_TYPE_IDS_TO_NAMES } from "../common/ConversionMap";
 import WalletApi, { PaymentDetail } from "../util/WalletApi";
-import { getChallengeResources } from "../api/v5Api";
+import { getChallengeResources, loadInformixSubmissions } from "../api/v5Api";
 import m2mToken from "../helpers/MachineToMachineToken";
 
 if (!process.env.GRPC_ACL_SERVER_HOST || !process.env.GRPC_ACL_SERVER_PORT) {
@@ -487,6 +487,15 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           }
 
           generatePayments = input.paymentUpdate != null && input.paymentUpdate.payments.length > 0;
+
+          if(!challenge?.legacy?.pureV5Task){
+            // Load the submission and review data from Informix into ES for caching purposes. This just makes a call to the submission
+            // API with a "loadLegacy=true" flag, which will force a load from Informix --> ES.
+            await loadInformixSubmissions(
+              challenge.id,
+              await m2mToken.getM2MToken()
+            );
+          }
         }
       }
 
