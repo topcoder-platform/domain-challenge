@@ -17,3 +17,15 @@ export const getChallengeResources = async (
   );
   return resources;
 };
+
+// This function is called when a challenge completes, to load submission and review data
+// from Informix to ES.  It only needs to be called once, so we do it when the challenge completes
+export const loadInformixSubmissions = async (
+  challengeId: string,
+  token: string
+): Promise<any> => {
+  await getRequest(
+    `${process.env.TOPCODER_API_URL}/submissions?challengeId=${challengeId}&loadLegacy=true`,
+    token
+  );
+};
