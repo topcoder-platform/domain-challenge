@@ -25,6 +25,7 @@ export const loadInformixSubmissions = async (
   token: string
 ): Promise<any> => {
   await getRequest(
+    console.log(`Loading legacy reviews for challenge ${challengeId} ${process.env.TOPCODER_API_URL}/submissions?challengeId=${challengeId}&loadLegacy=true`)
     `${process.env.TOPCODER_API_URL}/submissions?challengeId=${challengeId}&loadLegacy=true`,
     token
   );
