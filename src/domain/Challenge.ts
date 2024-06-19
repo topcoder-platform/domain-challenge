@@ -420,6 +420,21 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             }
           }
         }
+        // Load the submission and review data from Informix into ES for caching purposes, at the end of a challenge. 
+        // This just makes a call to the submission API with a "loadLegacy=true" flag, which will force a load from Informix --> ES.
+        if (
+          input.status === ChallengeStatuses.Completed &&
+          challenge.status !== ChallengeStatuses.Completed && 
+          !(challenge?.legacy?.pureV5Task)
+        ) {
+            await loadInformixSubmissions(
+              challenge.id,
+              await m2mToken.getM2MToken())
+
+        }
+        else{
+            console.log(`Not loading reviews because challenge ${challenge.id} is a pure v5 task`)
+        }
         // End Anti-Corruption Layer
       } else {
         // This is a Pure V5 Challenge
@@ -487,15 +502,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           }
 
           generatePayments = input.paymentUpdate != null && input.paymentUpdate.payments.length > 0;
-
-          if(!challenge?.legacy?.pureV5Task){
-            // Load the submission and review data from Informix into ES for caching purposes. This just makes a call to the submission
-            // API with a "loadLegacy=true" flag, which will force a load from Informix --> ES.
-            await loadInformixSubmissions(
-              challenge.id,
-              await m2mToken.getM2MToken()
-            );
-          }
         }
       }
 
