@@ -433,7 +433,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
         }
         else{
-            console.log(`Not loading reviews because challenge ${challenge.id} is a pure v5 task`)
+            console.log(`Not loading reviews because challenge ${challenge.id} is a pure v5 task or not complete yet`)
         }
         // End Anti-Corruption Layer
       } else {
