@@ -393,7 +393,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         } else if (challenge.status !== ChallengeStatuses.New) {
           // Load the submission and review data from Informix into ES for caching purposes, at the end of a challenge. 
           // This just makes a call to the submission API with a "loadLegacy=true" flag, which will force a load from Informix --> ES.
-          if (challenge.status !== ChallengeStatuses.Completed) {
+          if (challenge.status !== ChallengeStatuses.Completed && input.status === ChallengeStatuses.Completed) {
             await loadInformixSubmissions(
               challenge.id,
               await m2mToken.getM2MToken())
