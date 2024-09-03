@@ -34,7 +34,7 @@ import {
   Topics,
 } from "../common/Constants";
 import BusApi from "../helpers/BusApi";
-import ElasticSearch from "../helpers/ElasticSearch";
+import OpenSearch from "../helpers/OpenSearch";
 import { LookupCriteria, ScanCriteria } from "../models/common/common";
 import legacyMapper from "../util/LegacyMapper";
 import ChallengeScheduler from "../util/ChallengeScheduler";
@@ -62,7 +62,7 @@ const PURE_V5_CHALLENGE_TEMPLATE_IDS = process.env.PURE_V5_CHALLENGE_TEMPLATE_ID
   : ["517e76b0-8824-4e72-9b48-a1ebde1793a8"];
 
 class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
-  private esClient = ElasticSearch.getESClient();
+  private osClient = OpenSearch.getOSClient();
 
   protected toEntity(item: { [key: string]: Value }): Challenge {
     const fieldsPossiblyUsingLegacyDataTypes = [
@@ -812,9 +812,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     this.cleanPrizeSets(data.prizeSets, data.overview);
 
-    await this.esClient.update({
+    await this.osClient.update({
       index: ES_INDEX,
-      type: process.env.OPENSEARCH === "true" ? undefined : "_doc",
       refresh: ES_REFRESH,
       id,
       body: {
