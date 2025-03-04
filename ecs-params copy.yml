@@ -5,19 +5,19 @@ task_definition:
   ecs_network_mode: ${AWS_ECS_NETWORK_MODE}
   task_size:
     cpu_limit: ${AWS_ECS_FARGATE_CPU}
-    mem_limit: ${AWS_ECS_FARGATE_MEMORY}
+    mem_limit: ${AWS_ECS_FARGATE_MEMORY}  
   services:
     dynamo-access-layer:
       cpu_shares: 100
-      mem_limit: 1G
+      mem_limit: 512MB
     informix-access-layer:
-      cpu_shares: 1000
+      cpu_shares: 100
       mem_limit: 3G
     anticorruption-layer:
-      cpu_shares: 100
-      mem_limit: 1G
-    domain-challenge:
       cpu_shares: 200
+      mem_limit: 3G
+    domain-challenge:
+      cpu_shares: 100
       mem_limit: 1GB
 run_params:
   network_configuration:
