@@ -24,7 +24,7 @@ deploy_steps: &deploy_steps
 - run: *install_deploysuite
 - deploy:
     name: Running MasterScript.
-    command: "#./awsconfiguration.sh $DEPLOY_ENV\n./awsconfiguration.sh $DEPLOY_ENV\nsource awsenvconf\n./buildproperties.sh -e $BUILD_ENV -k grpc\n./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-deployvar\nsource buildenvvar\n#./buildimage.sh\n./buildimage.sh ${DEPLOY_ENV}\n#./master_deploy.sh -d ECS -e $DEPLOY_ENV -m CLI -t latest -i ${APPNAME}    \necs-cli configure --region us-east-1 --cluster $AWS_ECS_CLUSTER\necs-cli compose --project-name domain-challenge service up\n#magic___^_^___line\n"
+    command: "#./awsconfiguration.sh $DEPLOY_ENV\n./awsconfiguration.sh $DEPLOY_ENV\nsource awsenvconf\n./buildproperties.sh -e $BUILD_ENV -k grpc\n./buildenv.sh -e $DEPLOY_ENV -b ${LOGICAL_ENV}-${APPNAME}-deployvar\nsource buildenvvar\n#./buildimage.sh\n./buildimage.sh ${DEPLOY_ENV}\n#./master_deploy.sh -d ECS -e $DEPLOY_ENV -m CLI -t latest -i ${APPNAME}    \necs-cli configure --region us-east-1 --cluster $AWS_ECS_CLUSTER\necs-cli compose --project-name domain-challenge service up --launch-type FARGATE\n#magic___^_^___line\n"
 jobs:
   publish-image:
     docker:

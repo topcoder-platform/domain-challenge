@@ -4,10 +4,9 @@ services:
     image: dynamo-access-layer:latest
     read_only: true
     container_name: dynamo-access-layer
-    hostname: dynamo-access-layer
     restart: always
     ports:
-      - "0:50052"
+      - "50052:50052"
     logging:
       driver: awslogs
       options:
@@ -21,10 +20,9 @@ services:
     image: informix-access-layer:latest
     read_only: true
     container_name: informix-access-layer
-    hostname: informix-access-layer
     restart: always
     ports:
-      - "0:9090"
+      - "9090:9090"
     logging:
       driver: awslogs
       options:
@@ -37,12 +35,9 @@ services:
     image: anticorruption-layer:latest
     read_only: true
     container_name: anticorruption-layer
-    hostname: anticorruption-layer
     restart: always
     ports:
-      - "0:40020"
-    links:
-      - informix-access-layer
+      - "40020:40020"
     logging:
       driver: awslogs
       options:
@@ -57,14 +52,9 @@ services:
     image: domain-challenge:latest
     read_only: true
     container_name: domain-challenge
-    hostname: domain-challenge
     restart: always
     ports:
-      - "0:8888"
-    links:
-      - anticorruption-layer
-      - informix-access-layer
-      - dynamo-access-layer
+      - "8888:8888"
     logging:
       driver: awslogs
       options:
