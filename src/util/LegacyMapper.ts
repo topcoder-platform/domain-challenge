@@ -270,6 +270,7 @@ class LegacyMapper {
     }
 
     if (input.status === ChallengeStatuses.Completed) {
+      console.log("Legacy Mapper --> Challenge completed");
       console.log(JSON.stringify(input));
       projectInfo[21] = DateUtil.formatDateForIfx(new Date().toISOString(), "MM.DD.YYYY HH:mm z")!; // project_info 21 is Completion Timestamp; and it has a different date format
       if(input.winnerUpdate?.winners[0]!=null) {

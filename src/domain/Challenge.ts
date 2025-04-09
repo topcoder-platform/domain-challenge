@@ -773,12 +773,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       }
     } else {
       await super.update(scanCriteria, dynamoUpdate);
-      // await sendHarmonyEvent(
-      //   "UPDATE",
-      //   "Challenge",
-      //   { ...data, id },
-      //   challenge.billing?.billingAccountId
-      // );
       console.log("Challenge Completed");
 
       const completedChallenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
