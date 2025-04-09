@@ -391,6 +391,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           input.phaseUpdate = { phases };
           legacyId = legacyChallengeId;
         } else if (challenge.status !== ChallengeStatuses.New) {
+          console.log(`Updating challenge with input: ${JSON.stringify(input)}`);
           // prettier-ignore
           const updateChallengeInput = await legacyMapper.mapChallengeUpdateInput(
             challenge.legacyId!,
@@ -773,12 +774,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       }
     } else {
       await super.update(scanCriteria, dynamoUpdate);
-      // await sendHarmonyEvent(
-      //   "UPDATE",
-      //   "Challenge",
-      //   { ...data, id },
-      //   challenge.billing?.billingAccountId
-      // );
       console.log("Challenge Completed");
 
       const completedChallenge = await this.lookup(DomainHelper.getLookupCriteria("id", id));
