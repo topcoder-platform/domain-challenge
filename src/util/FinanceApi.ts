@@ -5,6 +5,7 @@ export interface PaymentDetail {
   grossAmount: number;
   installmentNumber: number;
   currency: string;
+  billingAccount: string;
 }
 
 export interface PaymentPayload {

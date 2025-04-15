@@ -958,6 +958,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           grossAmount: payment.amount,
           installmentNumber: 1,
           currency: "USD",
+          billingAccount: `${billingAccountId}`,
         },
       ];
 
