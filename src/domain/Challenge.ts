@@ -41,7 +41,7 @@ import ChallengeScheduler from "../util/ChallengeScheduler";
 import { BAValidation, lockConsumeAmount } from "../api/BillingAccount";
 import { ChallengeEstimator } from "../util/ChallengeEstimator";
 import { V5_TRACK_IDS_TO_NAMES, V5_TYPE_IDS_TO_NAMES } from "../common/ConversionMap";
-import WalletApi, { PaymentDetail } from "../util/WalletApi";
+import FinanceApi, { PaymentDetail } from "../util/FinanceApi";
 import { getChallengeResources, loadInformixSubmissions } from "../api/v5Api";
 import m2mToken from "../helpers/MachineToMachineToken";
 
@@ -926,7 +926,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     );
 
     // Check if payment already exists
-    const existingPayments = await WalletApi.getPaymentsByChallengeId(challengeId, token);
+    const existingPayments = await FinanceApi.getPaymentsByChallengeId(challengeId, token);
     if (existingPayments.length > 0) {
       console.log(`Payments already exist for challenge ${challengeId}, skipping payment generation`);
       return 0;
@@ -992,7 +992,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       }
 
       console.log("Generate payment with payload", payload);
-      await WalletApi.createPayment(payload, token);
+      await FinanceApi.createPayment(payload, token);
     }
 
     return totalAmount;
