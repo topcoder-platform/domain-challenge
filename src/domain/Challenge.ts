@@ -303,6 +303,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     }
 
     const isLaunching = input.status?.toLowerCase().indexOf("active") !== -1;
+    console.log(`Is launching: ${isLaunching}, Prize set update: ${JSON.stringify(input.prizeSetUpdate)}, current status: ${challenge?.status}`);
     // PM-1141
     // If we're updating prizes on an active challenge, attempt to lock the budget
     // If we're launching, attempt to lock the budget
