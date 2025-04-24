@@ -203,8 +203,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           }
         : null;
 
-    if (baValidation != null) await lockConsumeAmount(baValidation);
-
     let newChallenge: Challenge;
     try {
       // Begin Anti-Corruption Layer
@@ -270,10 +268,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       newChallenge = await super.create(challenge, metadata);
       // await sendHarmonyEvent("CREATE", "Challenge", newChallenge, input.billing?.billingAccountId!);
     } catch (err) {
-      // Rollback lock amount
-      if (baValidation != null) {
-        await lockConsumeAmount(baValidation, true);
-      }
       throw err;
     }
 
@@ -308,7 +302,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         .build();
     }
 
-    let shouldLockBudget = input.prizeSetUpdate != null;
+    const isLaunching = input.status?.toLowerCase().indexOf("active") !== -1;
+    let shouldLockBudget = (input.prizeSetUpdate != null) || isLaunching;
+
     const isCancelled = input.status?.toLowerCase().indexOf("cancelled") !== -1;
     let generatePayments = false;
     let baValidation: BAValidation | null = null;
