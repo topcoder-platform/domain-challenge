@@ -342,7 +342,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         totalPrizesInCents,
         prevTotalPrizesInCents,
       };
-
+      
+      console.log(`Update validation: ${JSON.stringify(baValidation)}`)
       await lockConsumeAmount(baValidation);
     }
 
