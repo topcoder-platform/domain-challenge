@@ -292,7 +292,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const type = V5_TYPE_IDS_TO_NAMES[challenge.typeId];
 
     console.log(`Current challenge: ${JSON.stringify(challenge)}`);
-    console.log(`Current prize sets: ${JSON.stringify(challenge?.prizeSets)}`);
     const existingPrizeType: string | null = challenge?.prizeSets?.[0]?.prizes?.[0]?.type ?? null;
     const prizeType: string | null =
       input.prizeSetUpdate?.prizeSets?.[0]?.prizes?.[0]?.type ?? null;
@@ -305,12 +304,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     }
 
     const isLaunching = input.status?.toLowerCase().indexOf("active") !== -1;
-    console.log(`Is launching: ${isLaunching}, Prize set update: ${JSON.stringify(input.prizeSetUpdate)}, current status: ${challenge?.status}`);
     // PM-1141
     // If we're updating prizes on an active challenge, attempt to lock the budget
     // If we're launching, attempt to lock the budget
     let shouldLockBudget = (input.prizeSetUpdate != null && challenge?.status.toLowerCase()=="active") || isLaunching;
-    console.log(`Should lock budget: ${shouldLockBudget}`);
     const isCancelled = input.status?.toLowerCase().indexOf("cancelled") !== -1;
     let generatePayments = false;
     let baValidation: BAValidation | null = null;
@@ -324,7 +321,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS) // These are estimates, fetch reviewer number using constraint in review phase
         : 0;
     
-    console.log(`${prizeType} ${existingPrizeType} ${shouldLockBudget} ${isCancelled}`);
     if ((prizeType === "USD" || existingPrizeType === "USD") && (shouldLockBudget || isCancelled)) {
       const totalPrizesInCents = _.isArray(input.prizeSetUpdate?.prizeSets)
         ? new ChallengeEstimator(input.prizeSetUpdate?.prizeSets! ?? [], {
@@ -346,7 +342,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         prevTotalPrizesInCents,
       };
       
-      console.log(`Update validation: ${JSON.stringify(baValidation)}`)
       await lockConsumeAmount(baValidation);
     }
 
