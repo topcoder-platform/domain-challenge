@@ -291,6 +291,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const track = V5_TRACK_IDS_TO_NAMES[challenge.trackId];
     const type = V5_TYPE_IDS_TO_NAMES[challenge.typeId];
 
+    console.log(`Current challenge: ${JSON.stringify(challenge)}`);
     console.log(`Current prize sets: ${JSON.stringify(challenge?.prizeSets)}`);
     const existingPrizeType: string | null = challenge?.prizeSets?.[0]?.prizes?.[0]?.type ?? null;
     const prizeType: string | null =
