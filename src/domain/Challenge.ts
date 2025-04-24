@@ -321,8 +321,9 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             type,
           }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS) // These are estimates, fetch reviewer number using constraint in review phase
         : 0;
-
-    if (prizeType === "USD" && (shouldLockBudget || isCancelled)) {
+    
+    console.log(`${prizeType} ${existingPrizeType} ${shouldLockBudget} ${isCancelled}`);
+    if ((prizeType === "USD" || existingPrizeType === "USD") && (shouldLockBudget || isCancelled)) {
       const totalPrizesInCents = _.isArray(input.prizeSetUpdate?.prizeSets)
         ? new ChallengeEstimator(input.prizeSetUpdate?.prizeSets! ?? [], {
             track,
