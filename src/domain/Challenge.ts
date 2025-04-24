@@ -317,7 +317,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
 
     // Lock budget only if prize set is updated
     const prevTotalPrizesInCents =
-      prizeType == "USD"
+      existingPrizeType == "USD"
         ? new ChallengeEstimator(challenge?.prizeSets ?? [], {
             track,
             type,
