@@ -303,7 +303,10 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     }
 
     const isLaunching = input.status?.toLowerCase().indexOf("active") !== -1;
-    let shouldLockBudget = (input.prizeSetUpdate != null) || isLaunching;
+    // PM-1141
+    // If we're updating prizes on an active challenge, attempt to lock the budget
+    // If we're launching, attempt to lock the budget
+    let shouldLockBudget = (input.prizeSetUpdate != null && challenge?.status.toLowerCase()=="active") || isLaunching;
 
     const isCancelled = input.status?.toLowerCase().indexOf("cancelled") !== -1;
     let generatePayments = false;
