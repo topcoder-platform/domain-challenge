@@ -203,8 +203,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           }
         : null;
 
-    if (baValidation != null) await lockConsumeAmount(baValidation);
-
     let newChallenge: Challenge;
     try {
       // Begin Anti-Corruption Layer
@@ -270,10 +268,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       newChallenge = await super.create(challenge, metadata);
       // await sendHarmonyEvent("CREATE", "Challenge", newChallenge, input.billing?.billingAccountId!);
     } catch (err) {
-      // Rollback lock amount
-      if (baValidation != null) {
-        await lockConsumeAmount(baValidation, true);
-      }
       throw err;
     }
 
@@ -297,6 +291,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     const track = V5_TRACK_IDS_TO_NAMES[challenge.trackId];
     const type = V5_TYPE_IDS_TO_NAMES[challenge.typeId];
 
+    console.log(`Current challenge: ${JSON.stringify(challenge)}`);
     const existingPrizeType: string | null = challenge?.prizeSets?.[0]?.prizes?.[0]?.type ?? null;
     const prizeType: string | null =
       input.prizeSetUpdate?.prizeSets?.[0]?.prizes?.[0]?.type ?? null;
@@ -308,21 +303,25 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         .build();
     }
 
-    let shouldLockBudget = input.prizeSetUpdate != null;
+    const isLaunching = input.status?.toLowerCase().indexOf("active") !== -1;
+    // PM-1141
+    // If we're updating prizes on an active challenge, attempt to lock the budget
+    // If we're launching, attempt to lock the budget
+    let shouldLockBudget = (input.prizeSetUpdate != null && challenge?.status.toLowerCase()=="active") || isLaunching;
     const isCancelled = input.status?.toLowerCase().indexOf("cancelled") !== -1;
     let generatePayments = false;
     let baValidation: BAValidation | null = null;
 
     // Lock budget only if prize set is updated
     const prevTotalPrizesInCents =
-      prizeType == "USD"
+      existingPrizeType == "USD"
         ? new ChallengeEstimator(challenge?.prizeSets ?? [], {
             track,
             type,
           }).estimateCost(EXPECTED_REVIEWS_PER_REVIEWER, NUM_REVIEWERS) // These are estimates, fetch reviewer number using constraint in review phase
         : 0;
-
-    if (prizeType === "USD" && (shouldLockBudget || isCancelled)) {
+    
+    if ((prizeType === "USD" || existingPrizeType === "USD") && (shouldLockBudget || isCancelled)) {
       const totalPrizesInCents = _.isArray(input.prizeSetUpdate?.prizeSets)
         ? new ChallengeEstimator(input.prizeSetUpdate?.prizeSets! ?? [], {
             track,
@@ -342,7 +341,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         totalPrizesInCents,
         prevTotalPrizesInCents,
       };
-
+      
       await lockConsumeAmount(baValidation);
     }
 
