@@ -390,6 +390,17 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           input.phaseUpdate = { phases };
           legacyId = legacyChallengeId;
         } else if (challenge.status !== ChallengeStatuses.New) {
+          // Load the submission and review data from Informix into ES for caching purposes, at the end of a challenge. 
+          // This just makes a call to the submission API with a "loadLegacy=true" flag, which will force a load from Informix --> ES.
+          if (challenge.status !== ChallengeStatuses.Completed && input.status === ChallengeStatuses.Completed) {
+            await loadInformixSubmissions(
+              challenge.id,
+              await m2mToken.getM2MToken())
+          }
+          else{
+            console.log(`Not loading reviews yet because challenge ${challenge.id} is not complete`)
+          }
+          
           // prettier-ignore
           const updateChallengeInput = await legacyMapper.mapChallengeUpdateInput(
             challenge.legacyId!,
@@ -486,15 +497,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           }
 
           generatePayments = input.paymentUpdate != null && input.paymentUpdate.payments.length > 0;
-
-          if(!challenge?.legacy?.pureV5Task){
-            // Load the submission and review data from Informix into ES for caching purposes. This just makes a call to the submission
-            // API with a "loadLegacy=true" flag, which will force a load from Informix --> ES.
-            await loadInformixSubmissions(
-              challenge.id,
-              await m2mToken.getM2MToken()
-            );
-          }
         }
       }
 
