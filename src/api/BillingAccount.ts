@@ -122,15 +122,17 @@ export async function lockConsumeAmount(baValidation: BAValidation, rollback: bo
     baValidation.status === ChallengeStatuses.CancelledZeroRegistrations ||
     baValidation.status === ChallengeStatuses.CancelledPaymentFailed
   ) {
-    // Challenge canceled, unlock previous locked amount
-    const currAmount = 0;
-    const prevAmount = baValidation.prevTotalPrizesInCents / 100;
+    if(baValidation.prevStatus === ChallengeStatuses.Active) {
+      // Challenge canceled, unlock previous locked amount
+      const currAmount = 0;
+      const prevAmount = baValidation.prevTotalPrizesInCents / 100;
 
-    if (currAmount !== prevAmount) {
-      await lockAmount(baValidation.billingAccountId, {
-        challengeId: baValidation.challengeId!,
-        lockAmount: rollback ? prevAmount : 0,
-      });
+      if (currAmount !== prevAmount) {
+        await lockAmount(baValidation.billingAccountId, {
+          challengeId: baValidation.challengeId!,
+          lockAmount: rollback ? prevAmount : 0,
+        });
+      }
     }
   }
 }
