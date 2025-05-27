@@ -87,8 +87,6 @@ export async function lockConsumeAmount(baValidation: BAValidation, rollback: bo
   console.log("BA validation:", baValidation);
 
   if (
-    baValidation.status === ChallengeStatuses.New ||
-    baValidation.status === ChallengeStatuses.Draft ||
     baValidation.status === ChallengeStatuses.Active ||
     baValidation.status === ChallengeStatuses.Approved
   ) {
@@ -96,12 +94,10 @@ export async function lockConsumeAmount(baValidation: BAValidation, rollback: bo
     const currAmount = baValidation.totalPrizesInCents / 100;
     const prevAmount = baValidation.prevTotalPrizesInCents / 100;
 
-    if (currAmount !== prevAmount) {
-      await lockAmount(baValidation.billingAccountId, {
-        challengeId: baValidation.challengeId!,
-        lockAmount: (rollback ? prevAmount : currAmount) * (1 + baValidation.markup!),
-      });
-    }
+    await lockAmount(baValidation.billingAccountId, {
+      challengeId: baValidation.challengeId!,
+      lockAmount: (rollback ? prevAmount : currAmount) * (1 + baValidation.markup!),
+    });
   } else if (baValidation.status === ChallengeStatuses.Completed) {
     // Note an already completed challenge could still be updated with prizes
     const currAmount = baValidation.totalPrizesInCents / 100;
@@ -126,15 +122,17 @@ export async function lockConsumeAmount(baValidation: BAValidation, rollback: bo
     baValidation.status === ChallengeStatuses.CancelledZeroRegistrations ||
     baValidation.status === ChallengeStatuses.CancelledPaymentFailed
   ) {
-    // Challenge canceled, unlock previous locked amount
-    const currAmount = 0;
-    const prevAmount = baValidation.prevTotalPrizesInCents / 100;
+    if(baValidation.prevStatus === ChallengeStatuses.Active) {
+      // Challenge canceled, unlock previous locked amount
+      const currAmount = 0;
+      const prevAmount = baValidation.prevTotalPrizesInCents / 100;
 
-    if (currAmount !== prevAmount) {
-      await lockAmount(baValidation.billingAccountId, {
-        challengeId: baValidation.challengeId!,
-        lockAmount: rollback ? prevAmount : 0,
-      });
+      if (currAmount !== prevAmount) {
+        await lockAmount(baValidation.billingAccountId, {
+          challengeId: baValidation.challengeId!,
+          lockAmount: rollback ? prevAmount : 0,
+        });
+      }
     }
   }
 }
