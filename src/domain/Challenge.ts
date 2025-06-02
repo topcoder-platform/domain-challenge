@@ -961,6 +961,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           installmentNumber: 1,
           currency: "USD",
           billingAccount: `${billingAccountId}`,
+          challengeFee: totalAmount * challengeMarkup,
         },
       ];
 
@@ -985,7 +986,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         attributes: {
           billingAccountId,
           payroll: false,
-          challengeFee: totalAmount * challengeMarkup,
         },
       };
 
