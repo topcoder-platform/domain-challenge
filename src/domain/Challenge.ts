@@ -916,7 +916,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     billingAccountId: number,
     challengeType: string,
     title: string,
-    payments: UpdateChallengeInputForACL_PaymentACL[]
+    payments: UpdateChallengeInputForACL_PaymentACL[],
     challengeMarkup: number,
   ): Promise<number> {
     const token = await m2mToken.getM2MToken();
