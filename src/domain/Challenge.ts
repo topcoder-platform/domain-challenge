@@ -592,7 +592,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         completedChallenge.billing?.billingAccountId ?? 0,
         completedChallenge.legacy?.subTrack ?? "Task",
         completedChallenge.name,
-        completedChallenge.payments
+        completedChallenge.payments,
+        completedChallenge.billing?.markup ?? 0,
       );
       baValidation = {
         challengeId: challenge?.id,
@@ -789,7 +790,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           completedChallenge.billing?.billingAccountId ?? 0,
           completedChallenge.legacy?.subTrack ?? "Task",
           completedChallenge.name,
-          completedChallenge.payments
+          completedChallenge.payments,
+          completedChallenge.billing?.markup ?? 0,
         );
 
         if (baValidation != null) {
@@ -915,6 +917,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     challengeType: string,
     title: string,
     payments: UpdateChallengeInputForACL_PaymentACL[]
+    challengeMarkup: number,
   ): Promise<number> {
     const token = await m2mToken.getM2MToken();
 
@@ -958,6 +961,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           installmentNumber: 1,
           currency: "USD",
           billingAccount: `${billingAccountId}`,
+          challengeMarkup,
         },
       ];
 

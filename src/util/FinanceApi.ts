@@ -6,6 +6,7 @@ export interface PaymentDetail {
   installmentNumber: number;
   currency: string;
   billingAccount: string;
+  challengeMarkup: number;
 }
 
 export interface PaymentPayload {
