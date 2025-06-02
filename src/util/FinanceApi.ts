@@ -6,7 +6,6 @@ export interface PaymentDetail {
   installmentNumber: number;
   currency: string;
   billingAccount: string;
-  challengeMarkup: number;
 }
 
 export interface PaymentPayload {
@@ -19,6 +18,7 @@ export interface PaymentPayload {
   externalId: string;
   attributes?: {
     [key: string]: string | boolean | number;
+    challengeFee: number;
   };
   details: PaymentDetail[];
 }

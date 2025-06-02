@@ -934,7 +934,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       return 0;
     }
 
-    let totalAmount = 0;
+    const totalAmount = payments.reduce((sum, payment) => sum + payment.amount, 0);
     // TODO: Make this list exhaustive
     const mapType = (type: string) => {
       if (type === "placement") {
@@ -961,7 +961,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           installmentNumber: 1,
           currency: "USD",
           billingAccount: `${billingAccountId}`,
-          challengeMarkup,
         },
       ];
 
@@ -973,8 +972,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             ? `${title} - ${this.placeToOrdinal(placementMap[payment.handle])} Place`
             : title;
       }
-
-      totalAmount += payment.amount;
 
       const payload = {
         winnerId: payment.userId.toString(),
@@ -988,6 +985,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         attributes: {
           billingAccountId,
           payroll: false,
+          challengeFee: totalAmount * challengeMarkup,
         },
       };
 
