@@ -592,7 +592,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
         completedChallenge.billing?.billingAccountId ?? 0,
         completedChallenge.legacy?.subTrack ?? "Task",
         completedChallenge.name,
-        completedChallenge.payments
+        completedChallenge.payments,
+        completedChallenge.billing?.markup ?? 0,
       );
       baValidation = {
         challengeId: challenge?.id,
@@ -789,7 +790,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           completedChallenge.billing?.billingAccountId ?? 0,
           completedChallenge.legacy?.subTrack ?? "Task",
           completedChallenge.name,
-          completedChallenge.payments
+          completedChallenge.payments,
+          completedChallenge.billing?.markup ?? 0,
         );
 
         if (baValidation != null) {
@@ -914,7 +916,8 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
     billingAccountId: number,
     challengeType: string,
     title: string,
-    payments: UpdateChallengeInputForACL_PaymentACL[]
+    payments: UpdateChallengeInputForACL_PaymentACL[],
+    challengeMarkup: number,
   ): Promise<number> {
     const token = await m2mToken.getM2MToken();
 
@@ -931,7 +934,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
       return 0;
     }
 
-    let totalAmount = 0;
+    const totalAmount = payments.reduce((sum, payment) => sum + payment.amount, 0);
     // TODO: Make this list exhaustive
     const mapType = (type: string) => {
       if (type === "placement") {
@@ -958,6 +961,7 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
           installmentNumber: 1,
           currency: "USD",
           billingAccount: `${billingAccountId}`,
+          challengeFee: totalAmount * challengeMarkup,
         },
       ];
 
@@ -969,8 +973,6 @@ class ChallengeDomain extends CoreOperations<Challenge, CreateChallengeInput> {
             ? `${title} - ${this.placeToOrdinal(placementMap[payment.handle])} Place`
             : title;
       }
-
-      totalAmount += payment.amount;
 
       const payload = {
         winnerId: payment.userId.toString(),
